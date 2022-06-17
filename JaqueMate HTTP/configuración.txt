@@ -1,0 +1,4 @@
+
+Activar el ip masking
+Servidor en Canadá
+Puerto 80
