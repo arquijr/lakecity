@@ -44,7 +44,7 @@ https://mediacp.us:8081/23tv/tracks-v1a1/mono.m3u8
 https://stream-02.nyc.dailymotion.com/sec(JtO5HO8PrOFTKKYNhfGSpodwFj-sfecE3k7hA4gGhLFWUVSJXI3pNX8Wj5SlS36c)/dm/3/x81cvsk/s/live-2.m3u8#cell=lnyc
 
 
-#EXTINF:-1 tvg-id="DWEspanol.de" tvg-logo="https://i.imgur.com/A1xzjOI.png" group-title="News",DW EspaÃ±ol (1080p)
+#EXTINF:-1 tvg-id="DWEspanol.de" tvg-logo="https://i.imgur.com/A1xzjOI.png" group-title="News",DW Español
 https://dwamdstream104.akamaized.net/hls/live/2015530/dwstream104/index.m3u8
 
 
