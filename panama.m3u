@@ -2,7 +2,7 @@
 
 
 #EXTINF:-1,Retro Tv
-http://stream.mediawork.cz/retrotv/retrotvHQ1/chunklist_w627639048.m3u8?
+http://stream.mediawork.cz/retrotv/retrotvHQ1/playlist.m3u8
 
 
 #EXTINF:-1 tvg-id="LocomotionTV.do" tvg-country="ES;HISPAM" tvg-language="Spanish" tvg-logo="https://i.imgur.com/auEJJvP.png" group-title="Animation",Locomotion TV (480p) [Not 24/7]
