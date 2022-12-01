@@ -9,8 +9,8 @@ http://stream.mediawork.cz/retrotv/retrotvHQ1/playlist.m3u8
 https://euronews.alteox.app/hls/es_stream.m3u8
 
 
-#EXTINF:-1,Anime Zone TV (480p) [Not 24/7]
-http://azxtv.com/hls/stream.m3u8
+#EXTINF:-1,CGTN Espanol
+http://livees.cgtn.com/1000e/prog_index.m3u8
 
 
 #EXTINF:-1,Entretenimiento:Wow TV
