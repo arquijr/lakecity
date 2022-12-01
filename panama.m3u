@@ -5,8 +5,8 @@
 http://stream.mediawork.cz/retrotv/retrotvHQ1/playlist.m3u8
 
 
-#EXTINF:-1 tvg-id="LocomotionTV.do" tvg-country="ES;HISPAM" tvg-language="Spanish" tvg-logo="https://i.imgur.com/auEJJvP.png" group-title="Animation",Locomotion TV (480p) [Not 24/7]
-http://51.222.85.85:81/hls/loco/index.m3u8
+#EXTINF:-1,Euronews Spanish
+https://euronews.alteox.app/hls/es_stream.m3u8
 
 
 #EXTINF:-1,Anime Zone TV (480p) [Not 24/7]
