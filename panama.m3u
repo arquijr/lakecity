@@ -33,7 +33,7 @@ https://mdstrm.com/live-stream-playlist/5d976689ab55a60f94ec98e8.m3u8
 
 
 #EXTINF:-1 tvg-id="Nextv.pa" tvg-country="PA" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/1/19/Nexnew.png" group-title="Undefined",Nextv
-https://mediacp.us:8081/nex21/tracks-v1a1/mono.m3u8
+https://mediacp.us:8081/nex/tracks-v1a1/mono.m3u8
 
 
 #EXTINF:-1 tvg-id="Mas23.pa" tvg-country="PA" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/e/ee/Más_23.png" group-title="Undefined",Mas23
