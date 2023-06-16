@@ -1,6 +1,0 @@
-MasMovil no conecta.. .
-cambien de servidor a UK 53 London
-
-Puerto 8888
-Activar el IP Masking
-Configurar el apn a apn02
