@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Felicitaciones por tu Logro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6ecbf5 0%, #059ee3 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .card {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #ff6b6b;
+            padding-bottom: 10px;
+        }
+        
+        .example {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        
+        .result {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #3498db;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 5px;
+            font-family: monospace;
+        }
+        
+        .interactive {
+            background: #ffeaa7;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .interactive h3 {
+            color: #e17055;
+            margin-bottom: 15px;
+        }
+        
+        .try-it {
+            background: #e17055;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+        
+        .try-it:hover {
+            background: #d63031;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #2d3436;
+            color: white;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 ¡Felicitaciones por tu logro! 🎉</h1>
+            <p class="subtitle">Sigue adelante, cada paso cuenta hacia tu éxito.</p>
+        </header>
+        
+        <div class="content">
+            <div class="card">
+                <h2>👏 Has avanzado mucho</h2>
+                <p>Felicitaciones por tu esfuerzo, cada línea de código que aprendes es un triunfo.</p>
+                <p>Recuerda: la constancia y la práctica siempre traen grandes recompensas.</p>
+                
+                <div class="example">
+                    &lt;h1&gt;¡Sigue brillando!&lt;/h1&gt;<br>
+                    &lt;p&gt;Tus logros hablan de tu dedicación.&lt;/p&gt;
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🌟 Frase del Día</h2>
+                <p>Tu trabajo y dedicación te hacen único.</p>
+                <p>Sigue creyendo en ti, estás más cerca de tus metas de lo que imaginas.</p>
+                
+                <div class="result">
+                    <h3>Así se vería:</h3>
+                    <h1>¡Eres increíble!</h1>
+                    <p>El éxito está en tus manos.</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🚀 Tus Próximos Logros</h2>
+                <p>Hoy celebramos tu avance, mañana celebraremos tus nuevos triunfos.</p>
+                
+                <div class="example">
+                    1. &lt;h1&gt;¡Felicidades!&lt;/h1&gt;<br>
+                    2. &lt;p&gt;Tu esfuerzo ha valido la pena.&lt;/p&gt;<br>
+                    3. &lt;p&gt;Sigue adelante, lo mejor está por venir.&lt;/p&gt;
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>✨ Practica con tus palabras</h2>
+                <p>Escribe tus propios mensajes positivos y observa el resultado:</p>
+                
+                <div class="interactive">
+                    <h3>Editor Motivador</h3>
+                    <textarea id="htmlCode" rows="6" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+<h1>¡Eres un campeón!</h1>
+<p>Cada día aprendes más y más.</p>
+<p>Tu dedicación es admirable.</p>
+                    </textarea>
+                    <button class="try-it" onclick="updatePreview()">Ver Resultado</button>
+                    
+                    <div id="preview" style="margin-top: 15px; padding: 15px; background: white; border-radius: 5px; min-height: 100px;">
+                        <h1>¡Eres un campeón!</h1>
+                        <p>Cada día aprendes más y más.</p>
+                        <p>Tu dedicación es admirable.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p> ¡Sigue practicando y celebrando tus logros, el futuro es tuyo! </p>
+        </footer>
+    </div>
+
+    <script>
+        function updatePreview() {
+            const code = document.getElementById('htmlCode').value;
+            document.getElementById('preview').innerHTML = code;
+        }
+    </script>
+</body>
+</html>
