@@ -45,3 +45,5 @@ https://archive.org/download/Peliculas-wii/Recuerdos%20del%20Ayer.mp4
 https://archive.org/download/Peliculas-wii/Se%20levanta%20el%20viento.mp4
 #EXTINF:-1  tvg-logo="https://telechancho.github.io/telechancho-iptv/covers/movies/Susurros_del_coraz_n-911063934-large.jpg",Susurros del Corazon
 https://archive.org/download/Peliculas-wii/Susurros%20del%20Corazon.mp4
+#EXTINF:-1 tvg-id="Dsport" tvg-country="AR" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/5/5a/DSports.png" group-title="Sport",Directv Sport 
+http://38.183.182.166:8000/play/a125/index.m3u8
