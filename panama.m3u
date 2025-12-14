@@ -53,3 +53,5 @@ http://fl1.moveonjoy.com/BEIN_SPORTS/index.m3u8
 http://fortv.cc:8080/live/aguayojose2010@gmail.com/aguayojose2010@2024/125947.ts
 #EXTINF:-1 tvg-id="ESPN" tvg-country="LAT" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/ESPN_Deportes.svg/1920px-ESPN_Deportes.svg.png" group-title="Sport",ESPN Deportes 
 http://201.230.121.186:8000/play/a0fi/index.m3u8
+#EXTINF:-1 tvg-id="RedBull" tvg-country="LAT" tvg-language="Eng" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/9/91/Logo_of_Red_bull.svg" group-title="Sport",RedBull 
+https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master_3360.m3u8
