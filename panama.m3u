@@ -45,8 +45,8 @@ https://archive.org/download/Peliculas-wii/Recuerdos%20del%20Ayer.mp4
 https://archive.org/download/Peliculas-wii/Se%20levanta%20el%20viento.mp4
 #EXTINF:-1  tvg-logo="https://telechancho.github.io/telechancho-iptv/covers/movies/Susurros_del_coraz_n-911063934-large.jpg",Susurros del Corazon
 https://archive.org/download/Peliculas-wii/Susurros%20del%20Corazon.mp4
-#EXTINF:-1 tvg-id="Dsport" tvg-country="AR" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/5/5a/DSports.png" group-title="Sport",Directv Sport 
-http://38.183.182.166:8000/play/a125/index.m3u8
+#EXTINF:-1 tvg-id="LOCOMOTION" tvg-country="AR" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/e/ee/Locomotion.png" group-title="Sport",LOCOMOTION 
+http://51.222.85.85:81/hls/loco/index.m3u8
 #EXTINF:-1 tvg-id="beIN SPORTS USA" tvg-country="USA" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/2016_beIN_Sports_logo.svg/1920px-2016_beIN_Sports_logo.svg.png" group-title="Sport",beIN SPORTS USA 
 http://fl1.moveonjoy.com/BEIN_SPORTS/index.m3u8
 #EXTINF:-1 tvg-id="Sky Sports" tvg-country="USA" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/en/b/b7/Sky_Sports_logo_2020.svg" group-title="Sport",Sky Sports
