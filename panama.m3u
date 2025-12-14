@@ -55,5 +55,5 @@ http://fortv.cc:8080/live/aguayojose2010@gmail.com/aguayojose2010@2024/125947.ts
 http://201.230.121.186:8000/play/a0fi/index.m3u8
 #EXTINF:-1 tvg-id="RedBull" tvg-country="LAT" tvg-language="Eng" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/9/91/Logo_of_Red_bull.svg" group-title="Sport",RedBull 
 https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master_3360.m3u8
-#EXTINF:-1 tvg-id="Star Wars Eps1" tvg-country="LAT" tvg-language="Spanish" ,Star Wars - Ep. 1 - La amenaza fantasma
+#EXTINF:-1  tvg-logo="",Star Wars - Ep. 1 - La amenaza fantasma
 https://dn720409.ca.archive.org/0/items/Peliculas-wii/Star%20Wars%20-%20Ep.%201%20-%20La%20amenaza%20fantasma.ia.mp4
