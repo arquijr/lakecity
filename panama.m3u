@@ -49,7 +49,7 @@ https://archive.org/download/Peliculas-wii/Susurros%20del%20Corazon.mp4
 http://38.183.182.166:8000/play/a125/index.m3u8
 #EXTINF:-1 tvg-id="beIN SPORTS USA" tvg-country="USA" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/2016_beIN_Sports_logo.svg/1920px-2016_beIN_Sports_logo.svg.png" group-title="Sport",beIN SPORTS USA 
 http://fl1.moveonjoy.com/BEIN_SPORTS/index.m3u8
-#EXTINF:-1 tvg-id="Tigo Sports" tvg-country="USA" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/3/3b/Tigo_Sports_2025.png" group-title="Sport",Tigo Sports 
-http://201.237.193.180:9981/stream/channelid/333632199?profile=pass
+#EXTINF:-1 tvg-id="Sky Sports" tvg-country="USA" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/en/b/b7/Sky_Sports_logo_2020.svg" group-title="Sport",Sky Sports
+http://fortv.cc:8080/live/aguayojose2010@gmail.com/aguayojose2010@2024/125947.ts
 #EXTINF:-1 tvg-id="ESPN" tvg-country="LAT" tvg-language="Spanish" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/ESPN_Deportes.svg/1920px-ESPN_Deportes.svg.png" group-title="Sport",ESPN Deportes 
 http://201.230.121.186:8000/play/a0fi/index.m3u8
