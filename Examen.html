@@ -474,70 +474,77 @@
 <script>
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwUpoc8HPNSbyc_9CGwUlAtvc1PUxNmVwZULrZL5vHAB7xNCzn4oIcUma51ag5iIUrI/exec";
- 
+
 // ── VOCABULARIO (validación local por palabras clave) ─────────────────────────
+// Lógica: se busca si ALGUNA de las keywords aparece en la oración del estudiante.
+// El estudiante puede escribir: "rdp", "es rdp", "el protocolo es rdp", etc.
 const VOCABULARIO = {
     "¿Cómo se denomina el protocolo utilizado para controlar un equipo de forma remota en Windows?":
-        ["RDP", "REMOTE DESKTOP PROTOCOL", "ESCRITORIO REMOTO"],
- 
+        ["RDP", "REMOTE DESKTOP", "ESCRITORIO REMOTO", "PROTOCOLO DE ESCRITORIO"],
+
     "¿Cuál es el número de puerto predeterminado utilizado por RDP?":
         ["3389"],
- 
+
     "¿Qué empresa desarrolló el protocolo RDP?":
         ["MICROSOFT"],
- 
+
     "¿Qué modelo describe la comunicación de RDP entre dos equipos?":
-        ["CLIENTE-SERVIDOR", "CLIENTE SERVIDOR", "CLIENTE/SERVIDOR"],
- 
+        ["CLIENTE-SERVIDOR", "CLIENTE SERVIDOR", "CLIENTE/SERVIDOR",
+         "CLIENTE - SERVIDOR", "MODELO CLIENTE"],
+
     "¿Qué protocolo se utiliza para asegurar conexiones cifradas?":
-        ["TLS", "SSL", "HTTPS", "TLS/SSL", "SSL/TLS"],
- 
+        ["TLS", "SSL", "SEGURO", "CIFRAD", "ENCRIPTAD"],
+
     "¿Cómo se llama la vulnerabilidad famosa que afectó RDP en 2019?":
-        ["BLUEKEEP", "BLUE KEEP", "CVE-2019-0708"],
- 
+        ["BLUEKEEP", "BLUE KEEP", "BLUE-KEEP", "CVE-2019"],
+
     "¿Qué puerto utiliza HTTP?":
         ["80"],
- 
+
     "¿Qué puerto utiliza HTTPS?":
         ["443"],
- 
+
     "¿Qué puerto utiliza SSH?":
         ["22"],
- 
+
     "¿Qué protocolo garantiza entrega de datos?":
-        ["TCP", "TRANSMISSION CONTROL PROTOCOL"],
- 
+        ["TCP", "TRANSMISSION CONTROL", "CONTROL DE TRANSMISION",
+         "CONTROL DE TRANSMISIÓN", "GARANTIZA"],
+
     "¿Qué protocolo es más rápido pero no garantiza entrega?":
-        ["UDP", "USER DATAGRAM PROTOCOL"],
- 
+        ["UDP", "USER DATAGRAM", "DATAGRAMA DE USUARIO", "DATAGRAMA"],
+
     "¿Cómo se denomina una red local?":
-        ["LAN", "LOCAL AREA NETWORK", "RED DE AREA LOCAL"],
- 
+        ["LAN", "LOCAL AREA", "RED LOCAL", "RED DE AREA", "RED DE ÁREA"],
+
     "¿Qué dispositivo conecta a Internet?":
-        ["ROUTER", "ENRUTADOR"],
- 
+        ["ROUTER", "ENRUTADOR", "RUTEADOR"],
+
     "¿Cómo se llama la dirección lógica?":
-        ["IP", "DIRECCIÓN IP", "DIRECCION IP", "IP ADDRESS"],
- 
+        ["DIRECCION IP", "DIRECCIÓN IP", "IP ADDRESS", "PROTOCOLO IP",
+         "ES IP", "LA IP", "UNA IP"],
+
     "¿Cómo se llama la dirección física?":
-        ["MAC", "MAC ADDRESS", "DIRECCIÓN MAC", "DIRECCION MAC"],
- 
+        ["MAC", "MEDIA ACCESS", "ACCESO AL MEDIO", "FISICA", "FÍSICA"],
+
     "¿Qué rango usan los puertos reservados?":
-        ["0-1023", "0 A 1023", "0 AL 1023", "1023", "DEL 0 AL 1023"],
- 
+        ["0-1023", "0 A 1023", "0 AL 1023", "0 HASTA 1023",
+         "DEL 0 AL", "ENTRE 0", "1023"],
+
     "¿Qué puerto utiliza DNS?":
         ["53"],
- 
+
     "¿Qué puerto utiliza SMTP?":
         ["25"],
- 
+
     "¿Qué puerto utiliza FTP?":
         ["21"],
- 
+
     "¿Qué capa gestiona los puertos?":
-        ["TRANSPORTE", "CAPA DE TRANSPORTE", "CAPA 4", "LAYER 4"]
+        ["TRANSPORTE", "CAPA 4", "LAYER 4", "CUARTA CAPA",
+         "FOURTH LAYER", "CAPA DE TRANSPORTE"]
 };
- 
+
 // ── PREGUNTAS ─────────────────────────────────────────────────────────────────
 const QUESTIONS = [
     {q:"¿Cómo se denomina el protocolo utilizado para controlar un equipo de forma remota en Windows?"},
@@ -561,9 +568,9 @@ const QUESTIONS = [
     {q:"¿Qué puerto utiliza FTP?"},
     {q:"¿Qué capa gestiona los puertos?"}
 ];
- 
+
 const TOTAL = QUESTIONS.length;
- 
+
 // ── ESTADO ────────────────────────────────────────────────────────────────────
 const canvas  = document.getElementById("maze");
 const ctx     = canvas.getContext("2d");
@@ -575,14 +582,14 @@ let clueActual   = null;
 let timerInterval = null;
 let segundosRestantes = 90 * 60;
 let tiempoInicio = null;
- 
+
 // ── LOG ───────────────────────────────────────────────────────────────────────
 function log(msg, tipo = "ok") {
     const d = document.getElementById("log");
     const ts = new Date().toLocaleTimeString("es-PA", {hour12:false});
     d.innerHTML = `<div class="entry ${tipo}">> [${ts}] ${msg}</div>` + d.innerHTML;
 }
- 
+
 // ── TIMER ─────────────────────────────────────────────────────────────────────
 function iniciarTimer() {
     tiempoInicio = Date.now();
@@ -603,7 +610,7 @@ function iniciarTimer() {
         }
     }, 1000);
 }
- 
+
 // ── REGISTRO ──────────────────────────────────────────────────────────────────
 function guardarDatos() {
     const n = document.getElementById("nombre").value.trim();
@@ -615,20 +622,29 @@ function guardarDatos() {
     log("Laberinto desbloqueado. ¡Buena suerte!", "warn");
     iniciarTimer();
 }
- 
+
 // ── ENVÍO A SHEETS (segundo plano, sin bloquear) ──────────────────────────────
 function enviarSheets(nombre, salon, pregunta, respuesta) {
     const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
     fetch(url).catch(err => console.warn("Sheets no disponible:", err));
 }
- 
+
 // ── VALIDACIÓN LOCAL ──────────────────────────────────────────────────────────
+function normalizar(texto) {
+    return texto
+        .toUpperCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 function validarRespuesta(pregunta, respuesta) {
     const palabrasClave = VOCABULARIO[pregunta] || [];
-    const respuestaUpper = respuesta.toUpperCase().trim();
-    return palabrasClave.some(kw => respuestaUpper.includes(kw.toUpperCase()));
+    const respuestaNorm = normalizar(respuesta);
+    return palabrasClave.some(kw => respuestaNorm.includes(normalizar(kw)));
 }
- 
+
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function abrirModal(clue) {
     clueActual   = clue;
@@ -641,19 +657,19 @@ function abrirModal(clue) {
     document.getElementById("modal-overlay").classList.add("active");
     setTimeout(() => document.getElementById("modal-respuesta").focus(), 100);
 }
- 
+
 function cerrarModal() {
     document.getElementById("modal-overlay").classList.remove("active");
     clueActual   = null;
     modalAbierto = false;
 }
- 
+
 function submitModal() {
     const r = document.getElementById("modal-respuesta").value.trim();
     if (!r) { alert("Escribe una respuesta antes de validar."); return; }
- 
+
     const esCorrecta = validarRespuesta(clueActual.q, r);
- 
+
     if (esCorrecta) {
         clueActual.d = true;
         score++;
@@ -662,18 +678,18 @@ function submitModal() {
         document.getElementById("clues").innerText     = `${found}/${TOTAL}`;
         document.getElementById("prog-fill").style.width = (found / TOTAL * 100) + "%";
         log(`✔ Correcto — ${score}/${TOTAL} pts`, "ok");
- 
+
         // Enviar a Sheets en segundo plano sin bloquear
         const nombre = document.getElementById("nombre").value;
         const salon  = document.getElementById("salon").value;
         enviarSheets(nombre, salon, clueActual.q, r);
- 
+
         // Mover jugador a la celda destino
         player.x = clueActual._nx;
         player.y = clueActual._ny;
         draw();
         cerrarModal();
- 
+
         if (player.x === SIZE - 1 && player.y === SIZE - 1) {
             verificarVictoria();
         }
@@ -683,7 +699,7 @@ function submitModal() {
         document.getElementById("ia-status").style.color = "#ff4466";
     }
 }
- 
+
 // ── VICTORIA ──────────────────────────────────────────────────────────────────
 function verificarVictoria() {
     if (found < TOTAL) {
@@ -701,7 +717,7 @@ function verificarVictoria() {
     document.getElementById("win-screen").classList.add("active");
     return true;
 }
- 
+
 // ── LABERINTO (DFS) ───────────────────────────────────────────────────────────
 function init() {
     cells = Array.from({length: SIZE}, () =>
@@ -726,7 +742,7 @@ function init() {
         } else { stack.pop(); }
     }
     cells[SIZE-1][SIZE-1].w[2] = false;
- 
+
     // Colocar preguntas aleatoriamente
     let pos = [];
     for (let y = 0; y < SIZE; y++)
@@ -737,19 +753,19 @@ function init() {
     clues = pos.slice(0, TOTAL).map((p, i) => ({...p, q: QUESTIONS[i].q, d: false}));
     draw();
 }
- 
+
 // ── DIBUJO ────────────────────────────────────────────────────────────────────
 function draw() {
     const w = canvas.width / SIZE;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
- 
+
     // Salida
     ctx.fillStyle = "rgba(0,255,136,0.12)";
     ctx.fillRect((SIZE-1)*w, (SIZE-1)*w, w, w);
     ctx.fillStyle = "rgba(0,255,136,0.5)";
     ctx.font = `${w*0.45}px Share Tech Mono`;
     ctx.fillText("EXIT", (SIZE-1)*w + w*0.05, (SIZE-1)*w + w*0.65);
- 
+
     // Paredes
     ctx.strokeStyle = "rgba(0,212,255,0.35)";
     ctx.lineWidth = 1.5;
@@ -761,7 +777,7 @@ function draw() {
             if (cells[y][x].w[3]) { ctx.beginPath(); ctx.moveTo(x*w, y*w); ctx.lineTo(x*w, (y+1)*w); ctx.stroke(); }
         }
     }
- 
+
     // Preguntas "?"
     clues.forEach(c => {
         if (!c.d) {
@@ -772,7 +788,7 @@ function draw() {
             ctx.fillText("?", c.x*w + w*0.28, c.y*w + w*0.7);
         }
     });
- 
+
     // Jugador
     ctx.fillStyle = "#ffdd44";
     ctx.shadowColor = "#ffdd44";
@@ -782,7 +798,7 @@ function draw() {
     ctx.fill();
     ctx.shadowBlur = 0;
 }
- 
+
 // ── MOVIMIENTO ────────────────────────────────────────────────────────────────
 async function move(dx, dy) {
     if (!document.getElementById("nombre").disabled) {
@@ -791,14 +807,14 @@ async function move(dx, dy) {
     }
     // Bloquear movimiento si el modal está abierto
     if (modalAbierto) return;
- 
+
     const nx = player.x + dx;
     const ny = player.y + dy;
     const wIdx = dy < 0 ? 0 : dx > 0 ? 1 : dy > 0 ? 2 : 3;
- 
+
     if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) return;
     if (cells[player.y][player.x].w[wIdx]) return;
- 
+
     // ¿Hay pregunta en la celda destino?
     const c = clues.find(c => c.x === nx && c.y === ny && !c.d);
     if (c) {
@@ -807,7 +823,7 @@ async function move(dx, dy) {
         abrirModal(c);
         return;
     }
- 
+
     // ¿Es la salida?
     if (nx === SIZE-1 && ny === SIZE-1) {
         if (found < TOTAL) {
@@ -816,16 +832,16 @@ async function move(dx, dy) {
             return;
         }
     }
- 
+
     player.x = nx;
     player.y = ny;
     draw();
- 
+
     if (player.x === SIZE-1 && player.y === SIZE-1) {
         verificarVictoria();
     }
 }
- 
+
 // ── TECLADO ───────────────────────────────────────────────────────────────────
 window.addEventListener("keydown", e => {
     if (document.getElementById("modal-overlay").classList.contains("active")) {
@@ -838,7 +854,7 @@ window.addEventListener("keydown", e => {
     if (e.key === "ArrowLeft")  { e.preventDefault(); move(-1,0); }
     if (e.key === "ArrowRight") { e.preventDefault(); move(1,0); }
 });
- 
+
 // ── INICIO ────────────────────────────────────────────────────────────────────
 init();
 </script>
