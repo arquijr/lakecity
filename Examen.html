@@ -25,7 +25,6 @@
             min-height: 100vh;
         }
  
-        /* Fondo animado */
         body::before {
             content: '';
             position: fixed;
@@ -118,7 +117,6 @@
  
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
  
-        /* Timer */
         #timer-bar {
             height: 3px;
             background: linear-gradient(90deg, var(--green), var(--primary), var(--gold));
@@ -407,7 +405,7 @@
         <h3>// MECÁNICA</h3>
         <p>1. Muévete con las <b>flechas del teclado</b> o los botones.</p>
         <p>2. Al tocar un <b>"?"</b>, responde la pregunta técnica.</p>
-        <p>3. La <b>IA evalúa</b> tu respuesta en tiempo real.</p>
+        <p>3. Tu respuesta se <b>valida automáticamente</b>.</p>
         <p>4. Debes responder <b>todas las preguntas</b> antes de llegar a la salida.</p>
         <br>
         <p style="color: rgba(201,168,76,0.6); font-size:0.75rem;">▸ La salida está marcada en verde.</p>
@@ -457,7 +455,7 @@
         <input id="modal-respuesta" type="text" placeholder="Escribe tu respuesta técnica..." autocomplete="off">
         <div class="modal-footer">
             <button class="btn-cancel" onclick="cerrarModal()">CANCELAR</button>
-            <button class="btn" id="btn-enviar" onclick="submitModal()">VALIDAR CON IA →</button>
+            <button class="btn" id="btn-enviar" onclick="submitModal()">VALIDAR →</button>
         </div>
     </div>
 </div>
@@ -476,6 +474,69 @@
 <script>
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwUpoc8HPNSbyc_9CGwUlAtvc1PUxNmVwZULrZL5vHAB7xNCzn4oIcUma51ag5iIUrI/exec";
+ 
+// ── VOCABULARIO (validación local por palabras clave) ─────────────────────────
+const VOCABULARIO = {
+    "¿Cómo se denomina el protocolo utilizado para controlar un equipo de forma remota en Windows?":
+        ["RDP", "REMOTE DESKTOP PROTOCOL", "ESCRITORIO REMOTO"],
+ 
+    "¿Cuál es el número de puerto predeterminado utilizado por RDP?":
+        ["3389"],
+ 
+    "¿Qué empresa desarrolló el protocolo RDP?":
+        ["MICROSOFT"],
+ 
+    "¿Qué modelo describe la comunicación de RDP entre dos equipos?":
+        ["CLIENTE-SERVIDOR", "CLIENTE SERVIDOR", "CLIENTE/SERVIDOR"],
+ 
+    "¿Qué protocolo se utiliza para asegurar conexiones cifradas?":
+        ["TLS", "SSL", "HTTPS", "TLS/SSL", "SSL/TLS"],
+ 
+    "¿Cómo se llama la vulnerabilidad famosa que afectó RDP en 2019?":
+        ["BLUEKEEP", "BLUE KEEP", "CVE-2019-0708"],
+ 
+    "¿Qué puerto utiliza HTTP?":
+        ["80"],
+ 
+    "¿Qué puerto utiliza HTTPS?":
+        ["443"],
+ 
+    "¿Qué puerto utiliza SSH?":
+        ["22"],
+ 
+    "¿Qué protocolo garantiza entrega de datos?":
+        ["TCP", "TRANSMISSION CONTROL PROTOCOL"],
+ 
+    "¿Qué protocolo es más rápido pero no garantiza entrega?":
+        ["UDP", "USER DATAGRAM PROTOCOL"],
+ 
+    "¿Cómo se denomina una red local?":
+        ["LAN", "LOCAL AREA NETWORK", "RED DE AREA LOCAL"],
+ 
+    "¿Qué dispositivo conecta a Internet?":
+        ["ROUTER", "ENRUTADOR"],
+ 
+    "¿Cómo se llama la dirección lógica?":
+        ["IP", "DIRECCIÓN IP", "DIRECCION IP", "IP ADDRESS"],
+ 
+    "¿Cómo se llama la dirección física?":
+        ["MAC", "MAC ADDRESS", "DIRECCIÓN MAC", "DIRECCION MAC"],
+ 
+    "¿Qué rango usan los puertos reservados?":
+        ["0-1023", "0 A 1023", "0 AL 1023", "1023", "DEL 0 AL 1023"],
+ 
+    "¿Qué puerto utiliza DNS?":
+        ["53"],
+ 
+    "¿Qué puerto utiliza SMTP?":
+        ["25"],
+ 
+    "¿Qué puerto utiliza FTP?":
+        ["21"],
+ 
+    "¿Qué capa gestiona los puertos?":
+        ["TRANSPORTE", "CAPA DE TRANSPORTE", "CAPA 4", "LAYER 4"]
+};
  
 // ── PREGUNTAS ─────────────────────────────────────────────────────────────────
 const QUESTIONS = [
@@ -501,14 +562,16 @@ const QUESTIONS = [
     {q:"¿Qué capa gestiona los puertos?"}
 ];
  
+const TOTAL = QUESTIONS.length;
+ 
 // ── ESTADO ────────────────────────────────────────────────────────────────────
 const canvas  = document.getElementById("maze");
 const ctx     = canvas.getContext("2d");
 const SIZE    = 15;
 let cells = [], clues = [], player = {x:0, y:0};
 let score = 0, found = 0;
-let esperandoIA = false;
-let clueActual  = null;
+let modalAbierto = false;
+let clueActual   = null;
 let timerInterval = null;
 let segundosRestantes = 90 * 60;
 let tiempoInicio = null;
@@ -536,7 +599,7 @@ function iniciarTimer() {
         if (segundosRestantes <= 0) {
             clearInterval(timerInterval);
             log("¡Tiempo agotado!", "error");
-            alert(`⏱ Tiempo agotado.\nPuntaje final: ${score}/20`);
+            alert(`⏱ Tiempo agotado.\nPuntaje final: ${score}/${TOTAL}`);
         }
     }, 1000);
 }
@@ -553,83 +616,79 @@ function guardarDatos() {
     iniciarTimer();
 }
  
-// ── LLAMADA AL SCRIPT ─────────────────────────────────────────────────────────
-async function enviarSheetsIA(nombre, salon, pregunta, respuesta) {
+// ── ENVÍO A SHEETS (segundo plano, sin bloquear) ──────────────────────────────
+function enviarSheets(nombre, salon, pregunta, respuesta) {
     const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
-    try {
-        const res  = await fetch(url);
-        const text = await res.text();
-        return text.trim().toUpperCase();
-    } catch (err) {
-        console.error("Error fetch:", err);
-        return "NO";
-    }
+    fetch(url).catch(err => console.warn("Sheets no disponible:", err));
+}
+ 
+// ── VALIDACIÓN LOCAL ──────────────────────────────────────────────────────────
+function validarRespuesta(pregunta, respuesta) {
+    const palabrasClave = VOCABULARIO[pregunta] || [];
+    const respuestaUpper = respuesta.toUpperCase().trim();
+    return palabrasClave.some(kw => respuestaUpper.includes(kw.toUpperCase()));
 }
  
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function abrirModal(clue) {
-    clueActual = clue;
+    clueActual   = clue;
+    modalAbierto = true;
     document.getElementById("modal-pregunta").innerText = clue.q;
-    document.getElementById("modal-respuesta").value = "";
-    document.getElementById("ia-status").innerText = "";
-    document.getElementById("btn-enviar").disabled = false;
+    document.getElementById("modal-respuesta").value    = "";
+    document.getElementById("ia-status").innerText      = "";
+    document.getElementById("ia-status").style.color    = "var(--gold)";
+    document.getElementById("btn-enviar").disabled      = false;
     document.getElementById("modal-overlay").classList.add("active");
     setTimeout(() => document.getElementById("modal-respuesta").focus(), 100);
 }
  
 function cerrarModal() {
     document.getElementById("modal-overlay").classList.remove("active");
-    clueActual = null;
-    esperandoIA = false;
+    clueActual   = null;
+    modalAbierto = false;
 }
  
-async function submitModal() {
-    if (esperandoIA) return;
+function submitModal() {
     const r = document.getElementById("modal-respuesta").value.trim();
     if (!r) { alert("Escribe una respuesta antes de validar."); return; }
  
-    esperandoIA = true;
-    document.getElementById("btn-enviar").disabled = true;
-    document.getElementById("ia-status").innerText = "⟳ Consultando IA...";
-    log("Validando con IA...", "info");
+    const esCorrecta = validarRespuesta(clueActual.q, r);
  
-    const nombre = document.getElementById("nombre").value;
-    const salon  = document.getElementById("salon").value;
-    const res    = await enviarSheetsIA(nombre, salon, clueActual.q, r);
- 
-    if (res === "SI") {
+    if (esCorrecta) {
         clueActual.d = true;
         score++;
         found++;
-        document.getElementById("score").innerText = score;
-        document.getElementById("clues").innerText = found + "/20";
-        document.getElementById("prog-fill").style.width = (found / 20 * 100) + "%";
-        log("✔ Respuesta correcta — +" + score + " pts", "ok");
+        document.getElementById("score").innerText     = score;
+        document.getElementById("clues").innerText     = `${found}/${TOTAL}`;
+        document.getElementById("prog-fill").style.width = (found / TOTAL * 100) + "%";
+        log(`✔ Correcto — ${score}/${TOTAL} pts`, "ok");
  
-        // mover jugador
+        // Enviar a Sheets en segundo plano sin bloquear
+        const nombre = document.getElementById("nombre").value;
+        const salon  = document.getElementById("salon").value;
+        enviarSheets(nombre, salon, clueActual.q, r);
+ 
+        // Mover jugador a la celda destino
         player.x = clueActual._nx;
         player.y = clueActual._ny;
         draw();
         cerrarModal();
  
-        // verificar victoria
         if (player.x === SIZE - 1 && player.y === SIZE - 1) {
             verificarVictoria();
         }
     } else {
-        log("✖ Respuesta insuficiente. Intenta de nuevo.", "error");
-        document.getElementById("ia-status").innerText = "✖ Incorrecto. Reformula tu respuesta.";
+        log("✖ Respuesta incorrecta. Intenta de nuevo.", "error");
+        document.getElementById("ia-status").innerText   = "✖ Incorrecto. Intenta ser más específico.";
         document.getElementById("ia-status").style.color = "#ff4466";
-        document.getElementById("btn-enviar").disabled = false;
-        esperandoIA = false;
     }
 }
  
 // ── VICTORIA ──────────────────────────────────────────────────────────────────
 function verificarVictoria() {
-    if (found < 20) {
-        log(`Salida bloqueada. Responde todas las preguntas (${found}/20).`, "warn");
-        alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas.\nLlevas ${found}/20.`);
+    if (found < TOTAL) {
+        log(`Salida bloqueada. Responde todas las preguntas (${found}/${TOTAL}).`, "warn");
+        alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas.\nLlevas ${found}/${TOTAL}.`);
         return false;
     }
     clearInterval(timerInterval);
@@ -637,7 +696,7 @@ function verificarVictoria() {
     const mm = Math.floor(elapsed / 60);
     const ss = String(elapsed % 60).padStart(2, "0");
     document.getElementById("win-nombre").innerText = document.getElementById("nombre").value;
-    document.getElementById("win-score").innerText  = `Puntaje: ${score}/20`;
+    document.getElementById("win-score").innerText  = `Puntaje: ${score}/${TOTAL}`;
     document.getElementById("win-tiempo").innerText = `Tiempo: ${mm}:${ss}`;
     document.getElementById("win-screen").classList.add("active");
     return true;
@@ -675,7 +734,7 @@ function init() {
             if (!(x === 0 && y === 0) && !(x === SIZE-1 && y === SIZE-1))
                 pos.push({x, y});
     pos.sort(() => Math.random() - 0.5);
-    clues = pos.slice(0, 20).map((p, i) => ({...p, q: QUESTIONS[i].q, d: false}));
+    clues = pos.slice(0, TOTAL).map((p, i) => ({...p, q: QUESTIONS[i].q, d: false}));
     draw();
 }
  
@@ -730,7 +789,8 @@ async function move(dx, dy) {
         alert("Registra tus datos primero.");
         return;
     }
-    if (esperandoIA) return;
+    // Bloquear movimiento si el modal está abierto
+    if (modalAbierto) return;
  
     const nx = player.x + dx;
     const ny = player.y + dy;
@@ -750,9 +810,9 @@ async function move(dx, dy) {
  
     // ¿Es la salida?
     if (nx === SIZE-1 && ny === SIZE-1) {
-        if (found < 20) {
-            log(`Salida bloqueada. Faltan ${20 - found} preguntas.`, "warn");
-            alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas primero.\nLlevas ${found}/20.`);
+        if (found < TOTAL) {
+            log(`Salida bloqueada. Faltan ${TOTAL - found} preguntas.`, "warn");
+            alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas primero.\nLlevas ${found}/${TOTAL}.`);
             return;
         }
     }
@@ -768,9 +828,8 @@ async function move(dx, dy) {
  
 // ── TECLADO ───────────────────────────────────────────────────────────────────
 window.addEventListener("keydown", e => {
-    // No interferir con el modal
     if (document.getElementById("modal-overlay").classList.contains("active")) {
-        if (e.key === "Enter") submitModal();
+        if (e.key === "Enter")  submitModal();
         if (e.key === "Escape") cerrarModal();
         return;
     }
@@ -785,4 +844,4 @@ init();
 </script>
 </body>
 </html>
-</html>
+ 
