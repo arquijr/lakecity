@@ -466,6 +466,7 @@
     <h1>¡LABERINTO COMPLETADO!</h1>
     <p id="win-nombre"></p>
     <p id="win-score"></p>
+    <p id="win-nota" style="font-size:1.4rem; color: var(--green); font-family:'Orbitron',monospace;"></p>
     <p id="win-tiempo"></p>
     <br>
     <p style="color:#555; font-size:0.8rem;">Tu resultado ha sido registrado.</p>
@@ -474,7 +475,7 @@
 <script>
 // ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwUpoc8HPNSbyc_9CGwUlAtvc1PUxNmVwZULrZL5vHAB7xNCzn4oIcUma51ag5iIUrI/exec";
- 
+
 // ── PREGUNTAS + PALABRAS CLAVE (estructura unificada) ─────────────────────────
 // La clave "keys" contiene fragmentos que se buscan DENTRO de la oración del alumno.
 // Ejemplo: "el protocolo es rdp" → contiene "RDP" → correcto ✔
@@ -560,9 +561,9 @@ const QUESTIONS = [
         keys: ["TRANSPORTE", "CAPA 4", "LAYER 4", "CUARTA CAPA"]
     }
 ];
- 
+
 const TOTAL = QUESTIONS.length;
- 
+
 // ── ESTADO ────────────────────────────────────────────────────────────────────
 const canvas  = document.getElementById("maze");
 const ctx     = canvas.getContext("2d");
@@ -574,14 +575,14 @@ let clueActual   = null;
 let timerInterval = null;
 let segundosRestantes = 90 * 60;
 let tiempoInicio = null;
- 
+
 // ── LOG ───────────────────────────────────────────────────────────────────────
 function log(msg, tipo = "ok") {
     const d = document.getElementById("log");
     const ts = new Date().toLocaleTimeString("es-PA", {hour12:false});
     d.innerHTML = `<div class="entry ${tipo}">> [${ts}] ${msg}</div>` + d.innerHTML;
 }
- 
+
 // ── TIMER ─────────────────────────────────────────────────────────────────────
 function iniciarTimer() {
     tiempoInicio = Date.now();
@@ -602,7 +603,7 @@ function iniciarTimer() {
         }
     }, 1000);
 }
- 
+
 // ── REGISTRO ──────────────────────────────────────────────────────────────────
 function guardarDatos() {
     const n = document.getElementById("nombre").value.trim();
@@ -614,13 +615,13 @@ function guardarDatos() {
     log("Laberinto desbloqueado. ¡Buena suerte!", "warn");
     iniciarTimer();
 }
- 
+
 // ── ENVÍO A SHEETS (segundo plano, sin bloquear) ──────────────────────────────
 function enviarSheets(nombre, salon, pregunta, respuesta) {
     const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
     fetch(url).catch(err => console.warn("Sheets no disponible:", err));
 }
- 
+
 // ── VALIDACIÓN LOCAL ──────────────────────────────────────────────────────────
 function normalizar(texto) {
     return texto
@@ -630,14 +631,14 @@ function normalizar(texto) {
         .replace(/\s+/g, " ")            // colapsa espacios
         .trim();
 }
- 
+
 // Recibe el objeto clue (que ya tiene .keys) y la respuesta escrita
 function validarRespuesta(clue, respuesta) {
     const palabrasClave = clue.keys || [];
     const respuestaNorm = normalizar(respuesta);
     return palabrasClave.some(kw => respuestaNorm.includes(normalizar(kw)));
 }
- 
+
 // ── MODAL ─────────────────────────────────────────────────────────────────────
 function abrirModal(clue) {
     clueActual   = clue;
@@ -650,19 +651,19 @@ function abrirModal(clue) {
     document.getElementById("modal-overlay").classList.add("active");
     setTimeout(() => document.getElementById("modal-respuesta").focus(), 100);
 }
- 
+
 function cerrarModal() {
     document.getElementById("modal-overlay").classList.remove("active");
     clueActual   = null;
     modalAbierto = false;
 }
- 
+
 function submitModal() {
     const r = document.getElementById("modal-respuesta").value.trim();
     if (!r) { alert("Escribe una respuesta antes de validar."); return; }
- 
+
     const esCorrecta = validarRespuesta(clueActual, r);
- 
+
     if (esCorrecta) {
         clueActual.d = true;
         score++;
@@ -671,18 +672,18 @@ function submitModal() {
         document.getElementById("clues").innerText     = `${found}/${TOTAL}`;
         document.getElementById("prog-fill").style.width = (found / TOTAL * 100) + "%";
         log(`✔ Correcto — ${score}/${TOTAL} pts`, "ok");
- 
+
         // Enviar a Sheets en segundo plano sin bloquear
         const nombre = document.getElementById("nombre").value;
         const salon  = document.getElementById("salon").value;
         enviarSheets(nombre, salon, clueActual.q, r);
- 
+
         // Mover jugador a la celda destino
         player.x = clueActual._nx;
         player.y = clueActual._ny;
         draw();
         cerrarModal();
- 
+
         if (player.x === SIZE - 1 && player.y === SIZE - 1) {
             verificarVictoria();
         }
@@ -692,25 +693,52 @@ function submitModal() {
         document.getElementById("ia-status").style.color = "#ff4466";
     }
 }
- 
+
+// ── TABLA DE NOTAS ────────────────────────────────────────────────────────────
+const TABLA_NOTAS = {
+    20:"5.0", 19:"4.8", 18:"4.6", 17:"4.4", 16:"4.2",
+    15:"4.0", 14:"3.8", 13:"3.6", 12:"3.4", 11:"3.2",
+    10:"3.0",  9:"2.8",  8:"2.6",  7:"2.4",  6:"2.2",
+     5:"2.0",  4:"1.8",  3:"1.6",  2:"1.4",  1:"1.2", 0:"1.0"
+};
+
 // ── VICTORIA ──────────────────────────────────────────────────────────────────
 function verificarVictoria() {
-    if (found < TOTAL) {
-        log(`Salida bloqueada. Responde todas las preguntas (${found}/${TOTAL}).`, "warn");
-        alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas.\nLlevas ${found}/${TOTAL}.`);
-        return false;
+    const nota = TABLA_NOTAS[found] || "1.0";
+
+    if (found === TOTAL) {
+        // Completó todo — mostrar pantalla final directamente
+        finalizarExamen(nota);
+    } else {
+        // Llegó a la salida sin terminar — preguntar si finaliza o continúa
+        const msg =
+            `Has llegado a la salida.\n\n` +
+            `Preguntas respondidas: ${found}/${TOTAL}\n` +
+            `Calificación actual: ${nota}\n\n` +
+            `¿Deseas FINALIZAR el examen ahora?\n` +
+            `(Cancela para seguir buscando preguntas)`;
+
+        if (confirm(msg)) {
+            finalizarExamen(nota);
+        } else {
+            log(`🔄 Continuando... llevas ${found}/${TOTAL} — nota actual: ${nota}`, "warn");
+        }
     }
+}
+
+function finalizarExamen(nota) {
     clearInterval(timerInterval);
     const elapsed = Math.floor((Date.now() - tiempoInicio) / 1000);
     const mm = Math.floor(elapsed / 60);
     const ss = String(elapsed % 60).padStart(2, "0");
     document.getElementById("win-nombre").innerText = document.getElementById("nombre").value;
-    document.getElementById("win-score").innerText  = `Puntaje: ${score}/${TOTAL}`;
+    document.getElementById("win-score").innerText  = `Preguntas: ${found}/${TOTAL}`;
+    document.getElementById("win-nota").innerText   = `NOTA FINAL: ${nota}`;
     document.getElementById("win-tiempo").innerText = `Tiempo: ${mm}:${ss}`;
     document.getElementById("win-screen").classList.add("active");
-    return true;
+    log(`🏆 EXAMEN FINALIZADO — Nota: ${nota}`, "ok");
 }
- 
+
 // ── LABERINTO (DFS) ───────────────────────────────────────────────────────────
 function init() {
     cells = Array.from({length: SIZE}, () =>
@@ -735,7 +763,7 @@ function init() {
         } else { stack.pop(); }
     }
     cells[SIZE-1][SIZE-1].w[2] = false;
- 
+
     // Colocar preguntas aleatoriamente
     let pos = [];
     for (let y = 0; y < SIZE; y++)
@@ -746,19 +774,19 @@ function init() {
     clues = pos.slice(0, TOTAL).map((p, i) => ({...p, q: QUESTIONS[i].q, keys: QUESTIONS[i].keys, d: false}));
     draw();
 }
- 
+
 // ── DIBUJO ────────────────────────────────────────────────────────────────────
 function draw() {
     const w = canvas.width / SIZE;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
- 
+
     // Salida
     ctx.fillStyle = "rgba(0,255,136,0.12)";
     ctx.fillRect((SIZE-1)*w, (SIZE-1)*w, w, w);
     ctx.fillStyle = "rgba(0,255,136,0.5)";
     ctx.font = `${w*0.45}px Share Tech Mono`;
     ctx.fillText("EXIT", (SIZE-1)*w + w*0.05, (SIZE-1)*w + w*0.65);
- 
+
     // Paredes
     ctx.strokeStyle = "rgba(0,212,255,0.35)";
     ctx.lineWidth = 1.5;
@@ -770,7 +798,7 @@ function draw() {
             if (cells[y][x].w[3]) { ctx.beginPath(); ctx.moveTo(x*w, y*w); ctx.lineTo(x*w, (y+1)*w); ctx.stroke(); }
         }
     }
- 
+
     // Preguntas "?"
     clues.forEach(c => {
         if (!c.d) {
@@ -781,7 +809,7 @@ function draw() {
             ctx.fillText("?", c.x*w + w*0.28, c.y*w + w*0.7);
         }
     });
- 
+
     // Jugador
     ctx.fillStyle = "#ffdd44";
     ctx.shadowColor = "#ffdd44";
@@ -791,7 +819,7 @@ function draw() {
     ctx.fill();
     ctx.shadowBlur = 0;
 }
- 
+
 // ── MOVIMIENTO ────────────────────────────────────────────────────────────────
 async function move(dx, dy) {
     if (!document.getElementById("nombre").disabled) {
@@ -800,14 +828,14 @@ async function move(dx, dy) {
     }
     // Bloquear movimiento si el modal está abierto
     if (modalAbierto) return;
- 
+
     const nx = player.x + dx;
     const ny = player.y + dy;
     const wIdx = dy < 0 ? 0 : dx > 0 ? 1 : dy > 0 ? 2 : 3;
- 
+
     if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) return;
     if (cells[player.y][player.x].w[wIdx]) return;
- 
+
     // ¿Hay pregunta en la celda destino?
     const c = clues.find(c => c.x === nx && c.y === ny && !c.d);
     if (c) {
@@ -816,25 +844,22 @@ async function move(dx, dy) {
         abrirModal(c);
         return;
     }
- 
+
     // ¿Es la salida?
     if (nx === SIZE-1 && ny === SIZE-1) {
-        if (found < TOTAL) {
-            log(`Salida bloqueada. Faltan ${TOTAL - found} preguntas.`, "warn");
-            alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas primero.\nLlevas ${found}/${TOTAL}.`);
-            return;
-        }
+        player.x = nx;
+        player.y = ny;
+        draw();
+        verificarVictoria();
+        return;
     }
- 
+
     player.x = nx;
     player.y = ny;
     draw();
- 
-    if (player.x === SIZE-1 && player.y === SIZE-1) {
-        verificarVictoria();
-    }
+
 }
- 
+
 // ── TECLADO ───────────────────────────────────────────────────────────────────
 window.addEventListener("keydown", e => {
     if (document.getElementById("modal-overlay").classList.contains("active")) {
@@ -847,7 +872,7 @@ window.addEventListener("keydown", e => {
     if (e.key === "ArrowLeft")  { e.preventDefault(); move(-1,0); }
     if (e.key === "ArrowRight") { e.preventDefault(); move(1,0); }
 });
- 
+
 // ── INICIO ────────────────────────────────────────────────────────────────────
 init();
 </script>
