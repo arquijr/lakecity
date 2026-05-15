@@ -2,116 +2,214 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examen de Redes - Colegio Episcopal</title>
     <style>
-        body{background:#1a1208;color:#f5e9c8;font-family:Arial;margin:0}
-        .header{text-align:center;padding:20px;border-bottom:2px solid #c9a84c}
-        .main{display:grid;grid-template-columns:280px 1fr 280px;gap:20px;padding:20px;}
-        .card{border:1px solid #c9a84c;padding:15px;display:flex;flex-direction:column;height:100%;}
-        canvas{border:4px solid #c9a84c;background:black}
-        input{background:transparent;border:none;border-bottom:1px solid #c9a84c;color:white;margin:5px;}
-        button{padding:8px;margin-top:5px;cursor:pointer;}
-        .log{flex:1;overflow-y:auto;font-size:12px;background:rgba(0,0,0,0.3);padding:8px;border:1px solid rgba(201,168,76,0.2);}
-        .theory-box{border-left:2px solid #c9a84c;padding:15px;background:rgba(0,0,0,0.2);line-height:1.6;}
-        .theory-box h3{color:#c9a84c;margin-bottom:10px;}
+        :root {
+            --primary: #00d4ff; /* Electric Blue */
+            --gold: #c9a84c;
+            --bg: #0a0e14;
+            --card-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background: var(--bg);
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px;
+            border-bottom: 2px solid var(--gold);
+            background: linear-gradient(to bottom, #1a1208, var(--bg));
+        }
+
+        h2, h3 { margin: 5px 0; letter-spacing: 1px; }
+        h2 { color: var(--gold); }
+        h3 { color: var(--primary); font-weight: 300; }
+
+        .form-auth {
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            border: 4px solid var(--primary);
+            background: #000;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+
+        input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--gold);
+            border-radius: 4px;
+            color: white;
+            padding: 8px;
+            margin: 5px;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary); box-shadow: 0 0 5px var(--primary); }
+
+        button {
+            background: var(--gold);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        button:hover { background: var(--primary); transform: scale(1.05); }
+
+        .log {
+            flex: 1;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            color: #00ff00; /* Estilo terminal */
+        }
+
+        .score-box {
+            font-size: 24px;
+            color: var(--primary);
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .controls-hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h2>DIRECCIÓN DE EDUCACIÓN SECUNDARIA ACADÉMICA</h2>
-    <h3>COLEGIO EPISCOPAL DE PANAMÁ</h3>
-    <h2>EXAMEN TRIMESTRAL DE INFORMÁTICA</h2>
-    <p>Tema: Redes y Comunicación</p>
-
-    Nombre: <input id="nombre" type="text">
-    Salón: 12° <input id="salon" type="text" style="width:40px">
-    Fecha: <input id="fecha" type="text" style="width:120px">
-    <br>
-    <button onclick="guardarDatos()">Guardar Datos</button>
+    <h2>COLEGIO EPISCOPAL DE PANAMÁ</h2>
+    <h3>Examen Trimestral de Informática: Redes</h3>
+    
+    <div class="form-auth">
+        Nombre: <input id="nombre" type="text" placeholder="Nombre completo">
+        Salón: <input id="salon" type="text" style="width:60px" placeholder="12°A">
+        <button onclick="guardarDatos()">Iniciar Examen</button>
+    </div>
 </div>
 
 <div class="main">
+    <!-- Panel Izquierdo -->
     <div class="card">
-        <h3>Información</h3>
-        <p><strong>Profesor:</strong> Arquimedes Mosquera</p>
-        <p><strong>Total de puntos:</strong> 20</p>
-        <hr>
-        <h3>🎯 Objetivo</h3>
-        <p><b>INSTRUCCIONES</b><br><br>
-        Llega a la casilla verde. La IA evaluará tus respuestas con flexibilidad (acepta sinónimos y conceptos técnicos similares).</p>
+        <h3>Instrucciones</h3>
+        <p>1. Usa las <b>flechas del teclado</b> para moverte.</p>
+        <p>2. Cada <b>"?"</b> es un reto técnico.</p>
+        <p>3. La IA validará tu respuesta semánticamente.</p>
+        <hr style="border: 0.5px solid rgba(255,255,255,0.1); width: 100%;">
+        <p><b>Profesor:</b> Arquimedes Mosquera</p>
     </div>
 
+    <!-- Panel Central (Juego) -->
     <div style="text-align:center">
-        <canvas id="maze" width="500" height="500"></canvas>
-        <br>
-        <button onclick="move(0,-1)">↑</button><br>
-        <button onclick="move(-1,0)">←</button>
-        <button onclick="move(0,1)">↓</button>
-        <button onclick="move(1,0)">→</button>
+        <canvas id="maze" width="550" height="550"></canvas>
+        <div class="controls-hint">Usa las flechas del teclado o los botones virtuales</div>
+        <div style="margin-top:10px">
+            <button onclick="move(0,-1)">↑</button><br>
+            <button onclick="move(-1,0)">←</button>
+            <button onclick="move(0,1)">↓</button>
+            <button onclick="move(1,0)">→</button>
+        </div>
     </div>
 
+    <!-- Panel Derecho -->
     <div class="card">
         <h3>Progreso</h3>
-        <p>Puntos: <span id="score">0</span></p>
-        <p>Retos: <span id="clues">0/20</span></p>
-        <hr>
-        <h3>Registro</h3>
-        <div id="log" class="log"></div>
+        <div class="score-box"><span id="score">0</span> pts</div>
+        <p style="text-align:center">Retos: <span id="clues">0/20</span></p>
+        <hr style="border: 0.5px solid rgba(255,255,255,0.1); width: 100%;">
+        <h3>Consola de Sistema</h3>
+        <div id="log" class="log">Esperando inicio...</div>
     </div>
 </div>
 
 <script>
+// --- CONFIGURACIÓN ---
+const URL_SCRIPT = "TU_URL_DE_DESPLIEGUE_AQUI"; // REEMPLAZAR CON TU URL DE APPS SCRIPT
+
 function log(msg){
-    document.getElementById("log").innerHTML = "<div>"+msg+"</div>" + document.getElementById("log").innerHTML;
+    const logDiv = document.getElementById("log");
+    logDiv.innerHTML = "<div>> " + msg + "</div>" + logDiv.innerHTML;
 }
 
 function guardarDatos(){
-    let nombre=document.getElementById("nombre").value.trim();
-    let salon=document.getElementById("salon").value.trim();
-    let fecha=document.getElementById("fecha").value.trim();
-    if(!nombre || !salon || !fecha){
-        alert("Completa todos los datos antes de guardar");
+    let nombre = document.getElementById("nombre").value.trim();
+    let salon = document.getElementById("salon").value.trim();
+    if(!nombre || !salon){
+        alert("Por favor, ingresa tu nombre y salón.");
         return;
     }
-    document.getElementById("nombre").disabled=true;
-    document.getElementById("salon").disabled=true;
-    document.getElementById("fecha").disabled=true;
-    log("👤 Estudiante: " + nombre);
-    alert("Datos guardados correctamente. ¡Buena suerte!");
+    document.getElementById("nombre").disabled = true;
+    document.getElementById("salon").disabled = true;
+    log("Acceso concedido: " + nombre);
+    alert("Datos registrados. El laberinto se ha desbloqueado.");
 }
 
-/* =========================
-   CONEXIÓN CON IA Y SHEETS
-========================= */
-
 async function enviarSheetsIA(nombre, salon, pregunta, respuesta) {
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbz2ob0zcl8YvXAXgSN5ent-O6lGMsexXZR-zLJ9umCODgQq5AlPoXPXW_dp_GBQq92M/exec"; // REEMPLAZAR CON TU URL[cite: 1]
-
-    const formData = new URLSearchParams();
-    formData.append('nombre', nombre);
-    formData.append('salon', salon);
-    formData.append('pregunta', pregunta);
-    formData.append('respuesta', respuesta);
+    const params = new URLSearchParams({
+        nombre: nombre,
+        salon: salon,
+        pregunta: pregunta,
+        respuesta: respuesta
+    });
 
     try {
         const response = await fetch(URL_SCRIPT, {
             method: "POST",
-            body: formData.toString(),
+            body: params,
             headers: { "Content-Type": "application/x-www-form-urlencoded" }
         });
-        return await response.text(); // Recibe "SI" o "NO" del Apps Script[cite: 1]
+        const texto = await response.text();
+        return texto.trim(); 
     } catch (error) {
-        console.error("Error en conexión:", error);
+        console.error("Error:", error);
         return "NO";
     }
 }
 
-/* =========================
-   LÓGICA DEL JUEGO
-========================= */
-
-const QUESTIONS=[
+// --- LÓGICA DEL JUEGO (MAZE) ---
+const QUESTIONS = [
     {q:"¿Cómo se denomina el protocolo utilizado para controlar un equipo de forma remota en Windows?"},
     {q:"¿Cuál es el número de puerto predeterminado utilizado por RDP?"},
     {q:"¿Qué empresa desarrolló el protocolo RDP?"},
@@ -134,29 +232,29 @@ const QUESTIONS=[
     {q:"¿Qué capa gestiona los puertos?"}
 ];
 
-const canvas=document.getElementById("maze");
-const ctx=canvas.getContext("2d");
-let size=15,cells=[],clues=[],player={x:0,y:0},score=0,found=0;
+const canvas = document.getElementById("maze");
+const ctx = canvas.getContext("2d");
+let size = 15, cells = [], clues = [], player = {x: 0, y: 0}, score = 0, found = 0;
 
 function init(){
-    cells=Array.from({length:size},()=>Array.from({length:size},()=>({v:false,w:[true,true,true,true]})));
-    let stack=[[0,0]];
-    cells[0][0].v=true;
+    cells = Array.from({length:size},()=>Array.from({length:size},()=>({v:false,w:[true,true,true,true]})));
+    let stack = [[0,0]];
+    cells[0][0].v = true;
     while(stack.length){
-        let [x,y]=stack.at(-1);
-        let n=[[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]]
+        let [x,y] = stack.at(-1);
+        let n = [[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]]
         .filter(d=>x+d[0]>=0&&y+d[1]>=0&&x+d[0]<size&&y+d[1]<size&&!cells[y+d[1]][x+d[0]].v);
         if(n.length){
-            let d=n[Math.floor(Math.random()*n.length)];
-            cells[y][x].w[d[2]]=false;
-            cells[y+d[1]][x+d[0]].w[d[3]]=false;
-            cells[y+d[1]][x+d[0]].v=true;
+            let d = n[Math.floor(Math.random()*n.length)];
+            cells[y][x].w[d[2]] = false;
+            cells[y+d[1]][x+d[0]].w[d[3]] = false;
+            cells[y+d[1]][x+d[0]].v = true;
             stack.push([x+d[0],y+d[1]]);
-        }else{ stack.pop(); }
+        } else { stack.pop(); }
     }
-    cells[0][0].w[0]=false;
-    cells[size-1][size-1].w[2]=false;
-    let pos=[];
+    cells[0][0].w[0] = false;
+    cells[size-1][size-1].w[2] = false;
+    let pos = [];
     for(let y=0;y<size;y++) for(let x=0;x<size;x++) if(!(x===0&&y===0)&&(x!==size-1||y!==size-1)) pos.push({x,y});
     pos.sort(()=>Math.random()-0.5);
     for(let i=0;i<20;i++) clues.push({x:pos[i].x,y:pos[i].y,q:QUESTIONS[i].q,d:false});
@@ -164,40 +262,57 @@ function init(){
 }
 
 function draw(){
-    let w=500/size;
-    ctx.fillStyle="#000";
-    ctx.fillRect(0,0,500,500);
-    ctx.fillStyle="green";
+    let w = canvas.width/size;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    // Meta
+    ctx.fillStyle = "#00ff0033";
     ctx.fillRect((size-1)*w,(size-1)*w,w,w);
-    ctx.strokeStyle="#aaa";
+
+    ctx.strokeStyle = "#444";
+    ctx.lineWidth = 2;
     for(let y=0;y<size;y++)
         for(let x=0;x<size;x++){
+            ctx.strokeStyle = "#444";
             if(cells[y][x].w[0]){ ctx.beginPath(); ctx.moveTo(x*w,y*w); ctx.lineTo((x+1)*w,y*w); ctx.stroke(); }
             if(cells[y][x].w[1]){ ctx.beginPath(); ctx.moveTo((x+1)*w,y*w); ctx.lineTo((x+1)*w,(y+1)*w); ctx.stroke(); }
             if(cells[y][x].w[2]){ ctx.beginPath(); ctx.moveTo(x*w,(y+1)*w); ctx.lineTo((x+1)*w,(y+1)*w); ctx.stroke(); }
             if(cells[y][x].w[3]){ ctx.beginPath(); ctx.moveTo(x*w,y*w); ctx.lineTo(x*w,(y+1)*w); ctx.stroke(); }
         }
-    clues.forEach(c=>{ if(!c.d){ ctx.fillStyle="cyan"; ctx.fillText("?",c.x*w+w/3,c.y*w+w/1.5); }});
-    ctx.fillStyle="yellow";
-    ctx.beginPath(); ctx.arc(player.x*w+w/2,player.y*w+w/2,w/4,0,Math.PI*2); ctx.fill();
+
+    clues.forEach(c => {
+        if(!c.d){
+            ctx.fillStyle = "#00d4ff";
+            ctx.font = "bold 16px Arial";
+            ctx.fillText("?", c.x*w+w/3, c.y*w+w/1.5);
+        }
+    });
+
+    // Jugador
+    ctx.fillStyle = "yellow";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "yellow";
+    ctx.beginPath(); 
+    ctx.arc(player.x*w+w/2, player.y*w+w/2, w/4, 0, Math.PI*2); 
+    ctx.fill();
+    ctx.shadowBlur = 0;
 }
 
 async function move(dx,dy){
     if(!document.getElementById("nombre").disabled){
-        alert("Primero debes guardar tus datos");
+        alert("Primero debes registrar tus datos para iniciar el examen.");
         return;
     }
-    let nx=player.x+dx, ny=player.y+dy;
-    let wIdx=dy<0?0:dx>0?1:dy>0?2:3;
+    let nx = player.x+dx, ny = player.y+dy;
+    let wIdx = dy<0?0:dx>0?1:dy>0?2:3;
 
     if(nx>=0&&ny>=0&&nx<size&&ny<size&&!cells[player.y][player.x].w[wIdx]){
-        let c=clues.find(c=>c.x===nx&&c.y===ny&&!c.d);
+        let c = clues.find(c=>c.x===nx&&c.y===ny&&!c.d);
         if(c){
-            let r=prompt(c.q);
+            let r = prompt(c.q);
             if(!r) return;
-            log("⏳ Validando respuesta...");
+            log("Analizando respuesta...");
             
-            // La IA decide si el jugador avanza o no[cite: 1]
             const resultado = await enviarSheetsIA(
                 document.getElementById("nombre").value,
                 document.getElementById("salon").value,
@@ -206,30 +321,35 @@ async function move(dx,dy){
             );
 
             if(resultado === "SI"){
-                c.d=true;
-                score+=10;
+                c.d = true;
+                score += 1;
                 found++;
-                log("✔ Correcto");
-                player.x=nx; player.y=ny;
+                log("CORRECTO: +1 punto");
+                player.x = nx; player.y = ny;
             } else {
-                log("✖ Incorrecto");
-                alert("Respuesta incorrecta. Inténtalo de nuevo.");
+                log("INCORRECTO: Acceso denegado");
+                alert("La IA determinó que la respuesta es insuficiente o incorrecta.");
                 return;
             }
         } else {
-            player.x=nx; player.y=ny;
+            player.x = nx; player.y = ny;
         }
-        document.getElementById("score").innerText=score;
-        document.getElementById("clues").innerText=found+"/20";
+        document.getElementById("score").innerText = score;
+        document.getElementById("clues").innerText = found+"/20";
         draw();
+        
+        if(player.x === size-1 && player.y === size-1){
+            alert("¡Felicidades! Has terminado el examen. Puntos totales: " + score);
+            log("EXAMEN FINALIZADO");
+        }
     }
 }
 
-window.addEventListener("keydown",e=>{
-    if(e.key==="ArrowUp") move(0,-1);
-    if(e.key==="ArrowDown") move(0,1);
-    if(e.key==="ArrowLeft") move(-1,0);
-    if(e.key==="ArrowRight") move(1,0);
+window.addEventListener("keydown", e => {
+    if(e.key === "ArrowUp") move(0,-1);
+    if(e.key === "ArrowDown") move(0,1);
+    if(e.key === "ArrowLeft") move(-1,0);
+    if(e.key === "ArrowRight") move(1,0);
 });
 
 init();
