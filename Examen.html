@@ -6,7 +6,7 @@
     <title>Examen de Redes - Colegio Episcopal</title>
     <style>
         :root {
-            --primary: #00d4ff; /* Electric Blue */
+            --primary: #00d4ff; 
             --gold: #c9a84c;
             --bg: #0a0e14;
             --card-bg: rgba(255, 255, 255, 0.05);
@@ -27,9 +27,8 @@
             background: linear-gradient(to bottom, #1a1208, var(--bg));
         }
 
-        h2, h3 { margin: 5px 0; letter-spacing: 1px; }
-        h2 { color: var(--gold); }
-        h3 { color: var(--primary); font-weight: 300; }
+        h2 { color: var(--gold); margin: 5px 0; letter-spacing: 1px; }
+        h3 { color: var(--primary); font-weight: 300; margin: 5px 0; }
 
         .form-auth {
             margin-top: 15px;
@@ -63,7 +62,6 @@
             background: #000;
             box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
             border-radius: 4px;
-            cursor: crosshair;
         }
 
         input {
@@ -75,8 +73,6 @@
             margin: 5px;
             outline: none;
         }
-
-        input:focus { border-color: var(--primary); box-shadow: 0 0 5px var(--primary); }
 
         button {
             background: var(--gold);
@@ -100,7 +96,8 @@
             background: rgba(0,0,0,0.5);
             padding: 10px;
             border-radius: 5px;
-            color: #00ff00; /* Estilo terminal */
+            color: #00ff00;
+            min-height: 150px;
         }
 
         .score-box {
@@ -109,43 +106,34 @@
             text-align: center;
             font-weight: bold;
         }
-
-        .controls-hint {
-            font-size: 12px;
-            color: #888;
-            margin-top: 10px;
-        }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h2>COLEGIO EPISCOPAL DE PANAMÁ</h2>
-    <h3>Examen Trimestral de Informática: Redes</h3>
+    <h3>Examen Trimestral: Redes y Comunicación</h3>
     
     <div class="form-auth">
-        Nombre: <input id="nombre" type="text" placeholder="Nombre completo">
-        Salón: <input id="salon" type="text" style="width:60px" placeholder="12°A">
-        <button onclick="guardarDatos()">Iniciar Examen</button>
+        Nombre: <input id="nombre" type="text" placeholder="Tu nombre">
+        Salón: <input id="salon" type="text" style="width:60px" placeholder="12°">
+        <button onclick="guardarDatos()">Empezar Reto</button>
     </div>
 </div>
 
 <div class="main">
-    <!-- Panel Izquierdo -->
     <div class="card">
-        <h3>Instrucciones</h3>
-        <p>1. Usa las <b>flechas del teclado</b> para moverte.</p>
-        <p>2. Cada <b>"?"</b> es un reto técnico.</p>
-        <p>3. La IA validará tu respuesta semánticamente.</p>
-        <hr style="border: 0.5px solid rgba(255,255,255,0.1); width: 100%;">
+        <h3>Mecánica</h3>
+        <p>1. Muévete con las flechas del teclado.</p>
+        <p>2. Al tocar un <b>"?"</b>, responde con lógica técnica.</p>
+        <p>3. La IA te permitirá pasar si tu respuesta es correcta.</p>
+        <hr style="border: 0.5px solid rgba(255,255,255,0.1);">
         <p><b>Profesor:</b> Arquimedes Mosquera</p>
     </div>
 
-    <!-- Panel Central (Juego) -->
     <div style="text-align:center">
         <canvas id="maze" width="550" height="550"></canvas>
-        <div class="controls-hint">Usa las flechas del teclado o los botones virtuales</div>
-        <div style="margin-top:10px">
+        <div style="margin-top:15px">
             <button onclick="move(0,-1)">↑</button><br>
             <button onclick="move(-1,0)">←</button>
             <button onclick="move(0,1)">↓</button>
@@ -153,20 +141,18 @@
         </div>
     </div>
 
-    <!-- Panel Derecho -->
     <div class="card">
-        <h3>Progreso</h3>
+        <h3>Estatus</h3>
         <div class="score-box"><span id="score">0</span> pts</div>
         <p style="text-align:center">Retos: <span id="clues">0/20</span></p>
-        <hr style="border: 0.5px solid rgba(255,255,255,0.1); width: 100%;">
-        <h3>Consola de Sistema</h3>
-        <div id="log" class="log">Esperando inicio...</div>
+        <hr style="border: 0.5px solid rgba(255,255,255,0.1);">
+        <h3>Consola</h3>
+        <div id="log" class="log">Esperando credenciales...</div>
     </div>
 </div>
 
 <script>
-// --- CONFIGURACIÓN ---
-const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyKMrTMsD01J8acMFy-oHvjAKS_nFn4c4qCelK0XUwjodKo-INaYLv3ow3ZHoVG-_P1/exec"; // REEMPLAZAR CON TU URL DE APPS SCRIPT
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxI_tFaMy43PT1dUvaD2jrQlAgFtSoP7lyUgWIZqcoPYKvOlk6PKbdmrHpDd2jcpnM2/exec";
 
 function log(msg){
     const logDiv = document.getElementById("log");
@@ -174,41 +160,29 @@ function log(msg){
 }
 
 function guardarDatos(){
-    let nombre = document.getElementById("nombre").value.trim();
-    let salon = document.getElementById("salon").value.trim();
-    if(!nombre || !salon){
-        alert("Por favor, ingresa tu nombre y salón.");
-        return;
-    }
+    let n = document.getElementById("nombre").value.trim();
+    let s = document.getElementById("salon").value.trim();
+    if(!n || !s){ alert("Ingresa tus datos"); return; }
     document.getElementById("nombre").disabled = true;
     document.getElementById("salon").disabled = true;
-    log("Acceso concedido: " + nombre);
-    alert("Datos registrados. El laberinto se ha desbloqueado.");
+    log("Estudiante registrado: " + n);
+    alert("¡Laberinto desbloqueado! Buena suerte.");
 }
 
 async function enviarSheetsIA(nombre, salon, pregunta, respuesta) {
-    const params = new URLSearchParams({
-        nombre: nombre,
-        salon: salon,
-        pregunta: pregunta,
-        respuesta: respuesta
-    });
+    // Usamos GET con parámetros para evitar errores de CORS
+    const finalURL = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
 
     try {
-        const response = await fetch(URL_SCRIPT, {
-            method: "POST",
-            body: params,
-            headers: { "Content-Type": "application/x-www-form-urlencoded" }
-        });
+        const response = await fetch(finalURL);
         const texto = await response.text();
-        return texto.trim(); 
+        return texto.trim().toUpperCase(); 
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error de conexión:", error);
         return "NO";
     }
 }
 
-// --- LÓGICA DEL JUEGO (MAZE) ---
 const QUESTIONS = [
     {q:"¿Cómo se denomina el protocolo utilizado para controlar un equipo de forma remota en Windows?"},
     {q:"¿Cuál es el número de puerto predeterminado utilizado por RDP?"},
@@ -252,7 +226,6 @@ function init(){
             stack.push([x+d[0],y+d[1]]);
         } else { stack.pop(); }
     }
-    cells[0][0].w[0] = false;
     cells[size-1][size-1].w[2] = false;
     let pos = [];
     for(let y=0;y<size;y++) for(let x=0;x<size;x++) if(!(x===0&&y===0)&&(x!==size-1||y!==size-1)) pos.push({x,y});
@@ -264,45 +237,23 @@ function init(){
 function draw(){
     let w = canvas.width/size;
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    
-    // Meta
-    ctx.fillStyle = "#00ff0033";
+    ctx.fillStyle = "#00ff0022";
     ctx.fillRect((size-1)*w,(size-1)*w,w,w);
-
     ctx.strokeStyle = "#444";
-    ctx.lineWidth = 2;
     for(let y=0;y<size;y++)
         for(let x=0;x<size;x++){
-            ctx.strokeStyle = "#444";
             if(cells[y][x].w[0]){ ctx.beginPath(); ctx.moveTo(x*w,y*w); ctx.lineTo((x+1)*w,y*w); ctx.stroke(); }
             if(cells[y][x].w[1]){ ctx.beginPath(); ctx.moveTo((x+1)*w,y*w); ctx.lineTo((x+1)*w,(y+1)*w); ctx.stroke(); }
             if(cells[y][x].w[2]){ ctx.beginPath(); ctx.moveTo(x*w,(y+1)*w); ctx.lineTo((x+1)*w,(y+1)*w); ctx.stroke(); }
             if(cells[y][x].w[3]){ ctx.beginPath(); ctx.moveTo(x*w,y*w); ctx.lineTo(x*w,(y+1)*w); ctx.stroke(); }
         }
-
-    clues.forEach(c => {
-        if(!c.d){
-            ctx.fillStyle = "#00d4ff";
-            ctx.font = "bold 16px Arial";
-            ctx.fillText("?", c.x*w+w/3, c.y*w+w/1.5);
-        }
-    });
-
-    // Jugador
+    clues.forEach(c => { if(!c.d){ ctx.fillStyle = "#00d4ff"; ctx.fillText("?", c.x*w+w/3, c.y*w+w/1.5); }});
     ctx.fillStyle = "yellow";
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "yellow";
-    ctx.beginPath(); 
-    ctx.arc(player.x*w+w/2, player.y*w+w/2, w/4, 0, Math.PI*2); 
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.arc(player.x*w+w/2, player.y*w+w/2, w/4, 0, Math.PI*2); ctx.fill();
 }
 
 async function move(dx,dy){
-    if(!document.getElementById("nombre").disabled){
-        alert("Primero debes registrar tus datos para iniciar el examen.");
-        return;
-    }
+    if(!document.getElementById("nombre").disabled){ alert("Registra tus datos primero."); return; }
     let nx = player.x+dx, ny = player.y+dy;
     let wIdx = dy<0?0:dx>0?1:dy>0?2:3;
 
@@ -311,37 +262,21 @@ async function move(dx,dy){
         if(c){
             let r = prompt(c.q);
             if(!r) return;
-            log("Analizando respuesta...");
-            
-            const resultado = await enviarSheetsIA(
-                document.getElementById("nombre").value,
-                document.getElementById("salon").value,
-                c.q,
-                r
-            );
-
-            if(resultado === "SI"){
-                c.d = true;
-                score += 1;
-                found++;
-                log("CORRECTO: +1 punto");
+            log("Validando con IA...");
+            const res = await enviarSheetsIA(document.getElementById("nombre").value, document.getElementById("salon").value, c.q, r);
+            if(res === "SI"){
+                c.d = true; score++; found++;
+                log("Correcto ✔");
                 player.x = nx; player.y = ny;
             } else {
-                log("INCORRECTO: Acceso denegado");
-                alert("La IA determinó que la respuesta es insuficiente o incorrecta.");
+                log("Incorrecto ✖");
+                alert("Respuesta insuficiente.");
                 return;
             }
-        } else {
-            player.x = nx; player.y = ny;
-        }
+        } else { player.x = nx; player.y = ny; }
         document.getElementById("score").innerText = score;
         document.getElementById("clues").innerText = found+"/20";
         draw();
-        
-        if(player.x === size-1 && player.y === size-1){
-            alert("¡Felicidades! Has terminado el examen. Puntos totales: " + score);
-            log("EXAMEN FINALIZADO");
-        }
     }
 }
 
