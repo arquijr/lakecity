@@ -743,7 +743,7 @@ function init() {
             if (!(x === 0 && y === 0) && !(x === SIZE-1 && y === SIZE-1))
                 pos.push({x, y});
     pos.sort(() => Math.random() - 0.5);
-    clues = pos.slice(0, TOTAL).map((p, i) => ({...p, q: QUESTIONS[i].q, d: false}));
+    clues = pos.slice(0, TOTAL).map((p, i) => ({...p, q: QUESTIONS[i].q, keys: QUESTIONS[i].keys, d: false}));
     draw();
 }
  
