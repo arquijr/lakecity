@@ -4,185 +4,480 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Examen de Redes - Colegio Episcopal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00d4ff; 
+            --primary: #00d4ff;
             --gold: #c9a84c;
             --bg: #0a0e14;
-            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --green: #00ff88;
+            --red: #ff4466;
         }
-
+ 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
         body {
             background: var(--bg);
             color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+            font-family: 'Share Tech Mono', monospace;
             overflow-x: hidden;
+            min-height: 100vh;
         }
-
+ 
+        /* Fondo animado */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(0,212,255,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+ 
         .header {
             text-align: center;
-            padding: 30px;
-            border-bottom: 2px solid var(--gold);
-            background: linear-gradient(to bottom, #1a1208, var(--bg));
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(201,168,76,0.4);
+            background: linear-gradient(180deg, rgba(201,168,76,0.08) 0%, transparent 100%);
+            position: relative;
+            z-index: 1;
         }
-
-        h2 { color: var(--gold); margin: 5px 0; letter-spacing: 1px; }
-        h3 { color: var(--primary); font-weight: 300; margin: 5px 0; }
-
+ 
+        .header h2 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            font-weight: 900;
+        }
+ 
+        .header h3 {
+            font-family: 'Orbitron', monospace;
+            color: var(--primary);
+            font-weight: 400;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+ 
         .form-auth {
-            margin-top: 15px;
-            padding: 15px;
-            background: var(--card-bg);
-            border-radius: 8px;
-            display: inline-block;
-        }
-
-        .main {
-            display: grid;
-            grid-template-columns: 300px 1fr 300px;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: auto;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid rgba(201, 168, 76, 0.3);
-            padding: 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
+            margin-top: 12px;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-
-        canvas {
-            border: 4px solid var(--primary);
-            background: #000;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-            border-radius: 4px;
+ 
+        .form-auth label {
+            color: var(--gold);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
         }
-
+ 
         input {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid var(--gold);
+            background: rgba(0,212,255,0.06);
+            border: 1px solid rgba(0,212,255,0.3);
             border-radius: 4px;
             color: white;
-            padding: 8px;
-            margin: 5px;
+            padding: 8px 12px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
             outline: none;
+            transition: border-color 0.2s;
         }
-
-        button {
-            background: var(--gold);
-            color: black;
+ 
+        input:focus { border-color: var(--primary); }
+        input:disabled { opacity: 0.5; }
+ 
+        #salon { width: 70px; }
+ 
+        .btn {
+            background: linear-gradient(135deg, var(--gold), #a07830);
+            color: #0a0e14;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
+            padding: 9px 20px;
+            border-radius: 4px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: 0.3s;
-            text-transform: uppercase;
+            transition: all 0.2s;
         }
-
-        button:hover { background: var(--primary); transform: scale(1.05); }
-
-        .log {
-            flex: 1;
-            overflow-y: auto;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 13px;
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 5px;
-            color: #00ff00;
-            min-height: 150px;
+ 
+        .btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--primary), #0088aa);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,212,255,0.3);
         }
-
+ 
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+ 
+        /* Timer */
+        #timer-bar {
+            height: 3px;
+            background: linear-gradient(90deg, var(--green), var(--primary), var(--gold));
+            transition: width 1s linear, background 1s;
+            width: 100%;
+        }
+ 
+        #timer-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75rem;
+            color: var(--primary);
+            text-align: right;
+            padding: 3px 20px 0;
+            letter-spacing: 2px;
+        }
+ 
+        .main {
+            display: grid;
+            grid-template-columns: 260px 1fr 260px;
+            gap: 16px;
+            padding: 16px 20px;
+            max-width: 1350px;
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(201,168,76,0.2);
+            padding: 18px;
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+        }
+ 
+        .card h3 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(201,168,76,0.2);
+        }
+ 
+        .card p {
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+ 
+        .card p b { color: #ddd; }
+ 
+        canvas {
+            border: 2px solid rgba(0,212,255,0.4);
+            background: #020609;
+            box-shadow: 0 0 30px rgba(0,212,255,0.1), inset 0 0 30px rgba(0,0,0,0.5);
+            border-radius: 6px;
+            display: block;
+        }
+ 
+        .canvas-wrap { text-align: center; }
+ 
+        .arrow-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 44px);
+            grid-template-rows: repeat(2, 44px);
+            gap: 4px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+ 
+        .arrow-pad .btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            font-size: 1rem;
+            border-radius: 6px;
+        }
+ 
         .score-box {
-            font-size: 24px;
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
             color: var(--primary);
             text-align: center;
-            font-weight: bold;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(0,212,255,0.5);
+            margin: 8px 0;
+        }
+ 
+        .score-label {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #555;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+ 
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0 4px;
+        }
+ 
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--green));
+            border-radius: 3px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+ 
+        .progress-text {
+            font-size: 0.72rem;
+            color: #555;
+            text-align: right;
+        }
+ 
+        .log {
+            overflow-y: auto;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            background: rgba(0,0,0,0.4);
+            padding: 10px;
+            border-radius: 5px;
+            color: #00cc66;
+            height: 200px;
+            border: 1px solid rgba(0,255,136,0.1);
+        }
+ 
+        .log .entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .log .entry.error { color: var(--red); }
+        .log .entry.warn  { color: var(--gold); }
+        .log .entry.ok    { color: var(--green); }
+        .log .entry.info  { color: var(--primary); }
+ 
+        /* MODAL */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+ 
+        #modal-overlay.active { display: flex; }
+ 
+        #modal-box {
+            background: #0d1219;
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(201,168,76,0.2);
+            animation: modalIn 0.2s ease;
+        }
+ 
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+ 
+        #modal-box h4 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+        }
+ 
+        #modal-pregunta {
+            color: #ddd;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 18px;
+            padding: 14px;
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+        }
+ 
+        #modal-respuesta {
+            width: 100%;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+ 
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+ 
+        .btn-cancel {
+            background: rgba(255,255,255,0.06);
+            color: #888;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 9px 18px;
+            border-radius: 4px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+ 
+        #ia-status {
+            font-size: 0.75rem;
+            color: var(--gold);
+            min-height: 18px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+ 
+        /* Victoria */
+        #win-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+ 
+        #win-screen.active { display: flex; }
+ 
+        #win-screen h1 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 2rem;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(201,168,76,0.6);
+        }
+ 
+        #win-screen p {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin: 6px 0;
+        }
+ 
+        .star { font-size: 3rem; animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
+ 
+        @media (max-width: 900px) {
+            .main { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-
+ 
+<!-- HEADER -->
 <div class="header">
     <h2>COLEGIO EPISCOPAL DE PANAMÁ</h2>
-    <h3>Examen Trimestral: Redes y Comunicación</h3>
-    
+    <h3>EXAMEN TRIMESTRAL · REDES Y COMUNICACIÓN</h3>
     <div class="form-auth">
-        Nombre: <input id="nombre" type="text" placeholder="Tu nombre">
-        Salón: <input id="salon" type="text" style="width:60px" placeholder="12°">
-        <button onclick="guardarDatos()">Empezar Reto</button>
+        <label>NOMBRE:</label>
+        <input id="nombre" type="text" placeholder="Tu nombre completo">
+        <label>SALÓN:</label>
+        <input id="salon" type="text" placeholder="12A">
+        <button class="btn" onclick="guardarDatos()">EMPEZAR RETO</button>
     </div>
 </div>
-
+ 
+<!-- TIMER -->
+<div style="padding: 0 20px; position:relative; z-index:1;">
+    <div id="timer-bar"></div>
+    <div id="timer-text">90:00</div>
+</div>
+ 
+<!-- MAIN -->
 <div class="main">
+ 
+    <!-- IZQUIERDA -->
     <div class="card">
-        <h3>Mecánica</h3>
-        <p>1. Muévete con las flechas del teclado.</p>
-        <p>2. Al tocar un <b>"?"</b>, responde con lógica técnica.</p>
-        <p>3. La IA te permitirá pasar si tu respuesta es correcta.</p>
-        <hr style="border: 0.5px solid rgba(255,255,255,0.1);">
-        <p><b>Profesor:</b> Arquimedes Mosquera</p>
+        <h3>// MECÁNICA</h3>
+        <p>1. Muévete con las <b>flechas del teclado</b> o los botones.</p>
+        <p>2. Al tocar un <b>"?"</b>, responde la pregunta técnica.</p>
+        <p>3. La <b>IA evalúa</b> tu respuesta en tiempo real.</p>
+        <p>4. Debes responder <b>todas las preguntas</b> antes de llegar a la salida.</p>
+        <br>
+        <p style="color: rgba(201,168,76,0.6); font-size:0.75rem;">▸ La salida está marcada en verde.</p>
+        <p style="color: rgba(201,168,76,0.6); font-size:0.75rem;">▸ Los "?" son puntos de control.</p>
+        <br>
+        <p style="color: #555; font-size: 0.75rem;">PROFESOR: Arquimedes Mosquera</p>
     </div>
-
-    <div style="text-align:center">
+ 
+    <!-- CANVAS -->
+    <div class="canvas-wrap">
         <canvas id="maze" width="550" height="550"></canvas>
-        <div style="margin-top:15px">
-            <button onclick="move(0,-1)">↑</button><br>
-            <button onclick="move(-1,0)">←</button>
-            <button onclick="move(0,1)">↓</button>
-            <button onclick="move(1,0)">→</button>
+        <div class="arrow-pad">
+            <div></div>
+            <button class="btn" onclick="move(0,-1)">↑</button>
+            <div></div>
+            <button class="btn" onclick="move(-1,0)">←</button>
+            <button class="btn" onclick="move(0,1)">↓</button>
+            <button class="btn" onclick="move(1,0)">→</button>
         </div>
     </div>
-
+ 
+    <!-- DERECHA -->
     <div class="card">
-        <h3>Estatus</h3>
-        <div class="score-box"><span id="score">0</span> pts</div>
-        <p style="text-align:center">Retos: <span id="clues">0/20</span></p>
-        <hr style="border: 0.5px solid rgba(255,255,255,0.1);">
-        <h3>Consola</h3>
-        <div id="log" class="log">Esperando credenciales...</div>
+        <h3>// ESTATUS</h3>
+        <div class="score-box"><span id="score">0</span></div>
+        <div class="score-label">PUNTOS</div>
+ 
+        <div class="progress-bar">
+            <div class="progress-fill" id="prog-fill"></div>
+        </div>
+        <div class="progress-text">Preguntas: <span id="clues">0/20</span></div>
+ 
+        <br>
+        <h3>// CONSOLA</h3>
+        <div id="log" class="log">
+            <div class="entry info">> Sistema listo. Registra tus datos.</div>
+        </div>
     </div>
 </div>
-
+ 
+<!-- MODAL PREGUNTA -->
+<div id="modal-overlay">
+    <div id="modal-box">
+        <h4>// PUNTO DE CONTROL · RESPONDE PARA CONTINUAR</h4>
+        <div id="modal-pregunta"></div>
+        <div id="ia-status"></div>
+        <input id="modal-respuesta" type="text" placeholder="Escribe tu respuesta técnica..." autocomplete="off">
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="cerrarModal()">CANCELAR</button>
+            <button class="btn" id="btn-enviar" onclick="submitModal()">VALIDAR CON IA →</button>
+        </div>
+    </div>
+</div>
+ 
+<!-- PANTALLA DE VICTORIA -->
+<div id="win-screen">
+    <div class="star">🏆</div>
+    <h1>¡LABERINTO COMPLETADO!</h1>
+    <p id="win-nombre"></p>
+    <p id="win-score"></p>
+    <p id="win-tiempo"></p>
+    <br>
+    <p style="color:#555; font-size:0.8rem;">Tu resultado ha sido registrado.</p>
+</div>
+ 
 <script>
+// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxWs2lgu7AYJu5JuDCIf-i0vpBestLZsKMZPkgM2D-PBfMSTMm7ggzWu5ps6BSRK8PM/exec";
-
-function log(msg){
-    const logDiv = document.getElementById("log");
-    logDiv.innerHTML = "<div>> " + msg + "</div>" + logDiv.innerHTML;
-}
-
-function guardarDatos(){
-    let n = document.getElementById("nombre").value.trim();
-    let s = document.getElementById("salon").value.trim();
-    if(!n || !s){ alert("Ingresa tus datos"); return; }
-    document.getElementById("nombre").disabled = true;
-    document.getElementById("salon").disabled = true;
-    log("Estudiante registrado: " + n);
-    alert("¡Laberinto desbloqueado! Buena suerte.");
-}
-
-async function enviarSheetsIA(nombre, salon, pregunta, respuesta) {
-    // Usamos GET con parámetros para evitar errores de CORS
-    const finalURL = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
-
-    try {
-        const response = await fetch(finalURL);
-        const texto = await response.text();
-        return texto.trim().toUpperCase(); 
-    } catch (error) {
-        console.error("Error de conexión:", error);
-        return "NO";
-    }
-}
-
+ 
+// ── PREGUNTAS ─────────────────────────────────────────────────────────────────
 const QUESTIONS = [
     {q:"¿Cómo se denomina el protocolo utilizado para controlar un equipo de forma remota en Windows?"},
     {q:"¿Cuál es el número de puerto predeterminado utilizado por RDP?"},
@@ -205,89 +500,289 @@ const QUESTIONS = [
     {q:"¿Qué puerto utiliza FTP?"},
     {q:"¿Qué capa gestiona los puertos?"}
 ];
-
-const canvas = document.getElementById("maze");
-const ctx = canvas.getContext("2d");
-let size = 15, cells = [], clues = [], player = {x: 0, y: 0}, score = 0, found = 0;
-
-function init(){
-    cells = Array.from({length:size},()=>Array.from({length:size},()=>({v:false,w:[true,true,true,true]})));
-    let stack = [[0,0]];
+ 
+// ── ESTADO ────────────────────────────────────────────────────────────────────
+const canvas  = document.getElementById("maze");
+const ctx     = canvas.getContext("2d");
+const SIZE    = 15;
+let cells = [], clues = [], player = {x:0, y:0};
+let score = 0, found = 0;
+let esperandoIA = false;
+let clueActual  = null;
+let timerInterval = null;
+let segundosRestantes = 90 * 60;
+let tiempoInicio = null;
+ 
+// ── LOG ───────────────────────────────────────────────────────────────────────
+function log(msg, tipo = "ok") {
+    const d = document.getElementById("log");
+    const ts = new Date().toLocaleTimeString("es-PA", {hour12:false});
+    d.innerHTML = `<div class="entry ${tipo}">> [${ts}] ${msg}</div>` + d.innerHTML;
+}
+ 
+// ── TIMER ─────────────────────────────────────────────────────────────────────
+function iniciarTimer() {
+    tiempoInicio = Date.now();
+    timerInterval = setInterval(() => {
+        segundosRestantes--;
+        const m = Math.floor(segundosRestantes / 60);
+        const s = String(segundosRestantes % 60).padStart(2, "0");
+        document.getElementById("timer-text").innerText = `${m}:${s}`;
+        const pct = (segundosRestantes / (90 * 60)) * 100;
+        const bar = document.getElementById("timer-bar");
+        bar.style.width = pct + "%";
+        if (pct < 25) bar.style.background = "linear-gradient(90deg, #ff4466, #cc0033)";
+        else if (pct < 50) bar.style.background = "linear-gradient(90deg, #c9a84c, #ff8800)";
+        if (segundosRestantes <= 0) {
+            clearInterval(timerInterval);
+            log("¡Tiempo agotado!", "error");
+            alert(`⏱ Tiempo agotado.\nPuntaje final: ${score}/20`);
+        }
+    }, 1000);
+}
+ 
+// ── REGISTRO ──────────────────────────────────────────────────────────────────
+function guardarDatos() {
+    const n = document.getElementById("nombre").value.trim();
+    const s = document.getElementById("salon").value.trim();
+    if (!n || !s) { alert("Ingresa tu nombre y salón antes de comenzar."); return; }
+    document.getElementById("nombre").disabled = true;
+    document.getElementById("salon").disabled = true;
+    log("Estudiante: " + n + " | Salón: " + s, "info");
+    log("Laberinto desbloqueado. ¡Buena suerte!", "warn");
+    iniciarTimer();
+}
+ 
+// ── LLAMADA AL SCRIPT ─────────────────────────────────────────────────────────
+async function enviarSheetsIA(nombre, salon, pregunta, respuesta) {
+    const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
+    try {
+        const res  = await fetch(url);
+        const text = await res.text();
+        return text.trim().toUpperCase();
+    } catch (err) {
+        console.error("Error fetch:", err);
+        return "NO";
+    }
+}
+ 
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function abrirModal(clue) {
+    clueActual = clue;
+    document.getElementById("modal-pregunta").innerText = clue.q;
+    document.getElementById("modal-respuesta").value = "";
+    document.getElementById("ia-status").innerText = "";
+    document.getElementById("btn-enviar").disabled = false;
+    document.getElementById("modal-overlay").classList.add("active");
+    setTimeout(() => document.getElementById("modal-respuesta").focus(), 100);
+}
+ 
+function cerrarModal() {
+    document.getElementById("modal-overlay").classList.remove("active");
+    clueActual = null;
+    esperandoIA = false;
+}
+ 
+async function submitModal() {
+    if (esperandoIA) return;
+    const r = document.getElementById("modal-respuesta").value.trim();
+    if (!r) { alert("Escribe una respuesta antes de validar."); return; }
+ 
+    esperandoIA = true;
+    document.getElementById("btn-enviar").disabled = true;
+    document.getElementById("ia-status").innerText = "⟳ Consultando IA...";
+    log("Validando con IA...", "info");
+ 
+    const nombre = document.getElementById("nombre").value;
+    const salon  = document.getElementById("salon").value;
+    const res    = await enviarSheetsIA(nombre, salon, clueActual.q, r);
+ 
+    if (res === "SI") {
+        clueActual.d = true;
+        score++;
+        found++;
+        document.getElementById("score").innerText = score;
+        document.getElementById("clues").innerText = found + "/20";
+        document.getElementById("prog-fill").style.width = (found / 20 * 100) + "%";
+        log("✔ Respuesta correcta — +" + score + " pts", "ok");
+ 
+        // mover jugador
+        player.x = clueActual._nx;
+        player.y = clueActual._ny;
+        draw();
+        cerrarModal();
+ 
+        // verificar victoria
+        if (player.x === SIZE - 1 && player.y === SIZE - 1) {
+            verificarVictoria();
+        }
+    } else {
+        log("✖ Respuesta insuficiente. Intenta de nuevo.", "error");
+        document.getElementById("ia-status").innerText = "✖ Incorrecto. Reformula tu respuesta.";
+        document.getElementById("ia-status").style.color = "#ff4466";
+        document.getElementById("btn-enviar").disabled = false;
+        esperandoIA = false;
+    }
+}
+ 
+// ── VICTORIA ──────────────────────────────────────────────────────────────────
+function verificarVictoria() {
+    if (found < 20) {
+        log(`Salida bloqueada. Responde todas las preguntas (${found}/20).`, "warn");
+        alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas.\nLlevas ${found}/20.`);
+        return false;
+    }
+    clearInterval(timerInterval);
+    const elapsed = Math.floor((Date.now() - tiempoInicio) / 1000);
+    const mm = Math.floor(elapsed / 60);
+    const ss = String(elapsed % 60).padStart(2, "0");
+    document.getElementById("win-nombre").innerText = document.getElementById("nombre").value;
+    document.getElementById("win-score").innerText  = `Puntaje: ${score}/20`;
+    document.getElementById("win-tiempo").innerText = `Tiempo: ${mm}:${ss}`;
+    document.getElementById("win-screen").classList.add("active");
+    return true;
+}
+ 
+// ── LABERINTO (DFS) ───────────────────────────────────────────────────────────
+function init() {
+    cells = Array.from({length: SIZE}, () =>
+        Array.from({length: SIZE}, () => ({v: false, w: [true, true, true, true]}))
+    );
+    const stack = [[0, 0]];
     cells[0][0].v = true;
-    while(stack.length){
-        let [x,y] = stack.at(-1);
-        let n = [[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]]
-        .filter(d=>x+d[0]>=0&&y+d[1]>=0&&x+d[0]<size&&y+d[1]<size&&!cells[y+d[1]][x+d[0]].v);
-        if(n.length){
-            let d = n[Math.floor(Math.random()*n.length)];
+    const dirs = [[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]];
+    while (stack.length) {
+        const [x, y] = stack.at(-1);
+        const nb = dirs.filter(d =>
+            x+d[0] >= 0 && y+d[1] >= 0 &&
+            x+d[0] < SIZE && y+d[1] < SIZE &&
+            !cells[y+d[1]][x+d[0]].v
+        );
+        if (nb.length) {
+            const d = nb[Math.floor(Math.random() * nb.length)];
             cells[y][x].w[d[2]] = false;
             cells[y+d[1]][x+d[0]].w[d[3]] = false;
             cells[y+d[1]][x+d[0]].v = true;
-            stack.push([x+d[0],y+d[1]]);
+            stack.push([x+d[0], y+d[1]]);
         } else { stack.pop(); }
     }
-    cells[size-1][size-1].w[2] = false;
+    cells[SIZE-1][SIZE-1].w[2] = false;
+ 
+    // Colocar preguntas aleatoriamente
     let pos = [];
-    for(let y=0;y<size;y++) for(let x=0;x<size;x++) if(!(x===0&&y===0)&&(x!==size-1||y!==size-1)) pos.push({x,y});
-    pos.sort(()=>Math.random()-0.5);
-    for(let i=0;i<20;i++) clues.push({x:pos[i].x,y:pos[i].y,q:QUESTIONS[i].q,d:false});
+    for (let y = 0; y < SIZE; y++)
+        for (let x = 0; x < SIZE; x++)
+            if (!(x === 0 && y === 0) && !(x === SIZE-1 && y === SIZE-1))
+                pos.push({x, y});
+    pos.sort(() => Math.random() - 0.5);
+    clues = pos.slice(0, 20).map((p, i) => ({...p, q: QUESTIONS[i].q, d: false}));
     draw();
 }
-
-function draw(){
-    let w = canvas.width/size;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = "#00ff0022";
-    ctx.fillRect((size-1)*w,(size-1)*w,w,w);
-    ctx.strokeStyle = "#444";
-    for(let y=0;y<size;y++)
-        for(let x=0;x<size;x++){
-            if(cells[y][x].w[0]){ ctx.beginPath(); ctx.moveTo(x*w,y*w); ctx.lineTo((x+1)*w,y*w); ctx.stroke(); }
-            if(cells[y][x].w[1]){ ctx.beginPath(); ctx.moveTo((x+1)*w,y*w); ctx.lineTo((x+1)*w,(y+1)*w); ctx.stroke(); }
-            if(cells[y][x].w[2]){ ctx.beginPath(); ctx.moveTo(x*w,(y+1)*w); ctx.lineTo((x+1)*w,(y+1)*w); ctx.stroke(); }
-            if(cells[y][x].w[3]){ ctx.beginPath(); ctx.moveTo(x*w,y*w); ctx.lineTo(x*w,(y+1)*w); ctx.stroke(); }
+ 
+// ── DIBUJO ────────────────────────────────────────────────────────────────────
+function draw() {
+    const w = canvas.width / SIZE;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+ 
+    // Salida
+    ctx.fillStyle = "rgba(0,255,136,0.12)";
+    ctx.fillRect((SIZE-1)*w, (SIZE-1)*w, w, w);
+    ctx.fillStyle = "rgba(0,255,136,0.5)";
+    ctx.font = `${w*0.45}px Share Tech Mono`;
+    ctx.fillText("EXIT", (SIZE-1)*w + w*0.05, (SIZE-1)*w + w*0.65);
+ 
+    // Paredes
+    ctx.strokeStyle = "rgba(0,212,255,0.35)";
+    ctx.lineWidth = 1.5;
+    for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+            if (cells[y][x].w[0]) { ctx.beginPath(); ctx.moveTo(x*w, y*w); ctx.lineTo((x+1)*w, y*w); ctx.stroke(); }
+            if (cells[y][x].w[1]) { ctx.beginPath(); ctx.moveTo((x+1)*w, y*w); ctx.lineTo((x+1)*w, (y+1)*w); ctx.stroke(); }
+            if (cells[y][x].w[2]) { ctx.beginPath(); ctx.moveTo(x*w, (y+1)*w); ctx.lineTo((x+1)*w, (y+1)*w); ctx.stroke(); }
+            if (cells[y][x].w[3]) { ctx.beginPath(); ctx.moveTo(x*w, y*w); ctx.lineTo(x*w, (y+1)*w); ctx.stroke(); }
         }
-    clues.forEach(c => { if(!c.d){ ctx.fillStyle = "#00d4ff"; ctx.fillText("?", c.x*w+w/3, c.y*w+w/1.5); }});
-    ctx.fillStyle = "yellow";
-    ctx.beginPath(); ctx.arc(player.x*w+w/2, player.y*w+w/2, w/4, 0, Math.PI*2); ctx.fill();
+    }
+ 
+    // Preguntas "?"
+    clues.forEach(c => {
+        if (!c.d) {
+            ctx.fillStyle = "rgba(0,212,255,0.15)";
+            ctx.fillRect(c.x*w+1, c.y*w+1, w-2, w-2);
+            ctx.fillStyle = "#00d4ff";
+            ctx.font = `bold ${w*0.55}px Orbitron, monospace`;
+            ctx.fillText("?", c.x*w + w*0.28, c.y*w + w*0.7);
+        }
+    });
+ 
+    // Jugador
+    ctx.fillStyle = "#ffdd44";
+    ctx.shadowColor = "#ffdd44";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(player.x*w + w/2, player.y*w + w/2, w*0.32, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
 }
-
-async function move(dx,dy){
-    if(!document.getElementById("nombre").disabled){ alert("Registra tus datos primero."); return; }
-    let nx = player.x+dx, ny = player.y+dy;
-    let wIdx = dy<0?0:dx>0?1:dy>0?2:3;
-
-    if(nx>=0&&ny>=0&&nx<size&&ny<size&&!cells[player.y][player.x].w[wIdx]){
-        let c = clues.find(c=>c.x===nx&&c.y===ny&&!c.d);
-        if(c){
-            let r = prompt(c.q);
-            if(!r) return;
-            log("Validando con IA...");
-            const res = await enviarSheetsIA(document.getElementById("nombre").value, document.getElementById("salon").value, c.q, r);
-            if(res === "SI"){
-                c.d = true; score++; found++;
-                log("Correcto ✔");
-                player.x = nx; player.y = ny;
-            } else {
-                log("Incorrecto ✖");
-                alert("Respuesta insuficiente.");
-                return;
-            }
-        } else { player.x = nx; player.y = ny; }
-        document.getElementById("score").innerText = score;
-        document.getElementById("clues").innerText = found+"/20";
-        draw();
+ 
+// ── MOVIMIENTO ────────────────────────────────────────────────────────────────
+async function move(dx, dy) {
+    if (!document.getElementById("nombre").disabled) {
+        alert("Registra tus datos primero.");
+        return;
+    }
+    if (esperandoIA) return;
+ 
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+    const wIdx = dy < 0 ? 0 : dx > 0 ? 1 : dy > 0 ? 2 : 3;
+ 
+    if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) return;
+    if (cells[player.y][player.x].w[wIdx]) return;
+ 
+    // ¿Hay pregunta en la celda destino?
+    const c = clues.find(c => c.x === nx && c.y === ny && !c.d);
+    if (c) {
+        c._nx = nx;
+        c._ny = ny;
+        abrirModal(c);
+        return;
+    }
+ 
+    // ¿Es la salida?
+    if (nx === SIZE-1 && ny === SIZE-1) {
+        if (found < 20) {
+            log(`Salida bloqueada. Faltan ${20 - found} preguntas.`, "warn");
+            alert(`🔒 La salida está bloqueada.\nDebes responder todas las preguntas primero.\nLlevas ${found}/20.`);
+            return;
+        }
+    }
+ 
+    player.x = nx;
+    player.y = ny;
+    draw();
+ 
+    if (player.x === SIZE-1 && player.y === SIZE-1) {
+        verificarVictoria();
     }
 }
-
+ 
+// ── TECLADO ───────────────────────────────────────────────────────────────────
 window.addEventListener("keydown", e => {
-    if(e.key === "ArrowUp") move(0,-1);
-    if(e.key === "ArrowDown") move(0,1);
-    if(e.key === "ArrowLeft") move(-1,0);
-    if(e.key === "ArrowRight") move(1,0);
+    // No interferir con el modal
+    if (document.getElementById("modal-overlay").classList.contains("active")) {
+        if (e.key === "Enter") submitModal();
+        if (e.key === "Escape") cerrarModal();
+        return;
+    }
+    if (e.key === "ArrowUp")    { e.preventDefault(); move(0,-1); }
+    if (e.key === "ArrowDown")  { e.preventDefault(); move(0,1); }
+    if (e.key === "ArrowLeft")  { e.preventDefault(); move(-1,0); }
+    if (e.key === "ArrowRight") { e.preventDefault(); move(1,0); }
 });
-
+ 
+// ── INICIO ────────────────────────────────────────────────────────────────────
 init();
 </script>
 </body>
+</html>
 </html>
