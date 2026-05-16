@@ -14,9 +14,9 @@
             --green: #00ff88;
             --red: #ff4466;
         }
- 
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
         body {
             background: var(--bg);
             color: #e0e0e0;
@@ -24,7 +24,7 @@
             overflow-x: hidden;
             min-height: 100vh;
         }
- 
+
         body::before {
             content: '';
             position: fixed;
@@ -35,7 +35,7 @@
             pointer-events: none;
             z-index: 0;
         }
- 
+
         .header {
             text-align: center;
             padding: 20px 30px;
@@ -44,7 +44,7 @@
             position: relative;
             z-index: 1;
         }
- 
+
         .header h2 {
             font-family: 'Orbitron', monospace;
             color: var(--gold);
@@ -52,7 +52,7 @@
             letter-spacing: 3px;
             font-weight: 900;
         }
- 
+
         .header h3 {
             font-family: 'Orbitron', monospace;
             color: var(--primary);
@@ -62,7 +62,7 @@
             margin-top: 4px;
             opacity: 0.8;
         }
- 
+
         .form-auth {
             margin-top: 12px;
             display: flex;
@@ -71,13 +71,13 @@
             gap: 8px;
             flex-wrap: wrap;
         }
- 
+
         .form-auth label {
             color: var(--gold);
             font-size: 0.8rem;
             letter-spacing: 1px;
         }
- 
+
         input {
             background: rgba(0,212,255,0.06);
             border: 1px solid rgba(0,212,255,0.3);
@@ -89,12 +89,12 @@
             outline: none;
             transition: border-color 0.2s;
         }
- 
+
         input:focus { border-color: var(--primary); }
         input:disabled { opacity: 0.5; }
- 
+
         #salon { width: 70px; }
- 
+
         .btn {
             background: linear-gradient(135deg, var(--gold), #a07830);
             color: #0a0e14;
@@ -108,22 +108,22 @@
             cursor: pointer;
             transition: all 0.2s;
         }
- 
+
         .btn:hover:not(:disabled) {
             background: linear-gradient(135deg, var(--primary), #0088aa);
             transform: translateY(-1px);
             box-shadow: 0 4px 15px rgba(0,212,255,0.3);
         }
- 
+
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
- 
+
         #timer-bar {
             height: 3px;
             background: linear-gradient(90deg, var(--green), var(--primary), var(--gold));
             transition: width 1s linear, background 1s;
             width: 100%;
         }
- 
+
         #timer-text {
             font-family: 'Orbitron', monospace;
             font-size: 0.75rem;
@@ -132,7 +132,7 @@
             padding: 3px 20px 0;
             letter-spacing: 2px;
         }
- 
+
         .main {
             display: grid;
             grid-template-columns: 260px 1fr 260px;
@@ -143,7 +143,7 @@
             position: relative;
             z-index: 1;
         }
- 
+
         .card {
             background: var(--card-bg);
             border: 1px solid rgba(201,168,76,0.2);
@@ -151,7 +151,7 @@
             border-radius: 10px;
             backdrop-filter: blur(8px);
         }
- 
+
         .card h3 {
             font-family: 'Orbitron', monospace;
             color: var(--gold);
@@ -161,16 +161,16 @@
             padding-bottom: 8px;
             border-bottom: 1px solid rgba(201,168,76,0.2);
         }
- 
+
         .card p {
             font-size: 0.82rem;
             line-height: 1.7;
             color: #aaa;
             margin-bottom: 6px;
         }
- 
+
         .card p b { color: #ddd; }
- 
+
         canvas {
             border: 2px solid rgba(0,212,255,0.4);
             background: #020609;
@@ -178,9 +178,9 @@
             border-radius: 6px;
             display: block;
         }
- 
+
         .canvas-wrap { text-align: center; }
- 
+
         .arrow-pad {
             display: grid;
             grid-template-columns: repeat(3, 44px);
@@ -189,7 +189,7 @@
             justify-content: center;
             margin-top: 12px;
         }
- 
+
         .arrow-pad .btn {
             width: 44px;
             height: 44px;
@@ -197,7 +197,7 @@
             font-size: 1rem;
             border-radius: 6px;
         }
- 
+
         .score-box {
             font-family: 'Orbitron', monospace;
             font-size: 2.2rem;
@@ -207,7 +207,7 @@
             text-shadow: 0 0 20px rgba(0,212,255,0.5);
             margin: 8px 0;
         }
- 
+
         .score-label {
             text-align: center;
             font-size: 0.7rem;
@@ -215,7 +215,7 @@
             letter-spacing: 2px;
             margin-bottom: 12px;
         }
- 
+
         .progress-bar {
             height: 6px;
             background: rgba(255,255,255,0.05);
@@ -223,7 +223,7 @@
             overflow: hidden;
             margin: 8px 0 4px;
         }
- 
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--green));
@@ -231,13 +231,13 @@
             transition: width 0.4s ease;
             width: 0%;
         }
- 
+
         .progress-text {
             font-size: 0.72rem;
             color: #555;
             text-align: right;
         }
- 
+
         .log {
             overflow-y: auto;
             font-family: 'Share Tech Mono', monospace;
@@ -249,13 +249,13 @@
             height: 200px;
             border: 1px solid rgba(0,255,136,0.1);
         }
- 
+
         .log .entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .log .entry.error { color: var(--red); }
         .log .entry.warn  { color: var(--gold); }
         .log .entry.ok    { color: var(--green); }
         .log .entry.info  { color: var(--primary); }
- 
+
         /* MODAL */
         #modal-overlay {
             display: none;
@@ -267,9 +267,9 @@
             align-items: center;
             justify-content: center;
         }
- 
+
         #modal-overlay.active { display: flex; }
- 
+
         #modal-box {
             background: #0d1219;
             border: 1px solid var(--gold);
@@ -280,12 +280,12 @@
             box-shadow: 0 0 40px rgba(201,168,76,0.2);
             animation: modalIn 0.2s ease;
         }
- 
+
         @keyframes modalIn {
             from { opacity: 0; transform: translateY(-20px) scale(0.97); }
             to   { opacity: 1; transform: translateY(0) scale(1); }
         }
- 
+
         #modal-box h4 {
             font-family: 'Orbitron', monospace;
             color: var(--gold);
@@ -293,7 +293,7 @@
             letter-spacing: 2px;
             margin-bottom: 14px;
         }
- 
+
         #modal-pregunta {
             color: #ddd;
             font-size: 0.95rem;
@@ -304,20 +304,20 @@
             border-left: 3px solid var(--primary);
             border-radius: 4px;
         }
- 
+
         #modal-respuesta {
             width: 100%;
             margin-bottom: 14px;
             padding: 10px 14px;
             font-size: 0.9rem;
         }
- 
+
         .modal-footer {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
         }
- 
+
         .btn-cancel {
             background: rgba(255,255,255,0.06);
             color: #888;
@@ -329,7 +329,7 @@
             cursor: pointer;
             letter-spacing: 1px;
         }
- 
+
         #ia-status {
             font-size: 0.75rem;
             color: var(--gold);
@@ -337,7 +337,7 @@
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
- 
+
         /* Victoria */
         #win-screen {
             display: none;
@@ -350,9 +350,9 @@
             flex-direction: column;
             text-align: center;
         }
- 
+
         #win-screen.active { display: flex; }
- 
+
         #win-screen h1 {
             font-family: 'Orbitron', monospace;
             color: var(--gold);
@@ -361,24 +361,23 @@
             margin-bottom: 10px;
             text-shadow: 0 0 30px rgba(201,168,76,0.6);
         }
- 
+
         #win-screen p {
             color: var(--primary);
             font-size: 1.1rem;
             margin: 6px 0;
         }
- 
+
         .star { font-size: 3rem; animation: pulse 1s infinite alternate; }
         @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
- 
+
         @media (max-width: 900px) {
             .main { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
- 
-<!-- HEADER -->
+
 <div class="header">
     <h2>COLEGIO EPISCOPAL DE PANAMÁ</h2>
     <h3>EXAMEN TRIMESTRAL · REDES Y COMUNICACIÓN</h3>
@@ -390,31 +389,24 @@
         <button class="btn" onclick="guardarDatos()">EMPEZAR RETO</button>
     </div>
 </div>
- 
-<!-- TIMER -->
+
 <div style="padding: 0 20px; position:relative; z-index:1;">
     <div id="timer-bar"></div>
     <div id="timer-text">90:00</div>
 </div>
- 
-<!-- MAIN -->
+
 <div class="main">
- 
-    <!-- IZQUIERDA -->
     <div class="card">
         <h3>// MECÁNICA</h3>
-        <p>1. Muévete con las <b>flechas del teclado</b> o los botones.</p>
+        <p>1. Muévete con las <b>flechas del teclado</b>.</p>
         <p>2. Al tocar un <b>"?"</b>, responde la pregunta técnica.</p>
-        <p>3. Tu respuesta se <b>valida automáticamente</b>.</p>
-        <p>4. Debes responder <b>todas las preguntas</b> antes de llegar a la salida.</p>
+        <p>3. El sistema selecciona <b>20 preguntas</b> aleatorias.</p>
+        <p>4. Debes responder todo para una nota de 5.0.</p>
         <br>
         <p style="color: rgba(201,168,76,0.6); font-size:0.75rem;">▸ La salida está marcada en verde.</p>
-        <p style="color: rgba(201,168,76,0.6); font-size:0.75rem;">▸ Los "?" son puntos de control.</p>
-        <br>
         <p style="color: #555; font-size: 0.75rem;">PROFESOR: Arquimedes Mosquera</p>
     </div>
- 
-    <!-- CANVAS -->
+
     <div class="canvas-wrap">
         <canvas id="maze" width="550" height="550"></canvas>
         <div class="arrow-pad">
@@ -426,18 +418,15 @@
             <button class="btn" onclick="move(1,0)">→</button>
         </div>
     </div>
- 
-    <!-- DERECHA -->
+
     <div class="card">
         <h3>// ESTATUS</h3>
         <div class="score-box"><span id="score">0</span></div>
         <div class="score-label">PUNTOS</div>
- 
         <div class="progress-bar">
             <div class="progress-fill" id="prog-fill"></div>
         </div>
         <div class="progress-text">Preguntas: <span id="clues">0/20</span></div>
- 
         <br>
         <h3>// CONSOLA</h3>
         <div id="log" class="log">
@@ -445,8 +434,7 @@
         </div>
     </div>
 </div>
- 
-<!-- MODAL PREGUNTA -->
+
 <div id="modal-overlay">
     <div id="modal-box">
         <h4>// PUNTO DE CONTROL · RESPONDE PARA CONTINUAR</h4>
@@ -459,8 +447,7 @@
         </div>
     </div>
 </div>
- 
-<!-- PANTALLA DE VICTORIA -->
+
 <div id="win-screen">
     <div class="star">🏆</div>
     <h1>¡LABERINTO COMPLETADO!</h1>
@@ -471,119 +458,69 @@
     <br>
     <p style="color:#555; font-size:0.8rem;">Tu resultado ha sido registrado.</p>
 </div>
- 
+
 <script>
-// ── CONFIGURACIÓN ─────────────────────────────────────────────────────────────
 const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwUpoc8HPNSbyc_9CGwUlAtvc1PUxNmVwZULrZL5vHAB7xNCzn4oIcUma51ag5iIUrI/exec";
 
-// ── PREGUNTAS + PALABRAS CLAVE (estructura unificada) ─────────────────────────
-// La clave "keys" contiene fragmentos que se buscan DENTRO de la oración del alumno.
-// Ejemplo: "el protocolo es rdp" → contiene "RDP" → correcto ✔
-const QUESTIONS = [
-    {
-        q: "¿Cómo se denomina el protocolo utilizado para controlar un equipo de forma remota en Windows?",
-        keys: ["RDP", "REMOTE DESKTOP", "ESCRITORIO REMOTO"]
-    },
-    {
-        q: "¿Cuál es el número de puerto predeterminado utilizado por RDP?",
-        keys: ["3389"]
-    },
-    {
-        q: "¿Qué empresa desarrolló el protocolo RDP?",
-        keys: ["MICROSOFT"]
-    },
-    {
-        q: "¿Qué modelo describe la comunicación de RDP entre dos equipos?",
-        keys: ["CLIENTE-SERVIDOR", "CLIENTE SERVIDOR", "CLIENTE/SERVIDOR", "CLIENTE - SERVIDOR"]
-    },
-    {
-        q: "¿Qué protocolo se utiliza para asegurar conexiones cifradas?",
-        keys: ["TLS", "SSL", "TRANSPORT LAYER SECURITY", "SECURE SOCKETS LAYER", "TLS 1.3."]
-    },
-    {
-        q: "¿Cómo se llama la vulnerabilidad famosa que afectó RDP en 2019?",
-        keys: ["BLUEKEEP", "BLUE KEEP", "BLUE-KEEP", "CVE-2019"]
-    },
-    {
-        q: "¿Qué puerto utiliza HTTP?",
-        keys: ["80"]
-    },
-    {
-        q: "¿Qué puerto utiliza HTTPS?",
-        keys: ["443"]
-    },
-    {
-        q: "¿Qué puerto utiliza SSH?",
-        keys: ["22"]
-    },
-    {
-        q: "¿Qué protocolo garantiza entrega de datos?",
-        keys: ["TCP", "TRANSMISSION CONTROL", "CONTROL DE TRANSMISION"]
-    },
-    {
-        q: "¿Qué protocolo es más rápido pero no garantiza entrega?",
-        keys: ["UDP", "USER DATAGRAM", "DATAGRAMA"]
-    },
-    {
-        q: "¿Cómo se le llama a la red local en ingles?",
-        keys: ["LAN", "LOCAL AREA", "RED LOCAL", "RED DE AREA"]
-    },
-    {
-        q: "¿Qué dispositivo conecta a Internet?",
-        keys: ["ROUTER", "ENRUTADOR", "RUTEADOR"]
-    },
-    {
-        q: "¿Cómo se llama la dirección lógica de una tarjeta de red?",
-        keys: ["DIRECCION IP", "IP ADDRESS", "ES IP", "LA IP", "IP", "ES LA IP"]
-    },
-    {
-        q: "¿Cómo se llama la dirección física única de una tarjeta de red?",
-        keys: ["MAC", "MEDIA ACCESS CONTROL", "MAC ADDRESS"]
-    },
-    {
-        q: "¿Qué rango usan los puertos reservados?",
-        keys: ["0-1023", "0 A 1023", "0 AL 1023", "0 HASTA 1023", "1023"]
-    },
-    {
-        q: "¿Qué puerto utiliza DNS?",
-        keys: ["53"]
-    },
-    {
-        q: "¿Qué puerto utiliza SMTP?",
-        keys: ["25"]
-    },
-    {
-        q: "¿Qué puerto utiliza FTP?",
-        keys: ["21"]
-    },
-    {
-        q: "¿Qué capa gestiona los puertos?",
-        keys: ["TRANSPORTE", "CAPA 4", "LAYER 4", "CUARTA CAPA"]
-    }
+// Banco de preguntas unificado y ampliado
+const BANCO_COMPLETO = [
+    { q: "¿Qué componente ha evolucionado drásticamente en los videojuegos?", keys: ["MEMORIAS RAM"] },
+    { q: "¿Por qué se creó IPv6?", keys: ["AGOTAMIENTO DE DIRECCIONES", "FALTA DE IPS"] },
+    { q: "¿Qué es una dirección IP?", keys: ["ETIQUETA NUMERICA", "DIRECCION LOGICA"] },
+    { q: "¿En qué año introdujo Microsoft la base de RDP?", keys: ["1996"] },
+    { q: "¿Qué versión de Windows introdujo RDP 6.0?", keys: ["VISTA"] },
+    { q: "¿Qué comando abre el cliente RDP en Windows?", keys: ["MSTSC.EXE", "MSTSC"] },
+    { q: "¿Qué significa IP?", keys: ["INTERNET PROTOCOL", "PROTOCOLO DE INTERNET"] },
+    { q: "¿Qué protocolo asegura las conexiones RDP desde la v6.0?", keys: ["TLS", "SSL"] },
+    { q: "¿Qué edición de Windows NO incluye el servidor RDP nativamente?", keys: ["HOME"] },
+    { q: "¿Qué dirección identifica físicamente al hardware de red?", keys: ["MAC", "MAC ADDRESSES"] },
+    { q: "¿Qué dirección es lógica y ubica al dispositivo en la red?", keys: ["IP", "DIRECCION IP"] },
+    { q: "¿Qué significa eSIM?", keys: ["SIM VIRTUAL", "VIRTUAL SIM", "EMBEDDED SUBSCRIBER IDENTITY MODULE"] },
+    { q: "¿Qué empresa es la competidora directa de OpenAI?", keys: ["ANTHROPIC"] },
+    { q: "¿Qué herramienta de Gartner clasifica a los proveedores según su visión?", keys: ["CUADRANTE MAGICO"] },
+    { q: "¿En qué capa del modelo OSI trabaja el direccionamiento IP?", keys: ["RED", "CAPA 3"] },
+    { q: "¿En qué capa del modelo OSI se gestionan los puertos TCP?", keys: ["TRANSPORTE", "CAPA 4"] },
+    { q: "¿Qué significa LAN?", keys: ["LOCAL AREA NETWORK", "RED DE AREA LOCAL"] },
+    { q: "¿Qué dispositivo conecta diferentes redes y dirige el tráfico?", keys: ["ROUTER", "ENRUTADOR"] },
+    { q: "¿Cuántos bits tiene una dirección IPv4?", keys: ["32"] },
+    { q: "¿Qué comando verifica la latencia y conectividad básica?", keys: ["PING"] },
+    { q: "¿Qué dispositivo de red utiliza principalmente direcciones MAC?", keys: ["SWITCH", "CONMUTADOR"] },
+    { q: "¿Qué significa IPv4?", keys: ["VERSION 4"] },
+    { q: "¿Qué protocolo garantiza la entrega de datos?", keys: ["TCP", "CONTROL DE TRANSMISION"] },
+    { q: "¿Qué protocolo es más rápido pero no garantiza entrega?", keys: ["UDP", "DATAGRAMA"] },
+    { q: "¿Cuántos bits tiene una dirección IPv6?", keys: ["128"] },
+    { q: "¿Qué es el Kernel de Linux?", keys: ["NUCLEO"] },
+    { q: "¿En qué sector impacta el nuevo producto de IA de Google según el tema?", keys: ["VIDEOJUEGOS"] },
 ];
 
-const TOTAL = QUESTIONS.length;
+const TOTAL_A_RESPONDER = 20;
 
-// ── ESTADO ────────────────────────────────────────────────────────────────────
-const canvas  = document.getElementById("maze");
-const ctx     = canvas.getContext("2d");
-const SIZE    = 15;
+// ESTATUS DE JUEGO
+const canvas = document.getElementById("maze");
+const ctx = canvas.getContext("2d");
+const SIZE = 15;
 let cells = [], clues = [], player = {x:0, y:0};
 let score = 0, found = 0;
 let modalAbierto = false;
-let clueActual   = null;
+let clueActual = null;
 let timerInterval = null;
 let segundosRestantes = 90 * 60;
 let tiempoInicio = null;
 
-// ── LOG ───────────────────────────────────────────────────────────────────────
+// NOTAS COLEGIO EPISCOPAL
+const TABLA_NOTAS = {
+    20:"5.0", 19:"4.8", 18:"4.6", 17:"4.4", 16:"4.2",
+    15:"4.0", 14:"3.8", 13:"3.6", 12:"3.4", 11:"3.2",
+    10:"3.0", 9:"2.8", 8:"2.6", 7:"2.4", 6:"2.2",
+    5:"2.0", 4:"1.8", 3:"1.6", 2:"1.4", 1:"1.2", 0:"1.0"
+};
+
 function log(msg, tipo = "ok") {
     const d = document.getElementById("log");
     const ts = new Date().toLocaleTimeString("es-PA", {hour12:false});
     d.innerHTML = `<div class="entry ${tipo}">> [${ts}] ${msg}</div>` + d.innerHTML;
 }
 
-// ── TIMER ─────────────────────────────────────────────────────────────────────
 function iniciarTimer() {
     tiempoInicio = Date.now();
     timerInterval = setInterval(() => {
@@ -594,134 +531,84 @@ function iniciarTimer() {
         const pct = (segundosRestantes / (90 * 60)) * 100;
         const bar = document.getElementById("timer-bar");
         bar.style.width = pct + "%";
-        if (pct < 25) bar.style.background = "linear-gradient(90deg, #ff4466, #cc0033)";
-        else if (pct < 50) bar.style.background = "linear-gradient(90deg, #c9a84c, #ff8800)";
         if (segundosRestantes <= 0) {
             clearInterval(timerInterval);
-            log("¡Tiempo agotado!", "error");
-            alert(`⏱ Tiempo agotado.\nPuntaje final: ${score}/${TOTAL}`);
+            alert("Tiempo agotado.");
         }
     }, 1000);
 }
 
-// ── REGISTRO ──────────────────────────────────────────────────────────────────
 function guardarDatos() {
     const n = document.getElementById("nombre").value.trim();
     const s = document.getElementById("salon").value.trim();
-    if (!n || !s) { alert("Ingresa tu nombre y salón antes de comenzar."); return; }
+    if (!n || !s) { alert("Ingresa tus datos."); return; }
     document.getElementById("nombre").disabled = true;
     document.getElementById("salon").disabled = true;
-    log("Estudiante: " + n + " | Salón: " + s, "info");
-    log("Laberinto desbloqueado. ¡Buena suerte!", "warn");
+    log("Iniciando examen...", "info");
     iniciarTimer();
 }
 
-// ── ENVÍO A SHEETS (segundo plano, sin bloquear) ──────────────────────────────
 function enviarSheets(nombre, salon, pregunta, respuesta) {
     const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
-    fetch(url).catch(err => console.warn("Sheets no disponible:", err));
+    fetch(url).catch(err => console.warn("Sheets error:", err));
 }
 
-// ── VALIDACIÓN LOCAL ──────────────────────────────────────────────────────────
 function normalizar(texto) {
-    return texto
-        .toUpperCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // elimina tildes
-        .replace(/\s+/g, " ")            // colapsa espacios
-        .trim();
+    return texto.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 }
 
-// Recibe el objeto clue (que ya tiene .keys) y la respuesta escrita
 function validarRespuesta(clue, respuesta) {
-    const palabrasClave = clue.keys || [];
-    const respuestaNorm = normalizar(respuesta);
-    return palabrasClave.some(kw => respuestaNorm.includes(normalizar(kw)));
+    const rNorm = normalizar(respuesta);
+    return clue.keys.some(kw => rNorm.includes(normalizar(kw)));
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────────
 function abrirModal(clue) {
-    clueActual   = clue;
+    clueActual = clue;
     modalAbierto = true;
     document.getElementById("modal-pregunta").innerText = clue.q;
-    document.getElementById("modal-respuesta").value    = "";
-    document.getElementById("ia-status").innerText      = "";
-    document.getElementById("ia-status").style.color    = "var(--gold)";
-    document.getElementById("btn-enviar").disabled      = false;
+    document.getElementById("modal-respuesta").value = "";
+    document.getElementById("ia-status").innerText = "";
     document.getElementById("modal-overlay").classList.add("active");
     setTimeout(() => document.getElementById("modal-respuesta").focus(), 100);
 }
 
 function cerrarModal() {
     document.getElementById("modal-overlay").classList.remove("active");
-    clueActual   = null;
     modalAbierto = false;
 }
 
 function submitModal() {
     const r = document.getElementById("modal-respuesta").value.trim();
-    if (!r) { alert("Escribe una respuesta antes de validar."); return; }
-
-    const esCorrecta = validarRespuesta(clueActual, r);
-
-    if (esCorrecta) {
+    if (!r) return;
+    if (validarRespuesta(clueActual, r)) {
         clueActual.d = true;
         score++;
         found++;
-        document.getElementById("score").innerText     = score;
-        document.getElementById("clues").innerText     = `${found}/${TOTAL}`;
-        document.getElementById("prog-fill").style.width = (found / TOTAL * 100) + "%";
-        log(`✔ Correcto — ${score}/${TOTAL} pts`, "ok");
-
-        // Enviar a Sheets en segundo plano sin bloquear
-        const nombre = document.getElementById("nombre").value;
-        const salon  = document.getElementById("salon").value;
-        enviarSheets(nombre, salon, clueActual.q, r);
-
-        // Mover jugador a la celda destino
+        document.getElementById("score").innerText = score;
+        document.getElementById("clues").innerText = `${found}/${TOTAL_A_RESPONDER}`;
+        document.getElementById("prog-fill").style.width = (found / TOTAL_A_RESPONDER * 100) + "%";
+        log(`✔ Correcto`, "ok");
+        
+        enviarSheets(document.getElementById("nombre").value, document.getElementById("salon").value, clueActual.q, r);
+        
         player.x = clueActual._nx;
         player.y = clueActual._ny;
         draw();
         cerrarModal();
-
-        if (player.x === SIZE - 1 && player.y === SIZE - 1) {
-            verificarVictoria();
-        }
+        if (player.x === SIZE - 1 && player.y === SIZE - 1) verificarVictoria();
     } else {
-        log("✖ Respuesta incorrecta. Intenta de nuevo.", "error");
-        document.getElementById("ia-status").innerText   = "✖ Incorrecto. Intenta ser más específico.";
-        document.getElementById("ia-status").style.color = "#ff4466";
+        document.getElementById("ia-status").innerText = "✖ Incorrecto.";
+        document.getElementById("ia-status").style.color = "var(--red)";
     }
 }
 
-// ── TABLA DE NOTAS ────────────────────────────────────────────────────────────
-const TABLA_NOTAS = {
-    20:"5.0", 19:"4.8", 18:"4.6", 17:"4.4", 16:"4.2",
-    15:"4.0", 14:"3.8", 13:"3.6", 12:"3.4", 11:"3.2",
-    10:"3.0",  9:"2.8",  8:"2.6",  7:"2.4",  6:"2.2",
-     5:"2.0",  4:"1.8",  3:"1.6",  2:"1.4",  1:"1.2", 0:"1.0"
-};
-
-// ── VICTORIA ──────────────────────────────────────────────────────────────────
 function verificarVictoria() {
     const nota = TABLA_NOTAS[found] || "1.0";
-
-    if (found === TOTAL) {
-        // Completó todo — mostrar pantalla final directamente
+    if (found === TOTAL_A_RESPONDER) {
         finalizarExamen(nota);
     } else {
-        // Llegó a la salida sin terminar — preguntar si finaliza o continúa
-        const msg =
-            `Has llegado a la salida.\n\n` +
-            `Preguntas respondidas: ${found}/${TOTAL}\n` +
-            `Calificación actual: ${nota}\n\n` +
-            `¿Deseas FINALIZAR el examen ahora?\n` +
-            `(Cancela para seguir buscando preguntas)`;
-
-        if (confirm(msg)) {
+        if (confirm(`Salida alcanzada. Respondidas: ${found}/${TOTAL_A_RESPONDER}. ¿Finalizar examen con nota ${nota}?`)) {
             finalizarExamen(nota);
-        } else {
-            log(`🔄 Continuando... llevas ${found}/${TOTAL} — nota actual: ${nota}`, "warn");
         }
     }
 }
@@ -732,14 +619,12 @@ function finalizarExamen(nota) {
     const mm = Math.floor(elapsed / 60);
     const ss = String(elapsed % 60).padStart(2, "0");
     document.getElementById("win-nombre").innerText = document.getElementById("nombre").value;
-    document.getElementById("win-score").innerText  = `Preguntas: ${found}/${TOTAL}`;
-    document.getElementById("win-nota").innerText   = `NOTA FINAL: ${nota}`;
+    document.getElementById("win-score").innerText = `Respondidas: ${found}/${TOTAL_A_RESPONDER}`;
+    document.getElementById("win-nota").innerText = `NOTA FINAL: ${nota}`;
     document.getElementById("win-tiempo").innerText = `Tiempo: ${mm}:${ss}`;
     document.getElementById("win-screen").classList.add("active");
-    log(`🏆 EXAMEN FINALIZADO — Nota: ${nota}`, "ok");
 }
 
-// ── LABERINTO (DFS) ───────────────────────────────────────────────────────────
 function init() {
     cells = Array.from({length: SIZE}, () =>
         Array.from({length: SIZE}, () => ({v: false, w: [true, true, true, true]}))
@@ -749,11 +634,7 @@ function init() {
     const dirs = [[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]];
     while (stack.length) {
         const [x, y] = stack.at(-1);
-        const nb = dirs.filter(d =>
-            x+d[0] >= 0 && y+d[1] >= 0 &&
-            x+d[0] < SIZE && y+d[1] < SIZE &&
-            !cells[y+d[1]][x+d[0]].v
-        );
+        const nb = dirs.filter(d => x+d[0] >= 0 && y+d[1] >= 0 && x+d[0] < SIZE && y+d[1] < SIZE && !cells[y+d[1]][x+d[0]].v);
         if (nb.length) {
             const d = nb[Math.floor(Math.random() * nb.length)];
             cells[y][x].w[d[2]] = false;
@@ -762,32 +643,36 @@ function init() {
             stack.push([x+d[0], y+d[1]]);
         } else { stack.pop(); }
     }
-    cells[SIZE-1][SIZE-1].w[2] = false;
 
-    // Colocar preguntas aleatoriamente
+    const seleccion = [...BANCO_COMPLETO].sort(() => Math.random() - 0.5).slice(0, TOTAL_A_RESPONDER);
     let pos = [];
     for (let y = 0; y < SIZE; y++)
         for (let x = 0; x < SIZE; x++)
-            if (!(x === 0 && y === 0) && !(x === SIZE-1 && y === SIZE-1))
-                pos.push({x, y});
+            if (!(x === 0 && y === 0) && !(x === SIZE-1 && y === SIZE-1)) pos.push({x, y});
     pos.sort(() => Math.random() - 0.5);
-    clues = pos.slice(0, TOTAL).map((p, i) => ({...p, q: QUESTIONS[i].q, keys: QUESTIONS[i].keys, d: false}));
+
+    clues = pos.slice(0, TOTAL_A_RESPONDER).map((p, i) => ({...p, q: seleccion[i].q, keys: seleccion[i].keys, d: false}));
     draw();
 }
 
-// ── DIBUJO ────────────────────────────────────────────────────────────────────
 function draw() {
     const w = canvas.width / SIZE;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Salida
+    
+    // Salida Verde
     ctx.fillStyle = "rgba(0,255,136,0.12)";
     ctx.fillRect((SIZE-1)*w, (SIZE-1)*w, w, w);
-    ctx.fillStyle = "rgba(0,255,136,0.5)";
-    ctx.font = `${w*0.45}px Share Tech Mono`;
-    ctx.fillText("EXIT", (SIZE-1)*w + w*0.05, (SIZE-1)*w + w*0.65);
 
-    // Paredes
+    // Texto EXIT centrado en la salida
+    ctx.fillStyle = "#00ff88";
+    ctx.font = `bold ${w*0.3}px Orbitron`;
+    ctx.textAlign = "center";
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = "#00ff88";
+    ctx.fillText("EXIT", (SIZE-1)*w + w/2, (SIZE-1)*w + w/1.7);
+    ctx.shadowBlur = 0;
+    ctx.textAlign = "start"; // Reset textAlign
+
     ctx.strokeStyle = "rgba(0,212,255,0.35)";
     ctx.lineWidth = 1.5;
     for (let y = 0; y < SIZE; y++) {
@@ -798,82 +683,42 @@ function draw() {
             if (cells[y][x].w[3]) { ctx.beginPath(); ctx.moveTo(x*w, y*w); ctx.lineTo(x*w, (y+1)*w); ctx.stroke(); }
         }
     }
-
-    // Preguntas "?"
     clues.forEach(c => {
         if (!c.d) {
-            ctx.fillStyle = "rgba(0,212,255,0.15)";
-            ctx.fillRect(c.x*w+1, c.y*w+1, w-2, w-2);
             ctx.fillStyle = "#00d4ff";
-            ctx.font = `bold ${w*0.55}px Orbitron, monospace`;
+            ctx.font = `bold ${w*0.55}px Orbitron`;
             ctx.fillText("?", c.x*w + w*0.28, c.y*w + w*0.7);
         }
     });
-
-    // Jugador
     ctx.fillStyle = "#ffdd44";
-    ctx.shadowColor = "#ffdd44";
     ctx.shadowBlur = 10;
+    ctx.shadowColor = "#ffdd44";
     ctx.beginPath();
     ctx.arc(player.x*w + w/2, player.y*w + w/2, w*0.32, 0, Math.PI*2);
     ctx.fill();
     ctx.shadowBlur = 0;
 }
 
-// ── MOVIMIENTO ────────────────────────────────────────────────────────────────
 async function move(dx, dy) {
-    if (!document.getElementById("nombre").disabled) {
-        alert("Registra tus datos primero.");
-        return;
-    }
-    // Bloquear movimiento si el modal está abierto
-    if (modalAbierto) return;
-
-    const nx = player.x + dx;
-    const ny = player.y + dy;
+    if (!document.getElementById("nombre").disabled || modalAbierto) return;
+    const nx = player.x + dx, ny = player.y + dy;
     const wIdx = dy < 0 ? 0 : dx > 0 ? 1 : dy > 0 ? 2 : 3;
-
-    if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE) return;
-    if (cells[player.y][player.x].w[wIdx]) return;
-
-    // ¿Hay pregunta en la celda destino?
+    if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || cells[player.y][player.x].w[wIdx]) return;
     const c = clues.find(c => c.x === nx && c.y === ny && !c.d);
-    if (c) {
-        c._nx = nx;
-        c._ny = ny;
-        abrirModal(c);
-        return;
-    }
-
-    // ¿Es la salida?
-    if (nx === SIZE-1 && ny === SIZE-1) {
-        player.x = nx;
-        player.y = ny;
-        draw();
-        verificarVictoria();
-        return;
-    }
-
-    player.x = nx;
-    player.y = ny;
+    if (c) { c._nx = nx; c._ny = ny; abrirModal(c); return; }
+    player.x = nx; player.y = ny;
     draw();
-
+    if (nx === SIZE-1 && ny === SIZE-1) verificarVictoria();
 }
 
-// ── TECLADO ───────────────────────────────────────────────────────────────────
 window.addEventListener("keydown", e => {
-    if (document.getElementById("modal-overlay").classList.contains("active")) {
-        if (e.key === "Enter")  submitModal();
-        if (e.key === "Escape") cerrarModal();
+    if (modalAbierto) {
+        if (e.key === "Enter") submitModal();
         return;
     }
-    if (e.key === "ArrowUp")    { e.preventDefault(); move(0,-1); }
-    if (e.key === "ArrowDown")  { e.preventDefault(); move(0,1); }
-    if (e.key === "ArrowLeft")  { e.preventDefault(); move(-1,0); }
-    if (e.key === "ArrowRight") { e.preventDefault(); move(1,0); }
+    if (e.key.includes("Arrow")) { e.preventDefault(); move(e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0, e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0); }
 });
 
-// ── INICIO ────────────────────────────────────────────────────────────────────
 init();
 </script>
 </body>
