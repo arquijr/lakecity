@@ -246,15 +246,15 @@
             padding: 10px;
             border-radius: 5px;
             color: #00cc66;
-            height: 200px;
+            height: 160px;
             border: 1px solid rgba(0,255,136,0.1);
         }
 
         .log .entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .log .entry.error { color: var(--red); }
-        .log .entry.warn  { color: var(--gold); }
-        .log .entry.ok    { color: var(--green); }
-        .log .entry.info  { color: var(--primary); }
+        .log .entry.warn   { color: var(--gold); }
+        .log .entry.ok     { color: var(--green); }
+        .log .entry.info   { color: var(--primary); }
 
         /* MODAL */
         #modal-overlay {
@@ -401,7 +401,7 @@
         <p>1. Muévete con las <b>flechas del teclado</b>.</p>
         <p>2. Al tocar un <b>"?"</b>, responde la pregunta técnica.</p>
         <p>3. Tienes un máximo de <b>2 intentos</b> por pregunta.</p>
-        <p>4. Cada acierto correcto suma <b>+10 pts</b> directos.</p>
+        <p>4. Cada acierto correcto suma puntos al score de juego.</p>
         <br>
         <p style="color: rgba(201,168,76,0.6); font-size:0.75rem;">▸ Avanzas aunque falles. Salida en verde.</p>
         <p style="color: #555; font-size: 0.75rem;">PROFESOR: Arquimedes Mosquera</p>
@@ -422,13 +422,13 @@
     <div class="card">
         <h3>// ESTATUS</h3>
         <div class="score-box"><span id="score">0</span></div>
-        <div class="score-label">PUNTOS (ACIERTOS)</div>
+        <div class="score-label">PUNTAGE ACTUAL</div>
         
-        <div id="panel-estatus-detallado" style="font-size: 0.8rem; color: #aaa; line-height: 1.5; margin-bottom: 10px;">
-            <p>Respuestas Correctas: <b id="stat-correctas" style="color: var(--green);">0</b></p>
-            <p>Respuestas Fallidas: <b id="stat-incorrectas" style="color: var(--red);">0</b></p>
-            <p>Penalizaciones Internas: <b id="stat-penalizaciones" style="color: var(--red);">0</b></p>
+        <div id="panel-estatus-detallado" style="font-size: 0.8rem; color: #aaa; line-height: 1.6; margin-bottom: 10px;">
+            <p>Correctas: <b id="stat-correctas" style="color: var(--green);">0/20</b></p>
+            <p>Incorrectas: <b id="stat-incorrectas" style="color: var(--red);">0</b></p>
             <p>Nota de Examen: <b id="stat-nota" style="color: var(--gold);">1.0</b></p>
+            <p>Último resultado: <b id="stat-resultado" style="color: #fff; background: rgba(255,255,255,0.07); padding: 1px 6px; border-radius:3px;">Ninguno</b></p>
         </div>
 
         <div class="progress-bar">
@@ -500,24 +500,27 @@ const BANCO_COMPLETO = [
     { q: "¿En qué sector impacta el nuevo producto de IA de Google según el tema?", keys: ["VIDEO JUEGOS", "GAMER"] },
 ];
 
+// PARAMETRIZACIÓN DEL SISTEMA BASADO EN UN TOTAL DE 200 PUNTOS
 const TOTAL_A_RESPONDER = 20;
+const PUNTAJE_MAXIMO = 200; 
+const VALOR_PREGUNTA = PUNTAJE_MAXIMO / TOTAL_A_RESPONDER; // 200 / 20 = 10 puntos por pregunta
 
-// ESTATUS DE JUEGO
+// VARIABLES DE SEGUIMIENTO
 const canvas = document.getElementById("maze");
 const ctx = canvas.getContext("2d");
 const SIZE = 15;
 let cells = [], clues = [], player = {x:0, y:0};
-let found = 0;
+let found = 0; // Preguntas evaluadas en total (Correctas + Incorrectas)
 let modalAbierto = false;
 let clueActual = null;
 let timerInterval = null;
 let segundosRestantes = 90 * 60;
 let tiempoInicio = null;
 
-// Métricas de Rendimiento del Alumno
+// CONTADORES REQUERIDOS
 let cantidadCorrectas = 0;
 let cantidadIncorrectas = 0;
-let penalizacionesAplicadas = 0;
+let puntajeAcumuladoJuego = 0;
 
 function log(msg, tipo = "ok") {
     const d = document.getElementById("log");
@@ -554,7 +557,7 @@ function guardarDatos() {
 
 function enviarSheets(nombre, salon, pregunta, respuesta, estadoExitoso) {
     const statusStr = estadoExitoso ? "CORRECTA" : "INCORRECTA";
-    const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta + " [" + statusStr + "]")}`;
+    const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&target=${encodeURIComponent(respuesta + " [" + statusStr + "]")}`;
     fetch(url).catch(err => console.warn("Sheets error:", err));
 }
 
@@ -588,33 +591,40 @@ function cerrarModal() {
     if (player.x === SIZE - 1 && player.y === SIZE - 1) verificarVictoria();
 }
 
-// Cálculo matemático estricto de la nota basado en aciertos y errores
-function calcularNotaDinamica() {
-    let base = 1.0;
-    let incrementoPorAcierto = 4.0 / TOTAL_A_RESPONDER; // 0.2 por cada acierto neto
-    
-    // Cada acierto aporta positivamente; los fallos definitivos reducen la efectividad académica
-    let notaCalculada = base + (cantidadCorrectas * incrementoPorAcierto) - (cantidadIncorrectas * 0.1);
-    
-    if (notaCalculada > 5.0) notaCalculada = 5.0;
-    if (notaCalculada < 1.0) notaCalculada = 1.0;
-    
-    return notaCalculada.toFixed(1);
+// CONVERSOR ESTRICTO DE LA TABLA ACADÉMICA SEGÚN RESPUESTAS CORRECTAS
+function calcularNotaSegunTabla() {
+    const mapeoNotas = {
+        20: "5.0", 19: "4.8", 18: "4.6", 17: "4.4", 16: "4.2",
+        15: "4.0", 14: "3.8", 13: "3.6", 12: "3.4", 11: "3.2",
+        10: "3.0",  9: "2.8",  8: "2.6",  7: "2.4",  6: "2.2",
+         5: "2.0",  4: "1.8",  3: "1.6",  2: "1.4",  1: "1.2",
+         0: "1.0"
+    };
+    return mapeoNotas[cantidadCorrectas] || "1.0";
 }
 
-// Panel "// ESTATUS" actualizándose solo con puntos positivos de aciertos lineales
-function actualizarPanelEstatus() {
-    // PUNTOS TOTALES muestra única y estrictamente los aciertos acumulados multiplicados por 10
-    const puntosAciertosPuros = cantidadCorrectas * 10;
-    document.getElementById("score").innerText = puntosAciertosPuros;
+// ACTUALIZACIÓN EN TIEMPO REAL SIN ERRORES DE CÁLCULO
+function actualizarPanelEstatus(ultimoTexto, esExito) {
+    // 1. PUNTOS OBTENIDOS AUTOMÁTICOS: cantidad de correctas * valor por pregunta
+    puntajeAcumuladoJuego = cantidadCorrectas * VALOR_PREGUNTA;
+    document.getElementById("score").innerText = puntajeAcumuladoJuego;
     
-    document.getElementById("stat-correctas").innerText = cantidadCorrectas;
+    // 2. PANEL DETALLADO
+    document.getElementById("stat-correctas").innerText = `${cantidadCorrectas}/${TOTAL_A_RESPONDER}`;
     document.getElementById("stat-incorrectas").innerText = cantidadIncorrectas;
-    document.getElementById("stat-penalizaciones").innerText = "-" + penalizacionesAplicadas;
     
-    const notaActual = calcularNotaDinamica();
+    // 3. NOTA DIRECTA DESDE LA TABLA ACADÉMICA
+    const notaActual = calcularNotaSegunTabla();
     document.getElementById("stat-nota").innerText = notaActual;
     
+    // 4. ÚLTIMO MENSAJE
+    const elRes = document.getElementById("stat-resultado");
+    if (ultimoTexto) {
+        elRes.innerText = ultimoTexto;
+        elRes.style.color = esExito ? "var(--green)" : "var(--red)";
+    }
+    
+    // PROGRESS BAR
     document.getElementById("clues").innerText = `${found}/${TOTAL_A_RESPONDER}`;
     document.getElementById("prog-fill").style.width = (found / TOTAL_A_RESPONDER * 100) + "%";
 }
@@ -628,13 +638,28 @@ function submitModal() {
 
     if (validarRespuesta(clueActual, r)) {
         clueActual.d = true; 
-        cantidadCorrectas++;
-        found++;
+        cantidadCorrectas++; // Suma un acierto
+        found++;             // Suma a evaluadas totales
         
-        log(`Correcto +10 puntos`, "ok");
+        const txtResultado = `Correcto +${VALOR_PREGUNTA} puntos`;
+        actualizarPanelEstatus(txtResultado, true);
+        
+        const notaTmp = calcularNotaSegunTabla();
+        log(txtResultado, "ok");
         enviarSheets(document.getElementById("nombre").value, document.getElementById("salon").value, clueActual.q, r, true);
         
-        actualizarPanelEstatus();
+        // POPUP CON EL EJEMPLO VISUAL ESPERADO CORREGIDO
+        alert(
+            `¡RESPUESTA CORRECTA!\n\n` +
+            `--------------------------------\n` +
+            `Correctas: ${cantidadCorrectas}/${TOTAL_A_RESPONDER}\n` +
+            `Incorrectas: ${amountIncorrectas = cantidadIncorrectas}\n` +
+            `Valor por pregunta: ${VALOR_PREGUNTA}\n` +
+            `Puntos obtenidos: ${cantidadCorrectas * VALOR_PREGUNTA}\n` +
+            `Nota actual: ${notaTmp}\n` +
+            `--------------------------------`
+        );
+        
         cerrarModal();
     } else {
         if (clueActual.intentos === 1) {
@@ -646,21 +671,35 @@ function submitModal() {
         } 
         else if (clueActual.intentos >= 2) {
             clueActual.d = true; 
-            cantidadIncorrectas++;
-            penalizacionesAplicadas += 10; // La penalización se registra visualmente abajo sin alterar la caja superior
-            found++;
+            cantidadIncorrectas++; // Suma una incorrecta
+            found++;               // Suma a evaluadas totales
             
-            log(`Fallida -10 puntos`, "error");
+            const txtResultado = `Fallida (0 puntos obtenidos)`;
+            actualizarPanelEstatus(txtResultado, false);
+            
+            const notaTmp = calcularNotaSegunTabla();
+            log(`✖ Pregunta fallida. Sin puntos.`, "error");
             enviarSheets(document.getElementById("nombre").value, document.getElementById("salon").value, clueActual.q, r, false);
             
-            actualizarPanelEstatus();
+            // POPUP CON EL EJEMPLO VISUAL ESPERADO CORREGIDO
+            alert(
+                `PREGUNTA FALLIDA\n\n` +
+                `--------------------------------\n` +
+                `Correctas: ${cantidadCorrectas}/${TOTAL_A_RESPONDER}\n` +
+                `Incorrectas: ${cantidadIncorrectas}\n` +
+                `Valor por pregunta: ${VALOR_PREGUNTA}\n` +
+                `Puntos obtenidos: ${cantidadCorrectas * VALOR_PREGUNTA}\n` +
+                `Nota actual: ${notaTmp}\n` +
+                `--------------------------------`
+            );
+            
             cerrarModal(); 
         }
     }
 }
 
 function verificarVictoria() {
-    const notaFinal = calcularNotaDinamica();
+    const notaFinal = calcularNotaSegunTabla();
     if (found === TOTAL_A_RESPONDER) {
         finalizarExamen(notaFinal);
     } else {
@@ -675,8 +714,9 @@ function finalizarExamen(nota) {
     const elapsed = Math.floor((Date.now() - tiempoInicio) / 1000);
     const mm = Math.floor(elapsed / 60);
     const ss = String(elapsed % 60).padStart(2, "0");
+    
     document.getElementById("win-nombre").innerText = document.getElementById("nombre").value;
-    document.getElementById("win-score").innerText = `Respuestas Correctas: ${cantidadCorrectas} / Evaluadas: ${found}`;
+    document.getElementById("win-score").innerText = `Correctas: ${cantidadCorrectas} | Incorrectas: ${cantidadIncorrectas} | Puntos Totales: ${puntajeAcumuladoJuego}`;
     document.getElementById("win-nota").innerText = `NOTA FINAL: ${nota}`;
     document.getElementById("win-tiempo").innerText = `Tiempo empleado: ${mm}:${ss}`;
     document.getElementById("win-screen").classList.add("active");
