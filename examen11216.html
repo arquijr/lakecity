@@ -458,11 +458,9 @@ function enviarSheets(nombre, grado, pregunta, respuesta, estadoExitoso) {
 }
 
 function enviarResumenSheets(nombre, grado, puntaje, nota, tiempo) {
-  const resumen = `Puntaje: ${puntaje} | Nota: ${nota} | Tiempo: ${tiempo}`;
-  const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(grado)}&pregunta=${encodeURIComponent("RESUMEN FINAL")}&target=${encodeURIComponent(resumen)}`;
+  const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(grado)}&pregunta=CALIFICACION_FINAL&target=${encodeURIComponent(nota)}`;
   fetch(url).catch(err => console.warn("Sheets resumen error:", err));
 }
-
 /* ═══════════════════════════════════════════════════════
    BANCO DE PREGUNTAS (100 PREGUNTAS EN TOTAL)
 ═══════════════════════════════════════════════════════ */
