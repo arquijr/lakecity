@@ -72,10 +72,7 @@
     .msg-err { background:var(--danger-bg); color:var(--danger); }
     .strip { display:flex;align-items:center;gap:12px;flex-wrap:wrap; margin-bottom:1rem; }
     .timer-pill { background:var(--navy);color:#fff; font-family:'JetBrains Mono',monospace; font-size:1.1rem;font-weight:700; padding:.5rem 1.2rem;border-radius:3rem; display:flex;align-items:center;gap:10px; box-shadow:var(--shadow-sm); }
-    
-    /* Píldora del contador de aciertos positivos */
     .success-pill { background:var(--teal);color:#fff; font-family:'Outfit',sans-serif; font-size:1rem;font-weight:700; padding:.5rem 1.2rem;border-radius:3rem; display:flex;align-items:center;gap:8px; box-shadow:var(--shadow-sm); }
-    
     .ctr-label { font-size:.85rem;font-weight:700;color:var(--muted); margin-left:auto; }
     .prog-track { height:8px;background:var(--border);border-radius:3rem; margin-bottom:1.4rem;overflow:hidden; }
     .prog-fill  { height:8px;border-radius:3rem; background:linear-gradient(90deg,var(--teal),var(--teal2)); width:0%;transition:width .5s cubic-bezier(.4,0,.2,1); }
@@ -449,6 +446,24 @@ const ESCALA = {
 const getScore = p => ESCALA[p] ?? 1.0;
 
 /* ═══════════════════════════════════════════════════════
+   GOOGLE SHEETS — CONEXIÓN
+   (Reemplaza la URL con la de tu Apps Script desplegado)
+═══════════════════════════════════════════════════════ */
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwUpoc8HPNSbyc_9CGwUlAtvc1PUxNmVwZULrZL5vHAB7xNCzn4oIcUma51ag5iIUrI/exec";
+
+function enviarSheets(nombre, grado, pregunta, respuesta, estadoExitoso) {
+  const statusStr = estadoExitoso ? "CORRECTA" : "INCORRECTA";
+  const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(grado)}&pregunta=${encodeURIComponent(pregunta)}&target=${encodeURIComponent(respuesta + " [" + statusStr + "]")}`;
+  fetch(url).catch(err => console.warn("Sheets error:", err));
+}
+
+function enviarResumenSheets(nombre, grado, puntaje, nota, tiempo) {
+  const resumen = `Puntaje: ${puntaje} | Nota: ${nota} | Tiempo: ${tiempo}`;
+  const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(grado)}&pregunta=${encodeURIComponent("RESUMEN FINAL")}&target=${encodeURIComponent(resumen)}`;
+  fetch(url).catch(err => console.warn("Sheets resumen error:", err));
+}
+
+/* ═══════════════════════════════════════════════════════
    BANCO DE PREGUNTAS (100 PREGUNTAS EN TOTAL)
 ═══════════════════════════════════════════════════════ */
 const BANCO = [
@@ -678,7 +693,7 @@ let idxActual = 0;
 let puntajeAcumulado = 0;
 let totalPreguntas = CFG.QUESTIONS_PER_EXAM;
 let errorEnPregunta = false;
-let totalAciertos = 0; // Guardará el conteo de aciertos en tiempo real
+let totalAciertos = 0;
 
 let segundos = 0;
 let tInterval = null;
@@ -745,7 +760,7 @@ function inicializarExamen() {
   
   idxActual = 0;
   puntajeAcumulado = 0;
-  totalAciertos = 0; // Reiniciar en cada nuevo inicio
+  totalAciertos = 0;
   document.getElementById('successCount').innerText = totalAciertos;
   
   startTimer();
@@ -796,6 +811,7 @@ function desplegarPregunta() {
 function procesarRespuesta(seleccionada, todasLasOpciones, qObj) {
   const ansIdx = parseInt(seleccionada.getAttribute('data-idx'));
   const fb = document.getElementById('feedbackBox');
+  const textoRespuesta = seleccionada.querySelector('div:last-child').innerText;
   
   if(ansIdx === qObj.c) {
     seleccionada.classList.add('opt-correct');
@@ -804,6 +820,15 @@ function procesarRespuesta(seleccionada, todasLasOpciones, qObj) {
     // Sumamos un acierto positivo al contador visual en tiempo real
     totalAciertos++;
     document.getElementById('successCount').innerText = totalAciertos;
+
+    // Registrar respuesta CORRECTA en Google Sheets
+    enviarSheets(
+      document.getElementById('fName').value.trim(),
+      document.getElementById('fGrade').value.trim(),
+      qObj.q,
+      textoRespuesta,
+      true
+    );
     
     if(!errorEnPregunta) {
       puntajeAcumulado += CFG.POINTS_PER_CORRECT;
@@ -828,6 +853,16 @@ function procesarRespuesta(seleccionada, todasLasOpciones, qObj) {
       todasLasOpciones[qObj.c].classList.add('opt-correct');
       fb.className = "fb fb-err show";
       fb.innerHTML = `❌ Incorrecto. Has agotado tus 2 oportunidades para esta pregunta (0 pts). La opción correcta está resaltada en verde.`;
+
+      // Registrar respuesta INCORRECTA en Google Sheets
+      enviarSheets(
+        document.getElementById('fName').value.trim(),
+        document.getElementById('fGrade').value.trim(),
+        qObj.q,
+        textoRespuesta,
+        false
+      );
+
       insertarBotonSiguiente();
     }
   }
@@ -873,6 +908,9 @@ function finalizarExamen() {
   const tiempoEmpleado = `${m}:${s}`;
 
   salvarIntentoLocal(nombreEst, gradoEst, fechaEst, puntajeAcumulado, notaFinal, tiempoEmpleado);
+
+  // Registrar resumen final en Google Sheets
+  enviarResumenSheets(nombreEst, gradoEst, puntajeAcumulado, notaFinal, tiempoEmpleado);
 
   let motClass = "mot-C";
   let mensajeMotivacional = "Debes repasar más los conceptos de comunicación y comandos de red. ¡No te rindas, estudia para la próxima!";
