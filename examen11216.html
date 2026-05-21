@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Examen Trimestral de Informática · Colegio Episcopal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <style>
+    :root {
+      --navy:      #0a1f35;
+      --navy2:     #112d4e;
+      --teal:      #1a7a8a;
+      --teal2:     #23a6ba;
+      --gold:      #f0a500;
+      --gold2:     #ffc53d;
+      --surface:   #f4f8fc;
+      --white:     #ffffff;
+      --text:      #0d2035;
+      --muted:     #5a7a99;
+      --border:    #d0dcea;
+      --success:   #0f7a50;
+      --success-bg:#d6f5e8;
+      --warn:      #9a5a00;
+      --warn-bg:   #fff3cd;
+      --danger:    #b91c1c;
+      --danger-bg: #fee2e2;
+      --radius-lg: 1.4rem;
+      --radius-md: 1rem;
+      --radius-sm: .6rem;
+      --shadow:    0 20px 50px -10px rgba(10,31,53,.18);
+      --shadow-sm: 0 4px 14px rgba(10,31,53,.10);
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html { font-family:'Outfit',sans-serif; font-size:16px; background:var(--navy); min-height:100vh; }
+    body {
+      background:
+        radial-gradient(ellipse 80% 60% at 20% -10%, rgba(26,122,138,.35) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 110%, rgba(240,165,0,.18) 0%, transparent 55%),
+        var(--navy);
+      min-height:100vh; padding:1.5rem 1rem 2rem;
+      display:flex; justify-content:center; align-items:flex-start;
+      -webkit-user-select:none; -moz-user-select:none; user-select:none;
+    }
+    .shell { width:100%; max-width:860px; background:rgba(255,255,255,.97); border-radius:2rem; box-shadow:var(--shadow); overflow:hidden; position:relative; }
+    .hdr { background:linear-gradient(110deg,var(--navy) 0%,var(--navy2) 55%,#163d5a 100%); padding:1.4rem 1.8rem 1.3rem; position:relative; overflow:hidden; }
+    .hdr::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,rgba(255,255,255,.018) 0px,rgba(255,255,255,.018) 1px,transparent 1px,transparent 28px); }
+    .hdr-inner{ position:relative; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .hdr-logo { width:52px;height:52px; background:linear-gradient(135deg,var(--teal),var(--teal2)); border-radius:1rem; display:flex;align-items:center;justify-content:center; font-size:1.6rem; box-shadow:0 4px 18px rgba(26,122,138,.45); flex-shrink:0; }
+    .hdr-text h1 { font-size:clamp(1.1rem,3vw,1.55rem); font-weight:800; color:#fff; line-height:1.15; letter-spacing:-.02em; }
+    .hdr-text p  { color:rgba(255,255,255,.62); font-size:.82rem; margin-top:3px; font-weight:500; }
+    .hdr-badge   { margin-left:auto; background:linear-gradient(135deg,var(--gold),var(--gold2)); color:var(--navy); font-size:.72rem; font-weight:800; padding:.35rem .9rem; border-radius:3rem; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; box-shadow:0 4px 12px rgba(240,165,0,.35); }
+    .body { padding:1.8rem 1.8rem 1.4rem; }
+    .form-card { background:var(--surface); border-radius:var(--radius-lg); padding:1.5rem; border:1.5px solid var(--border); }
+    .form-card h3{ font-size:1rem;font-weight:700;color:var(--navy2); margin-bottom:1.1rem;display:flex;align-items:center;gap:8px; }
+    .form-row{ display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1rem; }
+    .field{ flex:1; min-width:170px; }
+    .field label{ display:block;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:.4rem;letter-spacing:.04em;text-transform:uppercase; }
+    .field input { width:100%; padding:.75rem 1rem; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:inherit;font-size:.95rem; background:#fff;color:var(--text); transition:border-color .2s,box-shadow .2s; outline:none; }
+    .field input:focus{ border-color:var(--teal); box-shadow:0 0 0 3px rgba(26,122,138,.18); }
+    .btn { display:inline-flex;align-items:center;gap:8px; border:none;cursor:pointer; font-family:inherit;font-size:.9rem;font-weight:700; padding:.78rem 1.5rem;border-radius:3rem; transition:transform .15s,filter .15s,box-shadow .15s; line-height:1; }
+    .btn:hover{ filter:brightness(1.1);transform:translateY(-1px); }
+    .btn:active{ transform:scale(.97);filter:brightness(.96); }
+    .btn-primary { background:linear-gradient(135deg,var(--teal),var(--teal2)); color:#fff; box-shadow:0 6px 20px rgba(26,122,138,.35); }
+    .btn-gold    { background:linear-gradient(135deg,var(--gold),var(--gold2)); color:var(--navy); box-shadow:0 6px 20px rgba(240,165,0,.30); }
+    .btn-dark    { background:var(--navy2);color:#fff; }
+    .btn-danger  { background:#dc2626;color:#fff; }
+    .btn-sm      { padding:.5rem 1.1rem;font-size:.8rem; }
+    .msg { margin-top:.8rem;padding:.7rem 1rem; border-radius:var(--radius-sm);font-size:.88rem;font-weight:600; }
+    .msg-ok  { background:var(--success-bg);color:var(--success); }
+    .msg-err { background:var(--danger-bg); color:var(--danger); }
+    .strip { display:flex;align-items:center;gap:12px;flex-wrap:wrap; margin-bottom:1rem; }
+    .timer-pill { background:var(--navy);color:#fff; font-family:'JetBrains Mono',monospace; font-size:1.1rem;font-weight:700; padding:.5rem 1.2rem;border-radius:3rem; display:flex;align-items:center;gap:10px; box-shadow:var(--shadow-sm); }
+    
+    /* Píldora del contador de aciertos positivos */
+    .success-pill { background:var(--teal);color:#fff; font-family:'Outfit',sans-serif; font-size:1rem;font-weight:700; padding:.5rem 1.2rem;border-radius:3rem; display:flex;align-items:center;gap:8px; box-shadow:var(--shadow-sm); }
+    
+    .ctr-label { font-size:.85rem;font-weight:700;color:var(--muted); margin-left:auto; }
+    .prog-track { height:8px;background:var(--border);border-radius:3rem; margin-bottom:1.4rem;overflow:hidden; }
+    .prog-fill  { height:8px;border-radius:3rem; background:linear-gradient(90deg,var(--teal),var(--teal2)); width:0%;transition:width .5s cubic-bezier(.4,0,.2,1); }
+    .q-card { background:#fff;border-radius:var(--radius-lg); padding:1.7rem; box-shadow:0 8px 28px -8px rgba(10,31,53,.13); border:1.5px solid var(--border); border-left:6px solid var(--teal); margin-bottom:1rem; }
+    .q-meta { font-size:.72rem;font-weight:800; color:var(--muted);letter-spacing:.08em;text-transform:uppercase; margin-bottom:.6rem; }
+    .q-text { font-size:clamp(1rem,2.5vw,1.28rem); font-weight:700;color:var(--navy); line-height:1.4;margin-bottom:1.3rem; }
+    .opts { display:flex;flex-direction:column;gap:10px; }
+    .opt { background:var(--surface); border:2px solid var(--border); border-radius:var(--radius-md); padding:.9rem 1.1rem; cursor:pointer; font-weight:600;font-size:.93rem; color:var(--text); transition:border-color .15s,background .15s,transform .12s; display:flex;align-items:center;gap:10px; }
+    .opt-letter { width:28px;height:28px;border-radius:.5rem; background:var(--border);color:var(--muted); display:flex;align-items:center;justify-content:center; font-size:.8rem;font-weight:800;flex-shrink:0; transition:background .15s,color .15s; }
+    .opt:hover:not(.opt-locked){ border-color:var(--teal); background:#eaf6f8; transform:translateX(5px); }
+    .opt:hover:not(.opt-locked) .opt-letter{ background:var(--teal);color:#fff; }
+    .opt-correct { background:var(--success-bg)!important;border-color:var(--success)!important;color:var(--success)!important; }
+    .opt-correct .opt-letter{ background:var(--success)!important;color:#fff!important; }
+    .opt-wrong   { background:var(--danger-bg)!important;border-color:var(--danger)!important;color:var(--danger)!important;text-decoration:line-through; }
+    .opt-wrong   .opt-letter{ background:var(--danger)!important;color:#fff!important; }
+    .opt-used    { opacity:.4;pointer-events:none; }
+    .opt-locked  { pointer-events:none; }
+    .fb { margin-top:.9rem;padding:.75rem 1rem; border-radius:var(--radius-sm);font-weight:700;font-size:.9rem; display:none;animation:slideUp .25s ease; }
+    .fb.show{ display:block; }
+    .fb-ok   { background:var(--success-bg);color:var(--success); }
+    .fb-warn { background:var(--warn-bg);color:var(--warn); }
+    .fb-err  { background:var(--danger-bg);color:var(--danger); }
+    @keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .ctrl { display:flex;justify-content:flex-end;margin-top:.8rem; }
+    .result-wrap { background:linear-gradient(135deg,#f0f9ff 0%,#e4f3fd 100%); border-radius:var(--radius-lg); padding:2rem;text-align:center; border:1.5px solid #bee3f8; }
+    .result-wrap h2 { font-size:clamp(1.5rem,4vw,2.1rem); font-weight:900;color:var(--navy); margin-bottom:.3rem; }
+    .result-info { color:var(--muted);font-size:.9rem;margin-bottom:1.5rem; }
+    .score-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1rem;margin:1.2rem 0; }
+    .score-tile { background:#fff;border-radius:var(--radius-md); padding:1.1rem;box-shadow:var(--shadow-sm); border:1.5px solid var(--border); }
+    .score-tile .lbl { font-size:.68rem;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase; }
+    .score-tile .val { font-size:2rem;font-weight:900;color:var(--navy);margin-top:4px; }
+    .score-tile .val.big { font-size:2.4rem;color:var(--teal); }
+    .badge-mot  { display:inline-block; padding:.65rem 1.5rem;border-radius:3rem; font-weight:800;font-size:.95rem; margin:1rem 0 1.4rem; }
+    .mot-A { background:var(--success-bg);color:var(--success); }
+    .mot-B { background:#dbeafe;color:#1e40af; }
+    .mot-C { background:var(--danger-bg);color:var(--danger); }
+    .res-btns { display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:1rem; }
+    .email-status { margin-top:1rem;padding:.7rem 1rem;border-radius:var(--radius-sm); font-size:.84rem;font-weight:600;text-align:center; }
+    .info-accordion { margin-top:1.2rem; border-radius:var(--radius-md); border:1.5px solid var(--border); overflow:hidden; }
+    .info-accordion summary { list-style:none; display:flex;align-items:center;justify-content:space-between; padding:.85rem 1.2rem; background:linear-gradient(90deg,var(--navy) 0%,var(--navy2) 100%); color:#fff; font-weight:700;font-size:.9rem; cursor:pointer; gap:10px; user-select:none; }
+    .info-accordion summary::-webkit-details-marker{ display:none; }
+    .info-accordion summary .acc-icon { width:24px;height:24px;border-radius:50%; background:rgba(255,255,255,.15); display:flex;align-items:center;justify-content:center; font-size:.8rem;flex-shrink:0; transition:transform .3s; }
+    .info-accordion[open] summary .acc-icon{ transform:rotate(180deg); }
+    .info-accordion summary .acc-label{ display:flex;align-items:center;gap:8px;flex:1; }
+    .acc-body { background:#fff; padding:1.2rem 1.4rem; border-top:1.5px solid var(--border); animation:slideUp .25s ease; }
+    .acc-section { margin-bottom:1rem; }
+    .acc-section:last-child{ margin-bottom:0; }
+    .acc-section h4 { font-size:.78rem;font-weight:800; color:var(--teal);letter-spacing:.06em;text-transform:uppercase; margin-bottom:.5rem;display:flex;align-items:center;gap:6px; }
+    .acc-section ul{ padding-left:1.1rem; }
+    .acc-section ul li { font-size:.88rem;color:var(--text); margin-bottom:.35rem;line-height:1.45;font-weight:500; }
+    .acc-section ul li strong{ color:var(--navy); }
+    .acc-highlight { background:linear-gradient(90deg,#fff8e1,#fff3cd); border-left:4px solid var(--gold); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:.7rem 1rem; font-size:.88rem;font-weight:700;color:var(--warn); margin-top:.6rem; }
+    .acc-highlight span{ color:var(--navy);font-weight:800; }
+    #instrSection { display:none; margin-top:1.2rem; animation:slideUp .3s ease; }
+    .instr-card { background:#fff; border-radius:var(--radius-lg); border:1.5px solid var(--border); overflow:hidden; box-shadow:var(--shadow-sm); }
+    .instr-header { background:linear-gradient(110deg,var(--navy) 0%,var(--navy2) 100%); padding:1.1rem 1.4rem; display:flex;align-items:center;gap:10px; }
+    .instr-header h3 { color:#fff;font-size:1rem;font-weight:800; }
+    .instr-header span { font-size:1.4rem; }
+    .instr-body { padding:1.4rem; }
+    .instr-block { margin-bottom:1.1rem; }
+    .instr-block:last-of-type { margin-bottom:0; }
+    .instr-block h4 { font-size:.76rem;font-weight:800; color:var(--teal);letter-spacing:.07em;text-transform:uppercase; margin-bottom:.5rem;display:flex;align-items:center;gap:6px; }
+    .instr-block ul { padding-left:1.1rem; }
+    .instr-block ul li { font-size:.88rem;color:var(--text); margin-bottom:.35rem;line-height:1.5;font-weight:500; }
+    .instr-block ul li strong { color:var(--navy); }
+    .instr-alert { background:linear-gradient(90deg,#fff8e1,#fff3cd); border-left:4px solid var(--gold); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:.75rem 1rem; font-size:.87rem;font-weight:700;color:var(--warn); margin:1rem 0 0; }
+    .instr-alert span { color:var(--navy); }
+    .instr-confirm { background:var(--surface); border-top:1.5px solid var(--border); padding:1.1rem 1.4rem; display:flex;align-items:center;gap:14px;flex-wrap:wrap; }
+    .instr-confirm label { display:flex;align-items:center;gap:8px; font-size:.9rem;font-weight:700;color:var(--navy); cursor:pointer;flex:1; }
+    .instr-confirm input[type=checkbox] { width:18px;height:18px;cursor:pointer;accent-color:var(--teal);flex-shrink:0; }
+    #btnConfirm { opacity:.4;pointer-events:none; transition:opacity .25s; }
+    #btnConfirm.ready { opacity:1;pointer-events:all; }
+    footer { text-align:center;font-size:.72rem;padding:1rem; color:var(--muted);border-top:1px solid var(--border); }
+    #devShield { display:none; position:fixed;inset:0; background:rgba(10,20,35,.96); z-index:99999; flex-direction:column; align-items:center;justify-content:center; color:#fff;text-align:center;gap:1rem; }
+    #devShield h2{ font-size:1.5rem;font-weight:900; }
+    #devShield p{ color:rgba(255,255,255,.7);font-size:.9rem; }
+
+    /* ═══════════════════════════════════
+        PANEL ADMIN (SOLO PROFESOR)
+    ═══════════════════════════════════ */
+    #adminOverlay {
+      display:none;
+      position:fixed;inset:0;z-index:99998;
+      background:rgba(5,12,24,.92);
+      backdrop-filter:blur(8px);
+      overflow-y:auto;
+      padding:2rem 1rem;
+      animation:slideUp .3s ease;
+    }
+    .admin-shell {
+      max-width:960px;margin:0 auto;
+      background:#0d1f35;
+      border-radius:1.6rem;
+      border:1.5px solid rgba(26,122,138,.45);
+      box-shadow:0 30px 80px -20px rgba(0,0,0,.7);
+      overflow:hidden;
+    }
+    .admin-hdr {
+      background:linear-gradient(110deg,#0a1f35,#112d4e);
+      padding:1.4rem 1.8rem;
+      display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+      border-bottom:1.5px solid rgba(26,122,138,.3);
+    }
+    .admin-hdr h2 { color:#fff;font-size:1.2rem;font-weight:900;flex:1; }
+    .admin-hdr .badge { background:linear-gradient(135deg,#1a7a8a,#23a6ba); color:#fff; font-size:.7rem;font-weight:800; padding:.3rem .8rem;border-radius:2rem;letter-spacing:.06em;text-transform:uppercase; }
+    .admin-hdr .btn-ghost { background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1.5px solid rgba(255,255,255,.12); }
+    .admin-body { padding:1.6rem 1.8rem; }
+    .admin-stats {
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1rem;
+      margin-bottom:1.6rem;
+    }
+    .astat {
+      background:rgba(255,255,255,.04);
+      border:1.5px solid rgba(26,122,138,.25);
+      border-radius:1rem;padding:1rem;text-align:center;
+    }
+    .astat .av { font-size:1.9rem;font-weight:900;color:#23a6ba;font-family:'JetBrains Mono',monospace; }
+    .astat .al { font-size:.68rem;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.08em;text-transform:uppercase;margin-top:4px; }
+    .admin-table-wrap { overflow-x:auto;border-radius:1rem;border:1.5px solid rgba(26,122,138,.2); }
+    .admin-table { width:100%;border-collapse:collapse;font-size:.82rem; }
+    .admin-table thead tr { background:rgba(26,122,138,.18); }
+    .admin-table th { padding:.7rem 1rem;color:rgba(255,255,255,.6);font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:left;white-space:nowrap; }
+    .admin-table tbody tr { border-top:1px solid rgba(255,255,255,.04);transition:background .15s; }
+    .admin-table tbody tr:hover { background:rgba(26,122,138,.1); }
+    .admin-table td { padding:.65rem 1rem;color:rgba(255,255,255,.85);white-space:nowrap; }
+    .nota-chip {
+      display:inline-block;padding:.25rem .6rem;border-radius:2rem;
+      font-weight:800;font-size:.8rem;
+    }
+    .nota-a { background:rgba(15,122,80,.3);color:#4ade80; }
+    .nota-b { background:rgba(30,64,175,.3);color:#7dd3fc; }
+    .nota-c { background:rgba(185,28,28,.3);color:#fca5a5; }
+    .admin-actions { display:flex;gap:10px;flex-wrap:wrap;margin-top:1.4rem; }
+    .btn-teal   { background:linear-gradient(135deg,#1a7a8a,#23a6ba);color:#fff;box-shadow:0 4px 14px rgba(26,122,138,.35); }
+    .btn-red    { background:#dc2626;color:#fff; }
+    .btn-ghost  { background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1.5px solid rgba(255,255,255,.12); }
+
+    /* MODAL DE CONTRASEÑA — OCULTO POR DEFECTO */
+    #adminPassModal {
+      display: none;
+      position: fixed; inset: 0; z-index: 100000;
+      background: rgba(5,12,24,.95);
+      align-items: center; justify-content: center;
+    }
+    .pass-card {
+      background:#0d1f35;border-radius:1.4rem;
+      border:1.5px solid rgba(26,122,138,.4);
+      padding:2rem;width:min(380px,90vw);text-align:center;
+      box-shadow:0 30px 80px rgba(0,0,0,.6);
+      animation:slideUp .3s ease;
+    }
+    .pass-card .ico { font-size:2.8rem;margin-bottom:.6rem; }
+    .pass-card h3 { color:#fff;font-size:1.1rem;font-weight:800;margin-bottom:.4rem; }
+    .pass-card p  { color:rgba(255,255,255,.5);font-size:.82rem;margin-bottom:1.2rem; }
+    .pass-card input[type=password] {
+      width:100%;padding:.8rem 1rem;border-radius:.8rem;
+      border:1.5px solid rgba(26,122,138,.4);
+      background:rgba(255,255,255,.06);color:#fff;
+      font-family:'JetBrains Mono',monospace;font-size:1rem;
+      outline:none;text-align:center;letter-spacing:.1em;
+      margin-bottom:.9rem;
+    }
+    .pass-card input[type=password]:focus { border-color:#23a6ba; }
+    .pass-err { color:#fca5a5;font-size:.8rem;margin-top:-.4rem;margin-bottom:.6rem;display:none; }
+
+    @media(max-width:600px){
+      .body{ padding:1.1rem; }
+      .hdr{ padding:1.1rem; }
+      .q-card{ padding:1.2rem; }
+      .result-wrap{ padding:1.3rem; }
+      .admin-body{ padding:1rem; }
+      .admin-hdr{ padding:1rem; }
+    }
+    @media print{
+      body{ background:#fff!important; }
+      .shell{ box-shadow:none!important; }
+      .ctrl,.strip,.prog-track,#studentSection,.btn-danger{ display:none!important; }
+      #adminOverlay,#adminPassModal{ display:none!important; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="devShield">
+  <div style="font-size:3rem;">🔒</div>
+  <h2>Herramientas de desarrollo detectadas</h2>
+  <p>El examen ha sido suspendido por seguridad.<br>Por favor contacta a tu profesor.</p>
+</div>
+
+<div id="adminPassModal">
+  <div class="pass-card">
+    <div class="ico">🔑</div>
+    <h3>Acceso Profesor</h3>
+    <p>Ingresa la contraseña para ver el registro de intentos.</p>
+    <input type="password" id="passInput" placeholder="••••••••••••" autocomplete="off">
+    <div class="pass-err" id="passErr">Contraseña incorrecta. Intenta de nuevo.</div>
+    <button class="btn btn-teal" style="width:100%;justify-content:center;" id="btnPassOk">🔓 Entrar al panel</button>
+    <button class="btn btn-ghost btn-sm" style="margin-top:.6rem;width:100%;justify-content:center;" id="btnPassCancel">Cancelar</button>
+  </div>
+</div>
+
+<div id="adminOverlay">
+  <div class="admin-shell">
+    <div class="admin-hdr">
+      <div style="font-size:1.5rem;">📊</div>
+      <h2>Registro de Intentos — Redes 11°</h2>
+      <span class="badge">Solo Profesor</span>
+      <button class="btn btn-ghost btn-sm" id="btnCloseAdmin">✕ Cerrar</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-stats" id="adminStats"></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="adminTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha / Hora</th>
+              <th>Estudiante</th>
+              <th>Grado</th>
+              <th>Correctas</th>
+              <th>Puntaje</th>
+              <th>Nota</th>
+              <th>Tiempo</th>
+            </tr>
+          </thead>
+          <tbody id="adminTbody"></tbody>
+        </table>
+      </div>
+      <div id="adminEmpty" style="display:none;text-align:center;padding:2rem;color:rgba(255,255,255,.35);font-size:.9rem;">
+        📭 Aún no hay intentos registrados en este navegador.
+      </div>
+      <div class="admin-actions">
+        <button class="btn btn-teal" id="btnDownloadTxt">⬇️ Descargar log .txt</button>
+        <button class="btn btn-ghost" id="btnDownloadCsv">📄 Descargar .csv</button>
+        <button class="btn btn-red btn-sm" id="btnClearLog">🗑️ Limpiar registro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="app">
+  <div class="hdr">
+    <div class="hdr-inner">
+      <div class="hdr-logo">📡</div>
+      <div class="hdr-text">
+        <h1>Examen Trimestral de Informática</h1>
+        <p>Tema: Redes 1 — Comunicación · 1° Trimestre · Prof. Arquimedes Mosquera · Colegio Episcopal 2026</p>
+      </div>
+      <div class="hdr-badge">2 oportunidades</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div id="studentSection" class="form-card">
+      <h3>📝 Datos del Estudiante</h3>
+      <div class="form-row">
+        <div class="field">
+          <label>Nombre completo *</label>
+          <input type="text" id="fName" placeholder="Ej: Ana María López" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Grado *</label>
+          <input type="text" id="fGrade" placeholder="Ej: 11°A" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Fecha *</label>
+          <input type="date" id="fDate">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btnStart">➡️ Continuar a instrucciones</button>
+      <div id="formMsg"></div>
+    </div>
+
+    <div id="instrSection">
+      <div class="instr-card">
+        <div class="instr-header">
+          <span>📋</span>
+          <h3>Lee cuidadosamente las instrucciones antes de comenzar</h3>
+        </div>
+        <div class="instr-body">
+          <div class="instr-block">
+            <h4>🎯 Valor del examen</h4>
+            <ul>
+              <li>Este examen tiene un value de <strong>8 preguntas × 5 puntos = 40 puntos</strong>.</li>
+              <li>La nota final se calcula sobre la escala de <strong>1.0 a 5.0</strong> del Colegio Episcopal.</li>
+              <li>Responder correctamente en el <strong>primer intento</strong> otorga los 5 puntos completos.</li>
+              <li>Si fallas el primer intento, tienes una <strong>segunda oportunidad</strong> con la misma pregunta.</li>
+              <li>Fallar los dos intentos resulta en <strong>0 puntos</strong> para esa pregunta.</li>
+            </ul>
+          </div>
+          <div class="instr-block">
+            <h4>📌 Reglas del examen</h4>
+            <ul>
+              <li>Completa el examen <strong>de forma individual</strong>, sin ayuda de compañeros ni de internet.</li>
+              <li>Tienes <strong>2 oportunidades por pregunta</strong>; úsalo con cuidado.</li>
+              <li>No cierres ni recargues la página mientras el examen esté en curso.</li>
+              <li>El cronómetro <strong>inicia en el momento en que confirmes haber leído</strong> estas instrucciones.</li>
+              <li>Las preguntas son <strong>aleatorias y únicas</strong> para cada estudiante.</li>
+            </ul>
+          </div>
+          <div class="instr-block">
+            <h4>📤 Entrega de resultados</h4>
+            <ul>
+              <li>Al finalizar verás tu <strong>nota final con todos los detalles</strong>.</li>
+              <li>Haz clic en <strong>"🖨️ Imprimir boleta"</strong> y guarda como PDF o imprímela.</li>
+              <li>Envía esa boleta al profesor por alguno de estos medios:</li>
+            </ul>
+            <ul style="margin-top:.4rem;">
+              <li>📧 <strong>Correo:</strong> profesoritcep@gmail.com</li>
+              <li>💬 <strong>Microsoft Teams:</strong> canal de Informática 11°</li>
+            </ul>
+            <div class="instr-alert">
+              ⚠️ No se aceptarán entregas sin la <span>boleta con nombre, grado, puntaje y nota visible</span>.
+            </div>
+          </div>
+        </div>
+        <div class="instr-confirm">
+          <label>
+            <input type="checkbox" id="chkRead">
+            He leído y entendido todas las instrucciones. Estoy listo/a para comenzar.
+          </label>
+          <button class="btn btn-primary" id="btnConfirm">🚀 Iniciar examen ahora</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="examSection" style="display:none;">
+      <div class="strip">
+        <div class="timer-pill">⏱ <span id="timerTxt">00:00</span></div>
+        <div class="success-pill">✅ Aciertos: <span id="successCount">0</span></div>
+        <span class="ctr-label" id="ctrLabel"></span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <div id="qArea"></div>
+      <div class="ctrl"></div>
+    </div>
+  </div>
+  <footer>© 2026 · Redes 11° · Colegio Episcopal · Prof. Arquimedes Mosquera</footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIGURACIÓN
+═══════════════════════════════════════════════════════ */
+const CFG = {
+  QUESTIONS_PER_EXAM : 8,
+  POINTS_PER_CORRECT : 5,
+  TEACHER_EMAIL      : 'profesoritcep@gmail.com',
+  EMAILJS_PUBLIC_KEY : 'TU_PUBLIC_KEY',
+  EMAILJS_SERVICE_ID : 'TU_SERVICE_ID',
+  EMAILJS_TEMPLATE_ID: 'TU_TEMPLATE_ID',
+};
+
+/* ═══════════════════════════════════════════════════════
+   CONFIGURACIÓN ADMIN
+═══════════════════════════════════════════════════════ */
+const ADMIN = {
+  LOG_KEY  : 'episcopal_exam_log_redes11',
+  PASSWORD : 'ProfeArqui2026',
+  HASH_TRIGGER : '#verlog',
+};
+
+/* ─── Escala de notas ─── */
+const ESCALA = {
+  40:5.0,39:4.9,38:4.8,37:4.7,36:4.6,35:4.5,34:4.4,33:4.3,
+  32:4.2,31:4.1,30:4.0,29:3.9,28:3.8,27:3.7,26:3.6,25:3.5,
+  24:3.4,23:3.3,22:3.2,21:3.1,20:3.0,19:2.9,18:2.8,17:2.7,
+  16:2.6,15:2.5,14:2.4,13:2.3,12:2.2,11:2.1,10:2.0,9:1.9,
+  8:1.8,7:1.7,6:1.6,5:1.5,4:1.4,3:1.3,2:1.2,1:1.1,0:1.0
+};
+const getScore = p => ESCALA[p] ?? 1.0;
+
+/* ═══════════════════════════════════════════════════════
+   BANCO DE PREGUNTAS (100 PREGUNTAS EN TOTAL)
+═══════════════════════════════════════════════════════ */
+const BANCO = [
+  { q:"¿Qué es una red de computadoras?", ops:["Un solo equipo con varios monitores", "Conjunto de dispositivos interconectados para compartir recursos e información", "Un programa que conecta aplicaciones entre sí", "Un tipo de sistema operativo"], c:1 },
+  { q:"¿En qué año se estableció ARPANET, la primera red de conmutación de paquetes?", ops:["1974", "1984", "1969", "1990"], c:2 },
+  { q:"¿Qué protocolo fundamental de Internet se definió en 1974?", ops:["HTTP", "FTP", "TCP/IP", "DNS"], c:2 },
+  { q:"¿Qué estandarización ocurrió en 1984 que permitió la interoperabilidad de redes?", ops:["Nacimiento de ARPANET", "Creación del WiFi", "Ethernet y el Modelo OSI", "Lanzamiento del primer navegador web"], c:2 },
+  { q:"¿Cuál de los siguientes es un dispositivo de hardware de red?", ops:["Microsoft Word", "Switch", "Adobe Photoshop", "Google Chrome"], c:1 },
+  { q:"¿Qué hace un módem?", ops:["Dirige paquetes entre redes lógicas", "Asigna direcciones IP automáticamente", "Convierte señales digitales a analógicas para transmisión", "Filtra el tráfico de red entrante y saliente"], c:2 },
+  { q:"¿Cuántos bits tiene una dirección MAC?", ops:["32 bits", "64 bits", "128 bits", "48 bits"], c:3 },
+  { q:"¿Qué dispositivo replica señales en todos sus puertos y es considerado obsoleto por su ineficiencia?", ops:["Switch", "Router", "Hub", "Módem"], c:2 },
+  { q:"¿Qué dispositivo dirige tramas solo al destinatario usando una tabla MAC?", ops:["Hub", "Switch", "Repetidor", "Módem"], c:1 },
+  { q:"¿Cuál es la función principal de un router?", ops:["Convertir señales digitales a analógicas", "Interconectar redes lógicas mediante tablas de enrutamiento IP", "Amplificar la señal Wi-Fi", "Asignar nombres de dominio"], c:1 },
+  { q:"¿Qué formato tiene una dirección IPv4?", ops:["128 bits en hexadecimal", "32 bits en formato xxx.xxx.xxx.xxx", "48 bits separados por guiones", "64 bits en formato binario"], c:1 },
+  { q:"¿Cuántos bits tiene una dirección IPv6?", ops:["32 bits", "48 bits", "64 bits", "128 bits"], c:3 },
+  { q:"¿Para qué sirve una dirección IP?", ops:["Identificar el fabricante del dispositivo", "Asignar un nombre de dominio al equipo", "Identificar de forma única un dispositivo en una red", "Cifrar la información transmitida"], c:2 },
+  { q:"¿Qué categoría de cable par trenzado es adecuada para redes modernas de alta velocidad?", ops:["Cat 3", "Cat 4", "Cat 5e / 6 / 6a", "Cat 1"], c:2 },
+  { q:"¿Cuáles son los dos tipos de fibra óptica mencionados en la guía?", ops:["Simple y doble", "Monomodo y multimodo", "Análoga y digital", "Cobre y vidrio"], c:1 },
+  { q:"¿Qué estándar corresponde al Wi-Fi de última generación (Wi-Fi 6)?", ops:["802.11b", "802.11g", "802.11ac", "802.11ax"], c:3 },
+  { q:"¿Cuál es la principal característica de Zigbee frente al Wi-Fi?", ops:["Mayor velocidad de transmisión", "Mayor alcance de señal", "Bajo consumo energético y uso en redes IoT en malla", "Mayor seguridad con cifrado AES"], c:2 },
+  { q:"¿Qué significa LAN?", ops:["Large Area Network", "Local Area Network", "Linked Access Node", "Logical Address Namespace"], c:1 },
+  { q:"¿Qué tipo de red cubre un área metropolitana?", ops:["LAN", "WAN", "MAN", "PAN"], c:2 },
+  { q:"¿Cuál es la máxima expresión de una WAN?", ops:["Una red corporativa privada", "Intranet", "Internet", "Una red de campus universitario"], c:2 },
+  { q:"En la arquitectura Cliente-Servidor, ¿cuál es una desventaja principal?", ops:["Es difícil de administrar", "Todos los nodos son iguales", "Tiene un punto único de fallo", "No permite servidores dedicados"], c:2 },
+  { q:"En una red P2P (Peer-to-Peer), ¿cómo actúan los nodos?", ops:["Solo como clientes", "Solo como servidores", "Como clientes y servidores simultáneamente", "Solo como repetidores de señal"], c:2 },
+  { q:"¿Cuál es la topología de red dominante en la actualidad?", ops:["Bus", "Anillo", "Malla", "Estrella"], c:3 },
+  { q:"¿Por qué la topología en bus es considerada obsoleta?", ops:["Es muy cara de instalar", "Tiene un dominio de colisión único que la hace ineficiente", "No permite velocidades superiores a 10 Mbps", "Requiere demasiados switches"], c:1 },
+  { q:"¿Qué mecanismo de integridad de datos usa un bit adicional para detectar errores en un número impar de bits?", ops:["CRC", "Checksum", "Paridad", "NAT"], c:2 },
+  { q:"¿Qué porcentaje de overhead genera el mecanismo de paridad?", ops:["25%", "10%", "12.5%", "5%"], c:2 },
+  { q:"¿Cuál mecanismo de detección de errores es más robusto que el checksum y detecta errores múltiples?", ops:["Paridad", "CRC (Cyclic Redundancy Check)", "TTL", "ARP"], c:1 },
+  { q:"¿En qué suite de protocolos se utiliza el checksum?", ops:["Bluetooth/Zigbee", "HTTP/FTP únicamente", "TCP/IP", "802.11 Wi-Fi"], c:2 },
+  { q:"¿Qué significa FTP?", ops:["Fast Transfer Protocol", "File Transfer Protocol", "Fiber Transmission Protocol", "Forward Traffic Protocol"], c:1 },
+  { q:"¿En qué año fue desarrollado FTP por Abhay Bhushan?", ops:["1969", "1971", "1984", "1990"], c:1 },
+  { q:"¿Cuál fue la primera especificación oficial del protocolo FTP?", ops:["RFC 959", "RFC 765", "RFC 114", "RFC 2616"], c:2 },
+  { q:"¿Qué puerto usa FTP para el canal de control?", ops:["Puerto 20", "Puerto 21", "Puerto 22", "Puerto 80"], c:1 },
+  { q:"¿Qué puerto usa FTP para la transferencia de datos?", ops:["Puerto 21", "Puerto 443", "Puerto 20", "Puerto 25"], c:2 },
+  { q:"¿Por qué FTP tradicional NO es seguro?", ops:["Porque no soporta archivos grandes", "Porque solo funciona en redes LAN", "Porque transmite credenciales y datos en texto plano sin cifrar", "Porque no usa el protocolo TCP"], c:2 },
+  { q:"¿Qué versión segura de FTP usa cifrado SSL/TLS?", ops:["SFTP", "FTPS", "FFTP", "HTTP-FTP"], c:1 },
+  { q:"¿En qué protocolo se basa SFTP para ofrecer seguridad?", ops:["SSL", "TLS", "SSH (Secure Shell)", "IPSec"], c:2 },
+  { q:"¿Qué comando FTP se usa para descargar un archivo?", ops:["put", "mget", "get", "download"], c:2 },
+  { q:"¿Qué comando FTP se usa para subir un archivo al servidor?", ops:["get", "upload", "send", "put"], c:3 },
+  { q:"📊 ¿Qué comando FTP permite descargar múltiples archivos a la vez?", ops:["get *", "mget", "download all", "getall"], c:1 },
+  { q:"📊 ¿Qué comando FTP permite subir múltiples archivos a la vez?", ops:["put *", "mput", "upload", "sendall"], c:1 },
+  { q:"¿Qué comando FTP muestra la ruta del directorio actual en el servidor?", ops:["dir", "ls", "cd", "pwd"], c:3 },
+  { q:"¿Qué comando FTP lista los archivos del directorio actual en el servidor?", ops:["pwd", "dir / ls", "cd", "get"], c:1 },
+  { q:"¿Qué comando FTP se usa para crear una carpeta en el servidor?", ops:["mkdir", "newdir", "makefolder", "create"], c:0 },
+  { q:"🖥️ ¿Qué comando FTP se usa para eliminar una carpeta en el servidor?", ops:["delete", "remove", "rmdir", "erase"], c:2 },
+  { q:"¿Qué comando FTP cierra la conexión con el servidor?", ops:["exit", "close", "quit / bye", "end"], c:2 },
+  { q:"¿Qué comando FTP conecta a un servidor específico después de abrir el cliente?", ops:["connect", "open", "link", "join"], c:1 },
+  { q:"¿Cuál de los siguientes es un cliente gráfico de FTP que permite arrastrar y soltar archivos?", ops:["CMD", "PowerShell", "FileZilla", "Notepad"], c:2 },
+  { q:"¿Cuál es una alternativa moderna a FTP para compartir archivos?", ops:["Telnet", "Servicios en la nube como Google Drive o Dropbox", "ICMP", "ARP"], c:1 },
+  { q:"¿Cómo se puede conectar a un servidor FTP desde el Explorador de Windows?", ops:["Escribiendo el comando ftp en CMD", "Escribiendo ftp://servidor.com en la barra de direcciones", "Usando el Panel de Control", "Abriendo el Administrador de Tareas"], c:1 },
+  { q:"¿Qué hace el comando 'ipconfig'?", ops:["Muestra los archivos del sistema", "Muestra la configuración TCP/IP de las interfaces de red", "Lanza el cliente FTP", "Muestra las conexiones activas del sistema"], c:1 },
+  { q:"¿Qué rango de direcciones IP corresponde a redes domésticas típicas?", ops:["172.32.x.x", "192.168.x.x o 10.x.x.x", "8.8.x.x", "255.255.x.x"], c:1 },
+  { q:"¿Qué indica la 'Default Gateway' mostrada por ipconfig?", ops:["La dirección del servidor DNS", "La dirección IP del switch de la red", "La dirección IP del router o puerta de enlace predeterminada", "La máscara de subred de la red"], c:2 },
+  { q:"¿Qué información adicional muestra 'ipconfig /all' que no aparece en 'ipconfig'?", ops:["Solo el nombre del equipo", "Dirección MAC estado de DHCP y servidores DNS", "Solo la velocidad de conexión", "El historial de conexiones anteriores"], c:1 },
+  { q:"¿Qué significa 'DHCP Enabled: Sí' en la salida de ipconfig /all?", ops:["La IP fue asignada manualmente por el administrador", "La IP es estática y no cambia", "La IP fue asignada automáticamente por el router", "El equipo no tiene conexión a Internet"], c:2 },
+  { q:"¿Para qué sirven los servidores DNS mencionados en ipconfig /all?", ops:["Para asignar direcciones MAC", "Para traducir nombres de dominio a direcciones IP", "Para configurar el tráfico de red", "Para gestionar la tabla ARP"], c:1 },
+  { q:"¿Qué comando muestra una tabla resumida con las direcciones MAC de todas las interfaces de red?", ops:["ipconfig /all", "ping", "getmac", "arp -a"], c:2 },
+  { q:"¿Qué protocolo utiliza el comando 'ping' para verificar conectividad?", ops:["TCP", "FTP", "ICMP", "ARP"], c:2 },
+  { q:"¿Qué mide el comando 'ping' al enviar paquetes?", ops:["El ancho de banda disponible", "El número de dispositivos en la red", "El tiempo de respuesta en milisegundos y los paquetes perdidos", "La dirección MAC del destino"], c:2 },
+  { q:"¿Qué significa TTL en el resultado del comando ping?", ops:["Total Traffic Load", "Time To Live – valor que limita el tiempo de vida de un paquete", "Transfer Tunnel Layer", "Terminal Transfer Line"], c:1 },
+  { q:"¿Qué hace el comando 'arp -a'?", ops:["Muestra los archivos del sistema", "Muestra la tabla que asocia direcciones IP con direcciones MAC en la red local", "Envía paquetes de prueba a un host remoto", "Lista los servidores FTP disponibles"], c:1 },
+  { q:"¿Cuál es el equivalente de 'ipconfig' en sistemas Linux?", ops:["netstat", "ping", "ifconfig / ip addr", "tracert"], c:2 },
+  { q:"¿Cuál es el equivalente de 'ping' en PowerShell?", ops:["Get-NetIPConfiguration", "Resolve-DnsName", "Test-Connection", "Get-NetAdapter"], c:2 },
+  { q:"¿Cuál es el equivalente de 'getmac' en PowerShell?", ops:["Get-NetNeighbor", "Get-NetAdapter", "Get-NetIPConfiguration", "Test-NetConnection"], c:1 },
+  { q:"¿Qué hace el comando 'tracert' en CMD?", ops:["Muestra la tabla ARP", "Rastrea cada salto que da un paquete hasta llegar al destino", "Muestra las conexiones TCP activas", "Consulta los servidores DNS"], c:1 },
+  { q:"¿Cuál es el equivalente de 'tracert' en Linux?", ops:["netstat", "ifconfig", "traceroute / tracepath", "nslookup"], c:2 },
+  { q:"¿Para qué sirve el comando 'nslookup'?", ops:["Para mostrar la tabla ARP", "Para consultar servidores DNS y resolver nombres de dominio", "Para ver el estado de las conexiones de red activas", "Para transferir archivos entre equipos"], c:1 },
+  { q:"¿Cuál es el equivalente más moderno de 'nslookup' en Linux?", ops:["ifconfig", "netstat", "dig", "traceroute"], c:2 },
+  { q:"¿Qué muestra el comando 'netstat'?", ops:["Solo los servidores DNS configurados", "La tabla ARP de la red local", "Todas las conexiones de red activas puertos abiertos y estadísticas", "La dirección MAC de cada interfaz"], c:2 },
+  { q:"⌨️ ¿Cuál es el equivalente moderno de 'netstat' en Linux?", ops:["dig", "ss", "ip addr", "arp"], c:1 },
+  { q:"¿Qué función cumple el router como 'Default Gateway' en una LAN?", ops:["Asignar nombres de dominio", "Actuar como puerta de enlace que conecta la LAN con Internet/WAN", "Proporcionar solo conectividad inalámbrica", "Gestionar la tabla ARP de los dispositivos"], c:1 },
+  { q:"¿Qué protocolo usa el router para asignar direcciones IP automáticamente a los dispositivos?", ops:["DNS", "ARP", "FTP", "DHCP"], c:3 },
+  { q:"¿Qué estándar de seguridad Wi-Fi usa cifrado AES y es el estándar actual recomendado?", ops:["WEP", "WPA", "WPA2", "Red abierta"], c:2 },
+  { q:"¿Por qué WEP es considerado obsoleto?", ops:["No soporta velocidades superiores a 11 Mbps", "Es fácil de romper en minutos", "Solo funciona con cables coaxiales", "No soporta múltiples dispositivos"], c:1 },
+  { q:"¿Cuál es el mayor riesgo de una red Wi-Fi abierta (sin contraseña)?", ops:["Menor velocidad de conexión", "Mayor consumo de batería en los dispositivos", "Cualquiera puede conectarse representando el máximo riesgo de seguridad", "Incompatibilidad con dispositivos modernos"], c:2 },
+  { q:"¿Qué versión más reciente de seguridad Wi-Fi está aún en proceso de adopción según la guía?", ops:["WEP2", "WPA2 Enterprise", "WPA3", "WPA4"], c:2 },
+  { q:"¿Qué significa ARP?", ops:["Advanced Router Protocol", "Address Resolution Protocol", "Automatic Response Packet", "Access Registration Point"], c:1 },
+  { q:"🛰️ ¿Qué hace el protocolo ARP?", ops:["Traduce nombres de dominio a IPs", "Asigna IPs automáticamente a los dispositivos", "Asocia direcciones IP con direcciones MAC en la red local", "Cifra el tráfico entre dos equipos"], c:2 },
+  { q:"¿Qué es el 'Broadcast' en redes?", ops:["Transmisión de datos cifrados entre dos equipos", "Transmisión de un paquete dirigido a un único dispositivo", "Transmisión de un paquete a todos los dispositivos de una red", "Protocolo de enrutamiento avanzado"], c:2 },
+  { q:"¿Qué significa DHCP?", ops:["Dynamic Host Configuration Protocol", "Digital Host Connection Point", "Data Handling Communication Protocol", "Distributed Hub Control Panel"], c:0 },
+  { q:"¿Qué hace el protocolo DHCP?", ops:["Rastrea la ruta de los paquetes en la red", "Asigna automáticamente direcciones IP a los dispositivos de la red", "Traduce nombres de dominio a direcciones IP", "Controla el acceso inalámbrico a la red"], c:1 },
+  { q:"¿Qué significa DNS?", ops:["Data Network System", "Domain Name System", "Device Network Service", "Digital Node Switch"], c:1 },
+  { q:"¿Qué hace el DNS?", ops:["Asigna direcciones MAC a los dispositivos", "Protege la red con un firewall", "Traduce nombres de dominio (como www.ejemplo.com) a direcciones IP", "Gestiona la transferencia de archivos FTP"], c:2 },
+  { q:"¿Qué es Ethernet?", ops:["Un protocolo inalámbrico de bajo consumo", "Tecnología estándar para redes LAN cableadas", "Un tipo de router inalámbrico", "Un protocolo de seguridad para Wi-Fi"], c:1 },
+  { q:"¿Qué es un Firewall?", ops:["Un dispositivo que amplifica la señal Wi-Fi", "Un sistema de seguridad que controla el tráfico de red entrante y saliente", "Un protocolo para transferir archivos de forma segura", "Un tipo de dirección IP privada"], c:1 },
+  { q:"¿Qué es un Gateway (puerta de enlace)?", ops:["Un protocolo de cifrado de datos", "Un dispositivo que conecta redes con diferentes protocolos", "Un tipo de cable de red de alta velocidad", "Un programa que gestiona conexiones FTP"], c:1 },
+  { q:"¿Qué significa ICMP?", ops:["Internet Connection Management Protocol", "Internal Control Message Port", "Internet Control Message Protocol", "Integrated Circuit Media Protocol"], c:2 },
+  { q:"¿Qué protocolo usa el comando 'ping' para enviar mensajes de control?", ops:["TCP", "UDP", "ICMP", "FTP"], c:2 },
+  { q:"¿Qué significa IoT?", ops:["Internal Operating Technology", "Internet of Things", "Integrated Online Tools", "Input/Output Terminal"], c:1 },
+  { q:"¿Qué es una dirección MAC?", ops:["Un protocolo de enrutamiento avanzado", "Un identificador único de 48 bits de una tarjeta de red", "Una dirección IP reservada para servidores", "El nombre de la red inalámbrica"], c:1 },
+  { q:"¿Qué significa NAT?", ops:["Network Address Translation", "Node Allocation Table", "Network Access Terminal", "Numeric Address Type"], c:0 },
+  { q:"¿Para qué sirve NAT?", ops:["Para cifrar el tráfico entre dos redes", "Para asignar nombres de dominio a equipos", "Para que múltiples dispositivos compartan una sola IP pública", "Para crear redes privadas virtuales"], c:2 },
+  { q:"🔌 ¿Qué significa NIC?", ops:["Network Interface Card", "Node Identification Code", "Network IP Configuration", "Numeric Interconnection Circuit"], c:0 },
+  { q:"¿Cuántas capas tiene el Modelo OSI?", ops:["4 capas", "5 capas", "6 capas", "7 capas"], c:3 },
+  { q:"¿Para qué sirve el Modelo OSI?", ops:["Para asignar direcciones IP en redes privadas", "Para estandarizar las funciones de red en capas y permitir interoperabilidad", "Para gestionar la seguridad de redes inalámbricas", "Para definir los tipos de cables de red"], c:1 },
+  { q:"¿Qué es un 'Packet' (paquete) en redes?", ops:["Un conjunto de cables de red", "La unidad básica de datos transmitida en una red", "Un dispositivo repetidor de señal", "El protocolo de seguridad del router"], c:1 },
+  { q:"¿Qué es un protocolo en el contexto de redes?", ops:["Un tipo de cable de alta velocidad", "Un dispositivo que conecta redes", "Un conjunto de reglas que permiten la comunicación entre dispositivos", "El identificador único de un dispositivo en la red"], c:2 },
+  { q:"¿Qué significa SSID?", ops:["Secure Socket Identifier", "Service Set Identifier", "System Signal ID", "Subnet Standard ID"], c:1 },
+  { q:"¿Qué identifica el SSID?", ops:["La dirección MAC del router", "El nombre de una red inalámbrica Wi-Fi", "La contraseña de la red inalámbrica", "El canal de frecuencia del Wi-Fi"], c:1 },
+  { q:"¿Qué significa TCP/IP?", ops:["Transfer Control Protocol / Internet Protocol", "Transmission Control Protocol / Internet Protocol", "Terminal Connection Point / IP", "Transport Circuit Protocol / Internet Protocol"], c:1 },
+  { q:"¿Qué es el TTL (Time To Live)?", ops:["Un tipo de cifrado para redes Wi-Fi", "La velocidad máxima de un cable de red", "Un valor que limita el tiempo de vida de un paquete en la red", "El tiempo que tarda en establecerse una conexión FTP"], c:2 },
+  { q:"¿Qué significa WPA2?", ops:["Wireless Protocol Access 2", "Wide Private Area 2", "Wi-Fi Protected Access 2", "Wired Protocol Authentication 2"], c:2 },
+  { q:"¿Qué cifrado usa WPA2 para proteger las redes Wi-Fi?", ops:["DES", "RSA", "MD5", "AES"], c:3 },
+  { q:"¿Para qué fue diseñado Zigbee principalmente?", ops:["Transmisión de video en alta definición", "Redes de área metropolitana (MAN)", "Domótica e IoT con bajo consumo energético", "Conexiones de larga distancia WAN"], c:2 },
+  { q:"¿Qué tipo de topología de red usa Zigbee?", ops:["Topología en estrella", "Topología en bus", "Topología en anillo", "Topología en malla (mesh)"], c:3 },
+  { q:"¿Cuál es el equivalente de 'arp -a' en PowerShell?", ops:["Get-NetIPConfiguration", "Get-NetAdapter", "Get-NetNeighbor", "Test-Connection"], c:2 },
+  { q:"¿Qué comando de PowerShell equivale a 'ipconfig /all' para ver detalles completos de red?", ops:["Get-NetIPConfiguration -Detailed", "Get-NetAdapter -Full", "Test-NetConnection -All", "Get-NetNeighbor -Extended"], c:0 },
+  { q:"¿Cuál es el equivalente de 'nslookup' en PowerShell?", ops:["Test-Connection", "Get-NetNeighbor", "Resolve-DnsName", "Get-NetIPConfiguration"], c:2 },
+  { q:"¿Qué comando muestra el nombre del equipo en CMD, Linux y PowerShell por igual?", ops:["ipconfig", "whoami", "hostname", "netstat"], c:2 },
+  { q:"¿Qué herramienta de FTP en Linux es más potente para automatización que el cliente básico 'ftp'?", ops:["sftp / lftp", "curl solamente", "wget", "netstat"], c:0 },
+  { q:"¿Qué protocolo es fundamental para Internet desde 1974?", ops:["ICMP", "FTP", "ARP", "Todos los anteriores"], c:3 },
+  { q:"¿Cuál dispositivo dirige tramas solo al destinatario mediante tabla MAC?", ops:["Hub", "Módem", "Switch", "Repetidor"], c:2 },
+  { q:"¿Qué dispositivo interconecta redes lógicas mediante tablas IP?", ops:["Checksum", "FTP", "DNS", "Todos los anteriores"], c:3 },
+  { q:"¿Qué significa NIC?", ops:["Network Interface Card", "New Internet Cable", "Node Interface Connector", "Network Internal Control"], c:0 },
+  { q:"¿Cuál es el tamaño de una dirección MAC?", ops:["16 bits", "32 bits", "48 bits", "64 bits"], c:2 },
+  { q:"¿Qué protocolo usa 128 bits?", ops:["IPv4", "IPv6", "ARP", "FTP"], c:1 },
+  { q:"¿Cuál es un medio de transmisión cableado?", ops:["Bluetooth", "Wi‑Fi", "Fibra óptica", "Zigbee"], c:2 },
+  { q:"¿Qué protocolo inalámbrico usa menos energía y es ideal para IoT?", ops:["Wi‑Fi", "Zigbee", "Ethernet", "FTP"], c:1 },
+  { q:"¿Qué tipo de red cubre un edificio?", ops:["WAN", "MAN", "LAN", "PAN"], c:2 },
+  { q:"¿Qué tipo de red tiene cobertura nacional o global?", ops:["21", "20", "80", "Ambos 20 y 21"], c:2 },
+  { q:"¿Qué arquitectura usa servidores dedicados?", ops:["P2P", "Cliente‑Servidor", "Mesh", "Bus"], c:1 },
+  { q:"¿Qué topología es dominante actualmente?", ops:["Bus", "Anillo", "Estrella", "Lineal"], c:2 },
+  { q:"¿Qué mecanismo agrega un bit adicional para detectar errores?", ops:["CRC", "Checksum", "Paridad", "AES"], c:2 },
+  { q:"¿Cuál mecanismo es más robusto que checksum?", ops:["CRC", "Paridad", "TTL", "ARP"], c:0 },
+  { q:"¿Qué puerto usa el canal de control de FTP?", ops:["20", "22", "21", "80"], c:2 },
+  { q:"¿Qué puerto usa el canal de datos de FTP?", ops:["20", "21", "23", "25"], c:0 },
+  { q:"¿Quién desarrolló FTP en 1971?", ops:["Tim Berners‑Lee", "Vinton Cerf", "Abhay Bhushan", "Bill Gates"], c:2 },
+  { q:"¿Qué RFC es la primera especificación de FTP?", ops:["RFC 21", "RFC 114", "RFC 959", "RFC 765"], c:1 },
+  { q:"¿Qué protocolo FTP utiliza SSL/TLS?", ops:["HTTP", "SFTP", "FTPS", "SNMP"], c:2 },
+  { q:"¿Qué protocolo seguro está basado en SSH?", ops:["SFTP", "HTTP", "ARP", "DNS"], c:0 },
+  { q:"¿Cómo se transmiten las credenciales en FTP tradicional?", ops:["Encriptadas", "Texto plano", "Por AES", "Hash SHA"], c:1 },
+  { q:"¿Qué comando FTP descarga un archivo?", ops:["put", "delete", "get", "mkdir"], c:2 },
+  { q:"¿Qué comando FTP sube un archivo?", ops:["put", "get", "dir", "pwd"], c:0 },
+  { q:"¿Qué comando FTP lista archivos?", ops:["dir", "ascii", "prompt", "status"], c:0 },
+  { q:"¿Qué comando cambia de carpeta en FTP?", ops:["pwd", "cd", "dir", "binary"], c:1 },
+  { q:"¿Qué comando muestra la ruta actual en FTP?", ops:["pwd", "mkdir", "bye", "mput"], c:0 },
+  { q:"¿Qué comando crea una carpeta en FTP?", ops:["mkdir", "delete", "ascii", "prompt"], c:0 },
+  { q:"¿Qué comando elimina una carpeta en FTP?", ops:["rmdir", "mkdir", "get", "put"], c:0 },
+  { q:"¿Qué comando activa el modo texto en FTP?", ops:["ascii", "binary", "status", "quit"], c:0 },
+  { q:"¿Qué comando activa el modo binario en FTP?", ops:["binary", "ascii", "pwd", "dir"], c:0 },
+  { q:"¿Qué comando muestra el estado en FTP?", ops:["status", "mget", "bye", "open"], c:0 },
+  { q:"¿Qué comando limpia la pantalla en FTP?", ops:["pwd", "cls", "ascii", "delete"], c:1 },
+  { q:"¿Qué comando ejecuta un comando local?", ops:["!", "curl", "put", "prompt"], c:0 },
+  { q:"¿Qué herramienta permite conectar y transferir datos desde CMD?", ops:["arp", "curl", "ping", "ifconfig"], c:1 },
+  { q:"¿Qué método FTP usa interfaz visual y arrastrar archivos?", ops:["CMD", "Explorador", "FileZilla", "ARP"], c:2 },
+  { q:"¿Qué comando muestra configuración TCP/IP básica?", ops:["ping", "ipconfig", "arp -a", "ftp"], c:1 },
+  { q:"¿Qué comando muestra información extendida de red?", ops:["ipconfig /all", "hostname", "ping", "dir"], c:0 },
+  { q:"¿Qué comando muestra direcciones MAC?", ops:["getmac", "tracert", "netstat", "curl"], c:0 },
+  { q:"¿Qué comando verifica conectividad enviando ICMP?", ops:["arp", "ping", "ftp", "mkdir"], c:1 },
+  { q:"¿Qué comando muestra la tabla ARP?", ops:["arp -a", "getmac", "ping", "hostname"], c:0 },
+  { q:"¿Qué significa TTL?", ops:["Transfer To Link", "Time To Live", "Token Type Link", "Transmission Total Limit"], c:1 },
+  { q:"¿Qué dirección normalmente termina en .1?", ops:["DNS", "Gateway", "MAC", "DHCP"], c:1 },
+  { q:"¿Qué protocolo asigna IP automáticamente?", ops:["FTP", "DHCP", "SSH", "ARP"], c:1 },
+  { q:"¿Qué traduce dominios a direcciones IP?", ops:["DNS", "ICMP", "FTP", "ARP"], c:0 },
+  { q:"¿Qué dispositivo actúa como puerta de enlace predeterminada?", ops:["Hub", "Router", "NIC", "Módem"], c:1 },
+  { q:"¿Qué estándar de seguridad inalámbrica usa AES?", ops:["WEP", "WPA2", "SSID", "ARP"], c:1 },
+  { q:"¿Qué sistema de seguridad controla tráfico entrante y saliente?", ops:["Firewall", "Hub", "ARP", "Ping"], c:0 },
+  { q:"¿Qué protocolo usa ping para enviar mensajes de control?", ops:["FTP", "ICMP", "DNS", "DHCP"], c:1 },
+  { q:"¿Qué topología usa un nodo central?", ops:["Anillo", "Bus", "Estrella", "Mesh"], c:2 },
+  { q:"¿Qué topología fue abandonada por colisiones?", ops:["Bus", "Estrella", "WAN", "Mesh"], c:0 },
+  { q:"¿Qué topología usa token de acceso?", ops:["Estrella", "Anillo", "LAN", "Bus"], c:1 },
+  { q:"¿Qué tipo de red pertenece a infraestructura de proveedores?", ops:["LAN", "PAN", "MAN", "SAN"], c:2 },
+  { q:"¿Qué red es la máxima expresión de WAN?", ops:["Bluetooth", "Internet", "LAN", "Zigbee"], c:1 },
+  { q:"¿Qué dispositivo replica señales en todos los puertos?", ops:["Switch", "Router", "Hub", "Gateway"], c:2 },
+  { q:"¿Qué dispositivo convierte señales digitales y analógicas?", ops:["Módem", "Switch", "Router", "NIC"], c:0 },
+  { q:"¿Qué formato utiliza IPv4?", ops:["128 bits", "xxx.xxx.xxx.xxx", "Hexadecimal puro", "MAC de 48 bits"], c:1 },
+  { q:"¿Qué tecnología estándar se usa en redes LAN cableadas?", ops:["Bluetooth", "Ethernet", "Zigbee", "FTP"], c:1 },
+  { q:"¿Qué técnica permite compartir una IP pública?", ops:["NAT", "FTP", "ARP", "CRC"], c:0 },
+  { q:"¿Qué es un paquete en redes?", ops:["Cable físico", "Unidad básica de datos", "Servidor", "Conector"], c:1 },
+  { q:"¿Qué comando rastrea la ruta de paquetes?", ops:["nslookup", "tracert", "getmac", "hostname"], c:1 },
+  { q:"¿Qué comando consulta DNS?", ops:["ping", "nslookup", "arp", "ftp"], c:1 },
+  { q:"¿Qué comando muestra conexiones activas?", ops:["hostname", "netstat", "mkdir", "curl"], c:1 },
+  { q:"¿Qué comando muestra el nombre del equipo?", ops:["hostname", "ping", "arp", "ftp"], c:0 },
+  { q:"¿Qué equivalente Linux tiene ipconfig?", ops:["ping", "ifconfig", "mkdir", "curl"], c:1 },
+  { q:"¿Qué comando PowerShell equivale a ping?", ops:["Resolve-DnsName", "Get-NetAdapter", "Test-Connection", "Get-NetNeighbor"], c:2 },
+  { q:"¿Qué comando Linux moderno reemplaza parcialmente ifconfig?", ops:["ip addr", "mkdir", "arp -a", "curl"], c:0 },
+  { q:"¿Qué comando PowerShell muestra direcciones MAC?", ops:["Get-NetAdapter", "Resolve-DnsName", "Test-NetConnection", "hostname"], c:0 },
+  { q:"¿Qué comando Linux muestra caché ARP?", ops:["ip neigh", "curl", "mkdir", "binary"], c:0 },
+  { q:"¿Qué comando PowerShell rastrea rutas?", ops:["Get-NetNeighbor", "Test-NetConnection -TraceRoute", "Get-NetTCPConnection", "Resolve-DnsName"], c:1 },
+  { q:"¿Qué comando PowerShell resuelve DNS?", ops:["Resolve-DnsName", "Get-NetAdapter", "ping", "ftp"], c:0 },
+  { q:"¿Qué comando PowerShell muestra conexiones TCP?", ops:["Get-NetTCPConnection", "hostname", "arp", "pwd"], c:0 },
+  { q:"¿Qué comando Linux alternativo es más moderno que netstat?", ops:["ss", "mkdir", "arp", "ftp"], c:0 },
+  { q:"¿Qué significa CRC?", ops:["Central Routing Control", "Cyclic Redundancy Check", "Current Router Check", "Cable Redundancy Configuration"], c:1 },
+  { q:"¿Qué protocolo asocia IP con MAC?", ops:["FTP", "ARP", "SSH", "HTTP"], c:1 },
+  { q:"¿Qué protocolo permite transferencia de archivos?", ops:["FTP", "DNS", "ARP", "ICMP"], c:0 },
+  { q:"¿Qué protocolo se considera inseguro sin cifrado?", ops:["FTP tradicional", "WPA2", "SSH", "HTTPS"], c:0 },
+  { q:"¿Qué servicio en la nube se menciona como alternativa moderna?", ops:["Google Drive", "ARP", "ICMP", "Telnet"], c:0 },
+  { q:"¿Qué herramienta facilita automatización en FTP?", ops:["Consola CMD", "Mouse", "Wi‑Fi", "Hub"], c:0 },
+  { q:"¿Qué conexión FTP es fácil pero limitada?", ops:["CMD", "Explorador de Windows", "WinSCP", "FileZilla"], c:1 },
+  { q:"¿Qué cliente gráfico soporta SFTP y FTPS?", ops:["FileZilla", "ARP", "Ping", "DHCP"], c:0 },
+  { q:"¿Qué ejemplo representa una IP privada?", ops:["192.168.1.10", "500.600.700.800", "999.999.999.999", "1.1.1.1000"], c:0 },
+  { q:"¿Qué protocolo de Internet usa 32 bits?", ops:["IPv6", "IPv4", "MAC", "FTP"], c:1 },
+  { q:"¿Qué protocolo inalámbrico pertenece a la familia 802.11?", ops:["Wi‑Fi", "FTP", "ARP", "DNS"], c:0 },
+  { q:"¿Qué tipo de fibra tiene un solo modo de transmisión?", ops:["Coaxial", "Monomodo", "Multimodo", "UTP"], c:1 },
+  { q:"¿Qué medio usa líneas telefónicas o coaxial?", ops:["Switch", "Módem", "Hub", "NIC"], c:1 },
+  { q:"¿Qué arquitectura es resistente a fallos?", ops:["Cliente‑Servidor", "P2P", "Bus", "Anillo"], c:1 },
+  { q:"¿Qué arquitectura es difícil de administrar?", ops:["P2P", "LAN", "WAN", "MAN"], c:0 },
+  { q:"¿Qué significa MAC Address?", ops:["Media Access Control", "Machine Access Configuration", "Main Area Control", "Media Application Channel"], c:0 },
+  { q:"¿Qué protocolo limita el tiempo de vida de un paquete?", ops:["TTL", "FTP", "DNS", "SSID"], c:0 },
+  { q:"¿Qué red inalámbrica representa mayor riesgo de seguridad?", ops:["WPA2", "WPA3", "Red Abierta", "AES"], c:2 },
+  { q:"¿Qué sistema de cifrado utiliza WPA2?", ops:["AES", "CRC", "TTL", "ICMP"], c:0 },
+  { q:"¿Qué versión de seguridad inalámbrica está aún en adopción?", ops:["WEP", "WPA2", "WPA3", "SSID"], c:2 },
+  { q:"¿Qué protocolo es obsoleto y fácil de romper?", ops:["WEP", "WPA2", "SSH", "HTTPS"], c:0 },
+  { q:"¿Qué protocolo permite mensajes de control en red?", ops:["ICMP", "FTP", "DNS", "ARP"], c:0 },
+  { q:"¿Qué elemento conecta dispositivos en una LAN inteligentemente?", ops:["Hub", "Switch", "Cable coaxial", "Módem"], c:1 },
+  { q:"¿Qué comando FTP descarga múltiples archivos?", ops:["mget", "put", "mkdir", "status"], c:0 },
+  { q:"¿Qué comando FTP sube varios archivos?", ops:["mput", "mget", "pwd", "dir"], c:0 },
+  { q:"¿Qué comando FTP elimina un archivo?", ops:["delete", "mkdir", "status", "ascii"], c:0 },
+  { q:"¿Qué comando FTP conecta a un servidor?", ops:["open", "bye", "pwd", "binary"], c:0 },
+  { q:"¿Qué comando FTP inicia sesión?", ops:["user", "put", "delete", "status"], c:0 },
+  { q:"¿Qué comando FTP cierra la conexión?", ops:["bye", "dir", "pwd", "ascii"], c:0 },
+  { q:"¿Qué porcentaje de overhead tiene la paridad?", ops:["5%", "12.5%", "50%", "100%"], c:1 },
+  { q:"¿Qué mecanismo no tiene capacidad de corrección?", ops:["Paridad", "CRC", "WPA2", "SSH"], c:0 },
+  { q:"¿Qué método de integridad usa complemento a uno?", ops:["Checksum", "Paridad", "CRC", "AES"], c:0 },
+  { q:"¿Qué protocolo inalámbrico usa redes mesh?", ops:["Ethernet", "Zigbee", "FTP", "ARP"], c:1 },
+  { q:"¿Qué función principal tiene un router en una LAN?", ops:["Imprimir documentos", "Enrutar paquetes", "Mostrar videos", "Crear carpetas"], c:1 },
+  { q:"¿Qué función de seguridad ofrece un router?", ops:["Firewall básico", "FTP público", "ARP estático", "Ping"], c:0 }
+];
+
+/* ═══════════════════════════════════════════════════════
+   LÓGICA DEL EXAMEN
+═══════════════════════════════════════════════════════ */
+let examenPreguntas = [];
+let idxActual = 0;
+let puntajeAcumulado = 0;
+let totalPreguntas = CFG.QUESTIONS_PER_EXAM;
+let errorEnPregunta = false;
+let totalAciertos = 0; // Guardará el conteo de aciertos en tiempo real
+
+let segundos = 0;
+let tInterval = null;
+
+// Anti-Dev Tools
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.onkeydown = function(e) {
+  if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
+    document.getElementById('devShield').style.display = 'flex';
+    return false;
+  }
+};
+
+window.addEventListener('load', () => {
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('fDate').value = hoy;
+  
+  if(window.location.hash === ADMIN.HASH_TRIGGER) {
+    abrirModalContrasena();
+  }
+});
+
+window.addEventListener('hashchange', () => {
+  if(window.location.hash === ADMIN.HASH_TRIGGER) {
+    abrirModalContrasena();
+  }
+});
+
+/* --- Flujo de Navegación --- */
+document.getElementById('btnStart').addEventListener('click', () => {
+  const nombre = document.getElementById('fName').value.trim();
+  const grado = document.getElementById('fGrade').value.trim();
+  const fecha = document.getElementById('fDate').value;
+  const msg = document.getElementById('formMsg');
+
+  if(!nombre || !grado || !fecha) {
+    msg.className = "msg msg-err";
+    msg.innerText = "⚠️ Por favor, completa todos los campos obligatorios (*).";
+    return;
+  }
+  msg.innerText = "";
+  document.getElementById('studentSection').style.display = 'none';
+  document.getElementById('instrSection').style.display = 'block';
+});
+
+document.getElementById('chkRead').addEventListener('change', (e) => {
+  const btn = document.getElementById('btnConfirm');
+  if(e.target.checked) btn.classList.add('ready');
+  else btn.classList.remove('ready');
+});
+
+document.getElementById('btnConfirm').addEventListener('click', () => {
+  if(!document.getElementById('chkRead').checked) return;
+  document.getElementById('instrSection').style.display = 'none';
+  document.getElementById('examSection').style.display = 'block';
+  inicializarExamen();
+});
+
+/* --- Motor del Examen --- */
+function inicializarExamen() {
+  const copiaBanco = [...BANCO];
+  copiaBanco.sort(() => Math.random() - 0.5);
+  examenPreguntas = copiaBanco.slice(0, totalPreguntas);
+  
+  idxActual = 0;
+  puntajeAcumulado = 0;
+  totalAciertos = 0; // Reiniciar en cada nuevo inicio
+  document.getElementById('successCount').innerText = totalAciertos;
+  
+  startTimer();
+  desplegarPregunta();
+}
+
+function startTimer() {
+  segundos = 0;
+  tInterval = setInterval(() => {
+    segundos++;
+    let m = Math.floor(segundos / 60).toString().padStart(2,'0');
+    let s = (segundos % 60).toString().padStart(2,'0');
+    document.getElementById('timerTxt').innerText = `${m}:${s}`;
+  }, 1000);
+}
+
+function desplegarPregunta() {
+  errorEnPregunta = false;
+  const qObj = examenPreguntas[idxActual];
+  
+  const porc = (idxActual / totalPreguntas) * 100;
+  document.getElementById('progFill').style.width = `${porc}%`;
+  document.getElementById('ctrLabel').innerText = `Pregunta ${idxActual + 1} de ${totalPreguntas}`;
+  
+  const qArea = document.getElementById('qArea');
+  qArea.innerHTML = `
+    <div class="q-card">
+      <div class="q-meta">Pregunta Seleccionada Aleatoriamente</div>
+      <div class="q-text">${qObj.q}</div>
+      <div class="opts" id="optsBox">
+        ${qObj.ops.map((op, i) => `
+          <div class="opt" data-idx="${i}">
+            <div class="opt-letter">${String.fromCharCode(65 + i)}</div>
+            <div>${op}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="fb" id="feedbackBox"></div>
+    </div>
+  `;
+  
+  const opciones = qArea.querySelectorAll('.opt');
+  opciones.forEach(elem => {
+    elem.addEventListener('click', () => procesarRespuesta(elem, opciones, qObj));
+  });
+}
+
+function procesarRespuesta(seleccionada, todasLasOpciones, qObj) {
+  const ansIdx = parseInt(seleccionada.getAttribute('data-idx'));
+  const fb = document.getElementById('feedbackBox');
+  
+  if(ansIdx === qObj.c) {
+    seleccionada.classList.add('opt-correct');
+    bloquearOpciones(todasLasOpciones);
+    
+    // Sumamos un acierto positivo al contador visual en tiempo real
+    totalAciertos++;
+    document.getElementById('successCount').innerText = totalAciertos;
+    
+    if(!errorEnPregunta) {
+      puntajeAcumulado += CFG.POINTS_PER_CORRECT;
+      fb.className = "fb fb-ok show";
+      fb.innerHTML = `✨ ¡Excelente! Respuesta correcta en tu primer intento (+${CFG.POINTS_PER_CORRECT} pts).`;
+    } else {
+      puntajeAcumulado += Math.floor(CFG.POINTS_PER_CORRECT / 2);
+      fb.className = "fb fb-warn show";
+      fb.innerHTML = `👍 ¡Muy bien! Conseguiste la respuesta correcta en tu segunda oportunidad (+2 pts).`;
+    }
+    insertarBotonSiguiente();
+  } else {
+    seleccionada.classList.add('opt-wrong');
+    seleccionada.classList.add('opt-used');
+    
+    if(!errorEnPregunta) {
+      errorEnPregunta = true;
+      fb.className = "fb fb-warn show";
+      fb.innerHTML = `⚠️ Esa no es la respuesta correcta. Te queda 1 oportunidad restante. Analiza bien y elige otra opción.`;
+    } else {
+      bloquearOpciones(todasLasOpciones);
+      todasLasOpciones[qObj.c].classList.add('opt-correct');
+      fb.className = "fb fb-err show";
+      fb.innerHTML = `❌ Incorrecto. Has agotado tus 2 oportunidades para esta pregunta (0 pts). La opción correcta está resaltada en verde.`;
+      insertarBotonSiguiente();
+    }
+  }
+}
+
+function bloquearOpciones(opciones) {
+  opciones.forEach(o => o.classList.add('opt-locked'));
+}
+
+function insertarBotonSiguiente() {
+  const ctrlArea = document.querySelector('.ctrl');
+  const esUltima = (idxActual === totalPreguntas - 1);
+  ctrlArea.innerHTML = `
+    <button class="btn btn-gold" id="btnNext">
+      ${esUltima ? '🏁 Finalizar y evaluar' : 'Siguiente pregunta ➡️'}
+    </button>
+  `;
+  
+  document.getElementById('btnNext').addEventListener('click', () => {
+    ctrlArea.innerHTML = "";
+    if(idxActual < totalPreguntas - 1) {
+      idxActual++;
+      desplegarPregunta();
+    } else {
+      finalizarExamen();
+    }
+  });
+}
+
+function finalizarExamen() {
+  clearInterval(tInterval);
+  document.getElementById('progFill').style.width = `100%`;
+  
+  const totalPuntosPosibles = totalPreguntas * CFG.POINTS_PER_CORRECT;
+  const notaFinal = getScore(puntajeAcumulado);
+  
+  const nombreEst = document.getElementById('fName').value.trim();
+  const gradoEst = document.getElementById('fGrade').value.trim();
+  const fechaEst = document.getElementById('fDate').value;
+  
+  let m = Math.floor(segundos / 60).toString().padStart(2,'0');
+  let s = (segundos % 60).toString().padStart(2,'0');
+  const tiempoEmpleado = `${m}:${s}`;
+
+  salvarIntentoLocal(nombreEst, gradoEst, fechaEst, puntajeAcumulado, notaFinal, tiempoEmpleado);
+
+  let motClass = "mot-C";
+  let mensajeMotivacional = "Debes repasar más los conceptos de comunicación y comandos de red. ¡No te rindas, estudia para la próxima!";
+  if(notaFinal >= 4.0) {
+    motClass = "mot-A";
+    mensajeMotivacional = "¡Excelente rendimiento académico! Demuestras un dominio sobresaliente en fundamentos de redes y protocolos.";
+  } else if(notaFinal >= 3.0) {
+    motClass = "mot-B";
+    mensajeMotivacional = "Buen trabajo. Tienes bases sólidas, pero te recomendamos revisar los comandos de diagnóstico y puertos de red.";
+  }
+
+  const qArea = document.getElementById('qArea');
+  qArea.innerHTML = `
+    <div class="result-wrap">
+      <h2>¡Examen Concluido Satisfactoriamente!</h2>
+      <p class="result-info">Tu hoja de respuestas ha sido procesada por el sistema evaluador interno.</p>
+      
+      <div style="background:#fff; border-radius:1rem; padding:1rem; border:1.5px solid var(--border); text-align:left; margin-bottom:1.2rem;">
+        <p style="font-size:.85rem; color:var(--muted); margin-bottom:.2rem;">ESTUDIANTE EVALUADO</p>
+        <p style="font-size:1.1rem; font-weight:800; color:var(--navy);">${nombreEst} — <span style="color:var(--teal);">${gradoEst}</span></p>
+        <p style="font-size:.78rem; color:var(--muted); margin-top:.3rem;">Fecha de Aplicación: ${fechaEst} | Tiempo de Resolución: ${tiempoEmpleado} min</p>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-tile">
+          <div class="lbl">Preguntas correctas</div>
+          <div class="val">${totalAciertos} / ${totalPreguntas}</div>
+        </div>
+        <div class="score-tile">
+          <div class="lbl">Puntaje Total</div>
+          <div class="val">${puntajeAcumulado} <span style="font-size:1rem;color:var(--muted)">/ ${totalPuntosPosibles} pts</span></div>
+        </div>
+        <div class="score-tile" style="border-color:var(--teal);">
+          <div class="lbl" style="color:var(--teal)">Nota Obtenida</div>
+          <div class="val big">${notaFinal.toFixed(1)}</div>
+        </div>
+      </div>
+
+      <div class="badge-mot ${motClass}">${mensajeMotivacional}</div>
+
+      <div class="res-btns">
+        <button class="btn btn-dark" onclick="window.print()">🖨️ Imprimir boleta de notas</button>
+        <button class="btn btn-primary" id="btnSendEmail">📧 Enviar copia al profesor por correo</button>
+      </div>
+      <div id="emailStatus" class="email-status" style="display:none;"></div>
+
+      <details class="info-accordion">
+        <summary>
+          <div class="acc-label"><span>📌</span> ¿Cómo se calculó mi nota final?</div>
+          <div class="acc-icon">▼</div>
+        </summary>
+        <div class="acc-body">
+          <div class="acc-section">
+            <h4>📈 Escala Oficial del Colegio Episcopal</h4>
+            <ul>
+              <li><strong>Puntaje Perfecto (40 pts):</strong> Calificación de 5.0</li>
+              <li><strong>Puntaje de Aprobación Mínima (20 pts):</strong> Calificación de 3.0</li>
+              <li><strong>Fórmula de conversión lineal:</strong> Nota = $\\frac{\\text{Puntos} \\times 4}{\\text{Total}} + 1$</li>
+            </ul>
+          </div>
+          <div class="acc-highlight">
+            Tu nota calculada de <span>${notaFinal.toFixed(1)}</span> se basa estrictamente en los <span>${puntajeAcumulado} puntos</span> que acumulaste de los ${totalPuntosPosibles} posibles.
+          </div>
+        </div>
+      </details>
+    </div>
+  `;
+
+  document.getElementById('btnSendEmail').addEventListener('click', () => {
+    enviarResultadosPorCorreo(nombreEst, gradoEst, fechaEst, puntajeAcumulado, notaFinal, tiempoEmpleado);
+  });
+}
+
+function enviarResultadosPorCorreo(nombre, grado, fecha, puntos, nota, tiempo) {
+  const btn = document.getElementById('btnSendEmail');
+  const status = document.getElementById('emailStatus');
+  
+  btn.disabled = true;
+  status.style.display = "block";
+  status.className = "email-status msg-ok";
+  status.innerText = "⏳ Conectando con el servidor de correo institucional...";
+
+  if(CFG.EMAILJS_PUBLIC_KEY === 'TU_PUBLIC_KEY') {
+    setTimeout(() => {
+      status.className = "email-status msg-err";
+      status.innerText = "❌ Error: Las llaves del servicio EmailJS no están configuradas en el código base del script.";
+      btn.disabled = false;
+    }, 1200);
+    return;
+  }
+
+  emailjs.init(CFG.EMAILJS_PUBLIC_KEY);
+  
+  const templateParams = {
+    student_name: nombre,
+    student_grade: grado,
+    exam_date: fecha,
+    score_points: puntos,
+    final_grade: nota.toFixed(1),
+    time_spent: tiempo,
+    reply_to: CFG.TEACHER_EMAIL
+  };
+
+  emailjs.send(CFG.EMAILJS_SERVICE_ID, CFG.EMAILJS_TEMPLATE_ID, templateParams)
+    .then(() => {
+      status.className = "email-status msg-ok";
+      status.innerText = "✅ ¡Éxito! Tu calificación ha sido enviada al correo del profesor de forma segura.";
+    }, (error) => {
+      status.className = "email-status msg-err";
+      status.innerText = "❌ Error al despachar el correo: " + JSON.stringify(error);
+      btn.disabled = false;
+    });
+}
+
+/* ═══════════════════════════════════════════════════════
+   MÓDULO ADMINISTRATIVO (PERSISTENCIA LOCAL)
+═══════════════════════════════════════════════════════ */
+function salvarIntentoLocal(nombre, grado, fecha, puntos, nota, tiempo) {
+  let logs = [];
+  try {
+    const raw = localStorage.getItem(ADMIN.LOG_KEY);
+    if(raw) logs = JSON.parse(raw);
+  } catch(e) { logs = []; }
+
+  const nuevoIntento = {
+    id: logs.length + 1,
+    timestamp: new Date().toLocaleString('es-PA'),
+    nombre: nombre,
+    grado: grado,
+    puntos: puntos,
+    nota: nota,
+    tiempo: tiempo
+  };
+
+  logs.push(nuevoIntento);
+  localStorage.setItem(ADMIN.LOG_KEY, JSON.stringify(logs));
+}
+
+/* --- Panel de control visual --- */
+function abrirModalContrasena() {
+  document.getElementById('adminPassModal').style.display = 'flex';
+  document.getElementById('passInput').focus();
+}
+
+document.getElementById('btnPassCancel').addEventListener('click', () => {
+  document.getElementById('adminPassModal').style.display = 'none';
+  window.location.hash = "";
+});
+
+document.getElementById('btnPassOk').addEventListener('click', validarPasswordAdmin);
+document.getElementById('passInput').addEventListener('keypress', (e) => {
+  if(e.key === 'Enter') validarPasswordAdmin();
+});
+
+function validarPasswordAdmin() {
+  const pInput = document.getElementById('passInput');
+  const pErr = document.getElementById('passErr');
+  
+  if(pInput.value === ADMIN.PASSWORD) {
+    pErr.style.display = "none";
+    pInput.value = "";
+    document.getElementById('adminPassModal').style.display = 'none';
+    renderizarPanelAdmin();
+  } else {
+    pErr.style.display = "block";
+    pInput.value = "";
+  }
+}
+
+function renderizarPanelAdmin() {
+  document.getElementById('adminOverlay').style.display = 'block';
+  
+  let logs = [];
+  try {
+    const raw = localStorage.getItem(ADMIN.LOG_KEY);
+    if(raw) logs = JSON.parse(raw);
+  } catch(e) { logs = []; }
+
+  const totalIntentos = logs.length;
+  let sumaNotas = 0;
+  let aprobados = 0;
+  
+  logs.forEach(l => {
+    let n = parseFloat(l.nota);
+    sumaNotas += n;
+    if(n >= 3.0) aprobados++;
+  });
+  
+  const promedioNotas = totalIntentos > 0 ? (sumaNotas / totalIntentos).toFixed(2) : "0.00";
+  const porcAprobacion = totalIntentos > 0 ? Math.round((aprobados / totalIntentos) * 100) : 0;
+
+  document.getElementById('adminStats').innerHTML = `
+    <div class="astat"><div class="av">${totalIntentos}</div><div class="al">Alumnos Evaluados</div></div>
+    <div class="astat"><div class="av">${promedioNotas}</div><div class="al">Promedio General</div></div>
+    <div class="astat"><div class="av">${porcAprobacion}%</div><div class="al">Índice Aprobación</div></div>
+  `;
+
+  const tbody = document.getElementById('adminTbody');
+  const emptyMsg = document.getElementById('adminEmpty');
+  tbody.innerHTML = "";
+
+  if(totalIntentos === 0) {
+    emptyMsg.style.display = "block";
+    return;
+  }
+  emptyMsg.style.display = "none";
+
+  logs.forEach(l => {
+    let nFloat = parseFloat(l.nota);
+    let chipClass = "nota-c";
+    if(nFloat >= 4.0) chipClass = "nota-a";
+    else if(nFloat >= 3.0) chipClass = "nota-b";
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${l.id}</td>
+      <td>${l.timestamp}</td>
+      <td style="font-weight:700;">${l.nombre}</td>
+      <td>${l.grado}</td>
+      <td>${Math.round(l.puntos / CFG.POINTS_PER_CORRECT)} / ${CFG.QUESTIONS_PER_EXAM}</td>
+      <td>${l.puntos} pts</td>
+      <td><span class="nota-chip ${chipClass}">${l.nota}</span></td>
+      <td>${l.tiempo} min</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('btnCloseAdmin').addEventListener('click', () => {
+  document.getElementById('adminOverlay').style.display = 'none';
+  window.location.hash = "";
+});
+
+document.getElementById('btnClearLog').addEventListener('click', () => {
+  if(confirm("⚠️ ¿Estás completamente seguro de que deseas vaciar el historial de intentos de este navegador? Esta operación es irreversible.")) {
+    localStorage.removeItem(ADMIN.LOG_KEY);
+    renderizarPanelAdmin();
+  }
+});
+
+document.getElementById('btnDownloadTxt').addEventListener('click', () => {
+  let logs = [];
+  try { logs = JSON.parse(localStorage.getItem(ADMIN.LOG_KEY)) || []; } catch(e){}
+  
+  let txtContent = `REGISTRO DE EXÁMENES - COLEGIO EPISCOPAL 2026\n`;
+  txtContent += `Generado el: ${new Date().toLocaleString()}\n`;
+  txtContent += `==================================================================\n\n`;
+  
+  logs.forEach(l => {
+    txtContent += `Intento #${l.id} | Fecha: ${l.timestamp}\n`;
+    txtContent += `Estudiante: ${l.nombre}\n`;
+    txtContent += `Grado: ${l.grado}\n`;
+    txtContent += `Resultado: ${l.puntos} Puntos | Nota Final: ${l.nota}\n`;
+    txtContent += `Tiempo de ejecución: ${l.tiempo} minutos\n`;
+    txtContent += `------------------------------------------------------------------\n`;
+  });
+
+  descargarArchivo(txtContent, `log_examenes_redes11_${Date.now()}.txt`, 'text/plain');
+});
+
+document.getElementById('btnDownloadCsv').addEventListener('click', () => {
+  let logs = [];
+  try { logs = JSON.parse(localStorage.getItem(ADMIN.LOG_KEY)) || []; } catch(e){}
+  
+  let csvContent = "\uFEFF";
+  csvContent += "ID,Fecha_Hora,Estudiante,Grado,Puntos,Nota,Tiempo_Min\n";
+  
+  logs.forEach(l => {
+    let nSanitizado = l.nombre.replace(/,/g, ' ');
+    csvContent += `${l.id},${l.timestamp},${nSanitizado},${l.grado},${l.puntos},${l.nota},${l.tiempo}\n`;
+  });
+
+  descargarArchivo(csvContent, `registro_redes11_${Date.now()}.csv`, 'text/csv;charset=utf-8;');
+});
+
+function descargarArchivo(contenido, nombreArchivo, mimeType) {
+  const blob = new Blob([contenido], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombreArchivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>
