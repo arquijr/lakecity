@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluación Técnica - Comunicación Windows y Linux mediante Samba</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #2980b9;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+            --sidebar-bg: #ffffff;
+        }
+
+        /* PROTECCIÓN CSS: Bloquea la selección de texto en toda la página */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: var(--bg); 
+            padding: 20px; 
+            margin: 0; 
+            display: flex; 
+            gap: 20px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .main-content { flex: 3; max-width: 900px; margin: 0 auto; }
+        .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+
+        .sidebar { 
+            flex: 1; 
+            min-width: 320px; 
+            background: var(--sidebar-bg); 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            height: fit-content; 
+            position: sticky; 
+            top: 20px; 
+            border-top: 5px solid var(--accent);
+        }
+
+        .student-strip {
+            background: var(--primary);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .student-strip label { font-size: 11px; font-weight: bold; display: block; margin-bottom: 5px; opacity: 0.8; }
+        .student-strip input { width: 100%; padding: 8px; border: none; border-radius: 5px; font-size: 14px; box-sizing: border-box; }
+        .info-static { font-size: 14px; font-weight: bold; margin-top: 5px; color: #ecf0f1; }
+
+        .intro-box {
+            background: #f8fafc;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+        .intro-box h3 { margin-top: 0; color: var(--primary); font-size: 18px; }
+        .intro-box p { margin: 5px 0; line-height: 1.5; color: #444; }
+
+        .section {
+            border: 2px solid #edf2f7;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            background: #ffffff;
+            transition: opacity 0.3s ease;
+        }
+
+        #parte2, #parte3, #parte4, #parte5, #parte6 { display: none; }
+        #parte2 { border-left: 8px solid var(--accent); }
+        #parte3 { border-left: 8px solid var(--success); }
+        #parte4 { border-left: 8px solid var(--warning); }
+        #parte5 { border-left: 8px solid #9b59b6; }
+        #parte6 { border-left: 8px solid var(--danger); }
+
+        .terminal-box { background: #1a1a1a; color: #4ade80; padding: 20px; border-radius: 8px; margin: 20px 0; font-family: monospace; font-size: 13px; white-space: pre-wrap; word-wrap: break-word; }
+        .explanation-box { background: #f1f5f9; padding: 15px; border-radius: 8px; font-size: 13px; border-left: 4px solid #cbd5e1; margin-bottom: 15px; color: #334155; }
+        
+        .btn-save { background: var(--success); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        .btn-confirm { background: var(--accent); color: white; padding: 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; }
+        .btn-confirm:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: var(--primary); color: white; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; font-size: 14px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+
+        .data-display { font-size: 14px; line-height: 1.6; }
+        .points-box { font-size: 28px; text-align: center; color: var(--success); margin-top: 20px; font-weight: bold; border-top: 2px solid #eee; padding-top: 10px; }
+        
+        #mensajeFinal { 
+            display: none; 
+            background: #dcfce7; 
+            color: #166534; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            text-align: center; 
+            font-weight: bold;
+            border: 2px solid #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        .notepad-container {
+            margin-top: 20px;
+            background: #fefcf0;
+            border: 1px solid #e6db9c;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .notepad-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8a7322;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Permite escritura y selección únicamente en el bloc de notas del alumno */
+        .notepad-textarea {
+            width: 100%;
+            height: 120px;
+            background: transparent;
+            border: none;
+            resize: vertical;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #2c3e50;
+            outline: none;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .teoria-container {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+            border-top: 4px solid var(--accent);
+            font-size: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            line-height: 1.4;
+        }
+        .teoria-container h3 { color: var(--primary); margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; text-align: center; }
+        .teoria-section { margin-bottom: 12px; }
+        .teoria-section b { color: var(--accent); display: block; margin-bottom: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: var(--primary); margin: 0;">Comunicación Windows y Linux mediante Samba</h1>
+            <p style="color: #64748b;">Materia: Informática | Prof. Arquimedes Mosquera</p>
+        </header>
+
+        <div class="student-strip">
+            <div>
+                <label>ESTUDIANTE</label>
+                <input type="text" id="nombre" oncopy="return false" onpaste="return false" placeholder="Nombre completo">
+            </div>
+            <div>
+                <label>GRADO</label>
+                <input type="text" id="grado" oncopy="return false" onpaste="return false" placeholder="Grado y grupo">
+            </div>
+            <div>
+                <label>MATERIA</label>
+                <div class="info-static">Informática</div>
+            </div>
+            <div>
+                <label>PROFESOR</label>
+                <div class="info-static">Arquimedes Mosquera</div>
+            </div>
+            <div style="grid-column: span 2;">
+                <button class="btn-save" onclick="guardarDatosEstudiante()">Guardar Datos del Estudiante</button>
+            </div>
+        </div>
+
+        <div class="intro-box">
+            <h3>Objetivo</h3>
+            <p>Comprender cómo se realiza la comunicación entre sistemas operativos Windows y Linux utilizando una red local y el servicio Samba.</p>
+            <p style="margin-top: 10px; font-size: 13px; color: #555;"><b>Escenario de Red:</b><br>
+            • Servidor: Linux (Raspberry Pi 3B) | Nombre: server | IP: 192.168.10.110 (Samba e intercambio)<br>
+            • Clientes: Windows 11 Home estudiantes | PCs (24) | IP: 192.168.10.x</p>
+        </div>
+
+        <section class="section" id="parte1">
+            <h2>PASO 1 — Identifica tu red (5 pts)</h2>
+            <p>Determina en qué red estás trabajando. Antes de buscar otros equipos es necesario conocer la configuración IP de tu computadora.</p>
+            <div style="margin-bottom: 15px; color: #334155;">
+                <ol>
+                    <li>Abre la consola CMD de Windows.</li>
+                    <li>Ejecuta el siguiente comando:</li>
+                </ol>
+            </div>
+            <div class="terminal-box">C:\> ipconfig</div>
+            <div class="form-group">
+                <label>Dirección IPv4 obtenida de tu equipo:</label>
+                <input type="text" id="ip_local" oncopy="return false" onpaste="return false" placeholder="Ej: 192.168.10.X">
+            </div>
+            <button class="btn-confirm" id="btnValidarP1" onclick="validarPaso1()">Confirmar Red y Continuar</button>
+        </section>
+
+        <section class="section" id="parte2">
+            <h2>PASO 2 — Descubre equipos activos (5 pts)</h2>
+            <p>Una vez identificada la red, busca dispositivos que respondan dentro de ella.</p>
+            <div class="terminal-box">C:\> for /L %i in (1,1,254) do @ping -n 1 -w 100 192.168.10.%i | find "TTL="</div>
+            
+            <div class="explanation-box">
+                <b>Explicación del comando:</b> Realiza un escaneo básico enviando un único ping a todas las direcciones de la 1 a la 254. El filtro <code>find "TTL="</code> muestra únicamente los equipos activos cuyas respuestas contienen el tiempo de vida (TTL).
+            </div>
+
+            <div class="form-group">
+                <label>¿Cuántos dispositivos activos encontraste en total?</label>
+                <input type="number" id="dispositivos_activos" oncopy="return false" onpaste="return false" placeholder="Número de equipos">
+            </div>
+            <button class="btn-confirm" id="btnValidarP2" onclick="validarPaso2()">Validar Equipos y Continuar</button>
+        </section>
+
+        <section class="section" id="parte3">
+            <h2>PASO 3 — Identifica posibles servidores Linux (5 pts)</h2>
+            <p>Analiza los valores de TTL obtenidos en el paso anterior para identificar qué equipo corre bajo Linux (el Servidor).</p>
+            
+            <table>
+                <thead><tr><th>Sistema Operativo</th><th>TTL Aproximado</th><th>Estado</th></tr></thead>
+                <tbody>
+                    <tr><td><b>Windows</b></td><td>128</td><td>❌ No es el servidor</td></tr>
+                    <tr><td><b>Linux / Ubuntu</b></td><td>64</td><td>✅ Sí es el servidor</td></tr>
+                    <tr><td><b>Router</b></td><td>64 o 255</td><td>(Posible puerta de enlace)</td></tr>
+                </tbody>
+            </table>
+
+            <div class="form-group">
+                <label>Ingresa la Dirección IP que identificaste como el Servidor Linux (TTL=64):</label>
+                <input type="text" id="ip_servidor" oncopy="return false" onpaste="return false" placeholder="192.168.10.110">
+            </div>
+            <button class="btn-confirm" id="btnValidarP3" onclick="validarPaso3()">Confirmar Servidor y Continuar</button>
+        </section>
+
+        <section class="section" id="parte4">
+            <h2>PASO 4 — Verificación de Comunicación Específica (5 pts)</h2>
+            <p>Antes de acceder a la carpeta compartida, comprueba la comunicación directa y estable con el servidor IP que descubriste.</p>
+            <div class="terminal-box">C:\> ping <span class="ip-dinamica">192.168.10.X</span></div>
+
+            <div class="form-group">
+                <label>¿Hubo respuesta del servidor?</label>
+                <select id="p4_respuesta" oncopy="return false" onpaste="return false"><option value="">Selecciona...</option><option value="si">Sí, hubo respuesta continua</option><option value="no">No, tiempo de espera agotado</option></select>
+            </div>
+            <div class="form-group">
+                <label>Paquetes Enviados / Recibidos:</label>
+                <input type="text" id="p4_paquetes" oncopy="return false" onpaste="return false" placeholder="Ej: Enviados = 4, Recibidos = 4">
+            </div>
+            <div class="form-group">
+                <label>Tiempo promedio de respuesta (ms):</label>
+                <input type="text" id="p4_tiempo" oncopy="return false" onpaste="return false" placeholder="Ej: 3ms">
+            </div>
+            <button class="btn-confirm" id="btnValidarP4" onclick="validarPaso4()">Guardar Diagnóstico y Continuar</button>
+        </section>
+
+        <section class="section" id="parte5">
+            <h2>PASO 5 — Recursos Compartidos y CasaOS (10 pts)</h2>
+            <p>Investiga si ofrece recursos compartidos mediante Samba. Samba utiliza principalmente el puerto <b>445/TCP</b> (y complementarios 139/TCP, 138/UDP, 137/UDP) para compartir archivos en redes modernas.</p>
+            <p>Realizaremos la prueba de acceso al panel por HTTP (puerto 80) e intentaremos la ruta: <code>//IP_SERVIDOR/Estudiantes</code></p>
+
+            <div class="form-group">
+                <label>¿El sistema solicita credenciales para ingresar?</label>
+                <select id="p5_credenciales" oncopy="return false" onpaste="return false"><option value="">Selecciona...</option><option value="si">Sí, solicita usuario y contraseña</option><option value="no">No, ingresa directo</option></select>
+            </div>
+
+            <div style="margin-top: 20px; padding: 20px; border: 2px dashed #9b59b6; border-radius: 10px; text-align: center;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">Evidencias: Importar captura de pantalla del Login de CasaOS / Recurso:</label>
+                <input type="file" id="fileInput" accept="image/*" style="margin-bottom: 10px;">
+            </div>
+            <button class="btn-confirm" id="btnValidarP5" onclick="validarPaso5()">Verificar Evidencia y Pasar al Cuestionario</button>
+        </section>
+
+        <section class="section" id="parte6">
+            <h2>PASO 6 — Cuestionario Técnico Analítico (10 pts)</h2>
+            <p>Responda de manera clara y analítica las siguientes preguntas sobre la práctica efectuada:</p>
+
+            <div class="form-group">
+                <label>1. ¿Qué se utiliza para comunicarse entre Windows y Linux en red?</label>
+                <textarea id="q1" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>2. ¿Cuáles son los puertos usados y mencionados en esta práctica?</label>
+                <textarea id="q2" rows="2" oncopy="return false" onpaste="return false" placeholder="Ej: 445, 139, 80..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>3. ¿Qué es Samba y para qué sirve?</label>
+                <textarea id="q3" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>4. ¿Cuál es la función de un servidor de archivos?</label>
+                <textarea id="q4" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>5. ¿Cuál es la diferencia entre Windows y Linux en cuanto al manejo de archivos compartidos (ej: sistemas de archivos, permisos)?</label>
+                <textarea id="q5" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>6. ¿Qué significa SMB?</label>
+                <textarea id="q6" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>7. ¿Qué otra forma de conexión existe entre Windows y Linux?</label>
+                <textarea id="q7" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>8. ¿Qué ventajas tiene utilizar un servidor Linux para compartir archivos?</label>
+                <textarea id="q8" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>9. ¿Qué riesgos de seguridad existen al compartir carpetas en una red local?</label>
+                <textarea id="q9" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>10. ¿Qué es un usuario de Samba?</label>
+                <textarea id="q10" rows="2" oncopy="return false" onpaste="return false"></textarea>
+            </div>
+
+            <button class="btn-confirm" onclick="finalizarEvaluacion()" style="background: var(--danger);">Finalizar Evaluación Completa</button>
+        </section>
+    </div>
+</div>
+
+<div class="sidebar">
+    <h3 style="margin-top:0">Panel de Control</h3>
+    <div id="displayData" class="data-display"><span style="color: #999;">Esperando registro del alumno...</span></div>
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+    <div class="data-display">
+        <b>Materia:</b> Informática<br>
+        <b>Profesor:</b> Arq. Mosquera<br>
+        <b>IP Local Detectada:</b> <span id="displayIP">-</span><br>
+        <b>IP Servidor Samba:</b> <span id="displayIPSrv">-</span><br>
+        <b>Estado de Red:</b> <span id="statusRed" style="color: var(--danger); font-weight:bold;">Pendiente</span>
+    </div>
+    
+    <div class="notepad-container">
+        <div class="notepad-title">✍️ Notas del Estudiante</div>
+        <textarea class="notepad-textarea" id="notasEstudiante" placeholder="Usa este espacio para apuntar tus IPs, comandos importantes o hallazgos durante el laboratorio..."></textarea>
+    </div>
+    
+    <div id="mensajeFinal">
+        🎉 ¡EVALUACIÓN CONCLUIDA! 🎉<br>
+        Has guardado y enviado el laboratorio con éxito.
+    </div>
+
+    <div class="points-box"><span id="puntosTotales">0</span> / 40 pts</div>
+
+    <div id="teoriaFinal" class="teoria-container">
+        <h3>Conceptos Clave de la Práctica</h3>
+        <div class="teoria-section">
+            <b>Samba & SMB</b>
+            Protocolo de red que permite interactuar con sistemas de archivos y carpetas compartidas de Windows desde Linux en total transparencia.
+        </div>
+        <div class="teoria-section">
+            <b>Métrica TTL (Time to Live)</b>
+            Indica los saltos máximos de red. Por defecto, respuestas con TTL cercano a 64 provienen de sistemas basados en Linux, y un TTL de 128 proviene de plataformas nativas Windows.
+        </div>
+    </div>
+</div>
+
+<script>
+    // Variable global centralizada para el manejo estricto de puntos
+    let score = 0;
+    const PENALIZACION = 2; // Puntos restados por error en cualquier sección
+
+    // PROTECCIÓN JS: Bloquea el menú del botón derecho del ratón
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    function actualizarMarcador() {
+        document.getElementById('puntosTotales').innerText = score;
+    }
+
+    function guardarDatosEstudiante() {
+        const nombre = document.getElementById('nombre').value.trim();
+        const grado = document.getElementById('grado').value.trim();
+        if(nombre && grado) {
+            document.getElementById('displayData').innerHTML = `<b>Estudiante:</b><br>${nombre}<br><br><b>Grado:</b><br>${grado}`;
+            alert("Datos del estudiante guardados localmente.");
+        } else { alert("Por favor, ingrese su nombre y grado para iniciar."); }
+    }
+
+    function validarPaso1() {
+        const ip = document.getElementById('ip_local').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+        const partes = ip.split('.');
+
+        if (!nombre) { alert("¡Primero debe registrar su nombre arriba!"); return; }
+
+        if (ip.startsWith("192.168.10.") && partes.length === 4 && parseInt(partes[3]) >= 1 && parseInt(partes[3]) <= 254) {
+            score += 5; 
+            actualizarMarcador();
+            document.getElementById('displayIP').innerText = ip;
+            document.getElementById('statusRed').innerText = "Identificada 🌐";
+            document.getElementById('statusRed').style.color = "var(--warning)";
+            document.getElementById('parte2').style.display = "block";
+            document.getElementById('parte1').style.opacity = "0.7";
+            document.getElementById('btnValidarP1').disabled = true;
+            document.getElementById('parte2').scrollIntoView({ behavior: 'smooth' });
+        } else { 
+            score = Math.max(0, score - PENALIZACION);
+            actualizarMarcador();
+            alert("❌ Formato de dirección IP inválido para el rango del aula. Se han restado " + PENALIZACION + " puntos."); 
+        }
+    }
+
+    function validarPaso2() {
+        const disp = document.getElementById('dispositivos_activos').value.trim();
+        if (disp && parseInt(disp) > 0) {
+            score += 5;
+            actualizarMarcador();
+            document.getElementById('parte3').style.display = "block";
+            document.getElementById('parte2').style.opacity = "0.7";
+            document.getElementById('btnValidarP2').disabled = true;
+            document.getElementById('parte3').scrollIntoView({ behavior: 'smooth' });
+        } else { 
+            score = Math.max(0, score - PENALIZACION);
+            actualizarMarcador();
+            alert("❌ Por favor ingresa un número coherente de dispositivos activos detectados. Se han restado " + PENALIZACION + " puntos."); 
+        }
+    }
+
+    function validarPaso3() {
+        const ipSrv = document.getElementById('ip_servidor').value.trim();
+
+        // VALIDACIÓN COMPLETAMENTE INQUEBRANTABLE (Solo pasa si es estrictamente la IP .110)
+        if (ipSrv === "192.168.10.110") {
+            score += 5;
+            actualizarMarcador();
+            document.getElementById('displayIPSrv').innerText = ipSrv;
+            
+            const spans = document.getElementsByClassName('ip-dinamica');
+            for(let s of spans) { s.innerText = ipSrv; }
+
+            document.getElementById('parte4').style.display = "block";
+            document.getElementById('parte3').style.opacity = "0.7";
+            document.getElementById('btnValidarP3').disabled = true;
+            alert("✅ Servidor correcto detectado. Paso 4 desbloqueado.");
+            document.getElementById('parte4').scrollIntoView({ behavior: 'smooth' });
+        } else { 
+            score = Math.max(0, score - PENALIZACION);
+            actualizarMarcador();
+            alert("❌ IP incorrecta o inválida. El servidor de la práctica posee una IP fija específica. Se han restado " + PENALIZACION + " puntos."); 
+        }
+    }
+
+    function validarPaso4() {
+        const resp = document.getElementById('p4_respuesta').value;
+        const paq = document.getElementById('p4_paquetes').value.trim();
+        const tiempo = document.getElementById('p4_tiempo').value.trim();
+
+        if (resp && paq && tiempo) {
+            score += 5;
+            actualizarMarcador();
+            document.getElementById('parte5').style.display = "block";
+            document.getElementById('parte4').style.opacity = "0.7";
+            document.getElementById('btnValidarP4').disabled = true;
+            document.getElementById('parte5').scrollIntoView({ behavior: 'smooth' });
+        } else { 
+            score = Math.max(0, score - PENALIZACION);
+            actualizarMarcador();
+            alert("❌ Por favor complete todas las casillas de diagnóstico del comando ping. Se han restado " + PENALIZACION + " puntos."); 
+        }
+    }
+
+    function validarPaso5() {
+        const cred = document.getElementById('p5_credenciales').value;
+        const archivo = document.getElementById('fileInput').files[0];
+
+        if (!cred || !archivo) { 
+            score = Math.max(0, score - PENALIZACION);
+            actualizarMarcador();
+            alert("❌ Responda el campo de credenciales y suba una captura de pantalla obligatoria. Se han restado " + PENALIZACION + " puntos."); 
+            return; 
+        }
+
+        score += 10; // Este paso vale 10 pts
+        actualizarMarcador();
+        document.getElementById('statusRed').innerText = "Verificada e Interconectada ✅";
+        document.getElementById('statusRed').style.color = "var(--success)";
+        document.getElementById('parte6').style.display = "block";
+        document.getElementById('parte5').style.opacity = "0.7";
+        document.getElementById('btnValidarP5').disabled = true;
+        document.getElementById('parte6').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function finalizarEvaluacion() {
+        const q1 = document.getElementById('q1').value.trim();
+        const q2 = document.getElementById('q2').value.trim();
+        const q3 = document.getElementById('q3').value.trim();
+
+        if (q1 === "" || q2 === "" || q3 === "") {
+            score = Math.max(0, score - PENALIZACION);
+            actualizarMarcador();
+            alert("Por favor, responda las preguntas del cuestionario final antes de terminar. Se han restado " + PENALIZACION + " puntos.");
+            return;
+        }
+
+        score += 10; // Cuestionario vale 10 pts
+        actualizarMarcador();
+        document.getElementById('mensajeFinal').style.display = "block";
+        document.getElementById('teoriaFinal').style.display = "block";
+        document.getElementById('parte6').style.opacity = "0.7";
+        alert("¡Evaluación finalizada y guardada exitosamente!");
+        document.getElementById('mensajeFinal').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
