@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero de Asistencia Seguro 2026 - Aula Táctil PRO</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+            --danger: #e74c3c;
+            --justified: #17a2b8;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --color-admin: #6f42c1;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 0;
+        }
+
+        body.admin-mode .admin-only {
+            display: inline-flex !important;
+        }
+        body.admin-mode .admin-block-only {
+            display: block !important;
+        }
+
+        .navbar {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .badge-mode {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        .badge-mode.badge-alumno { background-color: #e67e22; color: white; }
+        body.admin-mode .badge-mode.badge-alumno { display: none !important; }
+        .badge-mode.badge-profesor { background-color: var(--success); color: white; display: none; }
+        body.admin-mode .badge-mode.badge-profesor { display: inline-block !important; }
+
+        .panel-seguridad {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+        }
+        body.admin-mode .panel-seguridad { display: flex !important; }
+
+        .dashboard {
+            max-width: 1300px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .control-panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        select, input[type="date"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            color: var(--primary);
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-accent { background-color: var(--accent); color: white; }
+        .btn-danger { background-color: #ef4444; color: white; }
+
+        .btn-toggle-role {
+            background-color: #34495e;
+            color: white;
+            border: 1px solid #5d6d7e;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .grid-estudiantes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .card-estudiante {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            border-left: 6px solid #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .card-row-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .card-estudiante[data-estado="Asistencia"] { border-left-color: var(--success); background-color: #f4fbf7; }
+        .card-estudiante[data-estado="Ausence"] { border-left-color: var(--danger); background-color: #fdf5f5; }
+        .card-estudiante[data-estado="Tardanza"] { border-left-color: var(--warning); background-color: #fefdf3; }
+        .card-estudiante[data-estado="Justificado"] { border-left-color: var(--justified); background-color: #f0fafd; }
+
+        .info-alumno { flex: 1; padding-right: 10px; }
+        .info-alumno .numero { font-size: 12px; color: #7f8c8d; font-weight: bold; }
+        .info-alumno .nombre { font-size: 16px; font-weight: 600; margin: 4px 0; }
+        .info-alumno .estado-actual { font-size: 12px; font-weight: bold; color: #95a5a6; }
+
+        .acciones { display: flex; align-items: center; gap: 8px; }
+        .selector-asistencia { padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-weight: 600; }
+        
+        .select-motivo {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 13px;
+            background-color: #edf7ed;
+            display: none;
+        }
+
+        .btn-desbloqueo-individual {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 1px solid var(--color-admin);
+            color: var(--color-admin);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none; /* Se maneja dinámicamente si está bloqueado */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .btn-registrar {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-registrar:disabled { background-color: #bdc3c7; cursor: not-allowed; }
+
+        .nota-input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        }
+
+        .stat-item { flex: 1; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; }
+        .stat-total { background: #e2e8f0; color: #334155; }
+        .stat-a { background: #dcfce7; color: #166534; }
+        .stat-x { background: #fee2e2; color: #991b1b; }
+        .stat-t { background: #fef9c3; color: #854d0e; }
+        .stat-j { background: #e0f2fe; color: #0369a1; }
+
+        .maintenance-panel {
+            margin-top: 30px;
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        .admin-only { display: none !important; }
+
+        @media print {
+            .control-panel, .acciones, .navbar, .maintenance-panel, .btn-desbloqueo-individual { display: none !important; }
+            body { background: white; }
+            .card-estudiante { border: 1px solid #ccc; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <h1>Tablero Táctil de Asistencia Seguro</h1>
+        <span id="badge-alumno" class="badge-mode badge-alumno">Modo Alumno</span>
+        <span id="badge-profesor" class="badge-mode badge-profesor">Modo Profesor</span>
+        <div id="panelSeguridad" class="panel-seguridad">
+            ⏱️ Auto-cierre de seguridad en: <strong id="timerSeguridad">120s</strong>
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="color: #cbd5e1; font-size: 14px;"><strong>Docente:</strong> Arquimedes Mosquera</div>
+        <button class="btn-toggle-role" id="btn-cambiar-modo" onclick="alternarModoInterfaz()">🔒 Entrar Modo Profesor</button>
+    </div>
+</div>
+
+<div class="dashboard">
+    <div class="control-panel">
+        <div class="form-group">
+            <label for="grupo-select">Seleccionar Aula de Clases:</label>
+            <select id="grupo-select" onchange="cargarTableroPorFechaYGrupo()">
+                </select>
+        </div>
+
+        <div class="form-group admin-only" id="fecha-container">
+            <label for="fecha">Fecha Escolar:</label>
+            <input type="date" id="fecha" onchange="actualizarEtiquetasGrupos(); cargarTableroPorFechaYGrupo();">
+        </div>
+
+        <div class="form-group">
+            <label for="buscador">Busca tu Nombre para Registrar Asistencia:</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="buscador" placeholder="Escriba su apellido o nombre..." oninput="filtrarTarjetas()">
+                <button class="btn btn-accent admin-only" id="btn-all-present" style="padding: 10px 14px; font-size: 13px; white-space: nowrap;" onclick="marcarTodosAsistentes()">✅ Todo Presente</button>
+            </div>
+        </div>
+
+        <div class="admin-only" id="btn-export-container">
+            <button class="btn btn-success" onclick="exportarExcel()">
+                📊 Descargar Reporte Diario (.xlsx)
+            </button>
+        </div>
+    </div>
+
+    <div class="stats-bar" id="stats-container">
+        <div class="stat-item stat-total" id="stat-total">Total: 0</div>
+        <div class="stat-item stat-a" id="stat-a">Asistencias (A): 0</div>
+        <div class="stat-item stat-x" id="stat-x">Ausencias (X): 0</div>
+        <div class="stat-item stat-t" id="stat-t">Tardanzas (T): 0</div>
+        <div class="stat-item stat-j" id="stat-j">Justificados (J): 0</div>
+    </div>
+
+    <div class="grid-estudiantes" id="tablero-estudiantes"></div>
+
+    <div class="maintenance-panel admin-block-only" id="panel-mantenimiento">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <strong style="color: #64748b; font-size: 14px;">⚙️ PANEL DE CONTROL DE CONFIGURACIÓN GLOBAL</strong><br>
+                <small style="color: #94a3b8;">Administra la base de datos de estudiantes y las copias de seguridad.</small>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-accent" style="font-size: 13px; padding: 8px 16px;" onclick="descargarRespaldoCompleto()">💾 Respaldar Datos e Historial</button>
+                <button class="btn btn-danger" style="font-size: 13px; padding: 8px 16px;" onclick="limpiarSoloHistorialEImportaciones()">🗑️ Restablecer Filtros e Historial</button>
+            </div>
+        </div>
+
+        <div style="background: #ffffff; border: 2px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-top: 15px;">
+            <strong style="font-size: 14px; color: var(--primary);">📥 IMPORTAR ADICIONAL DE ESTUDIANTES PARA PRÓXIMOS AÑOS (Excel o CSV)</strong>
+            <p style="font-size: 12px; margin: 5px 0 10px 0; color: #64748b;">Las nuevas secciones se anexarán de forma limpia sin sobreescribir el ciclo 2026 nativo.</p>
+            <input type="file" id="importador-archivos" accept=".xlsx, .xls, .csv" onchange="procesarArchivoEstudiantes(event)">
+        </div>
+    </div>
+</div>
+
+<script>
+    const MAESTRO_PIN = "1234"; 
+    let modoActual = "ALUMNO";
+    let logoutTimer = null;
+    const TIEMPO_MAX_INACTIVIDAD = 120; 
+    let segundosRestantes = TIEMPO_MAX_INACTIVIDAD;
+
+    // BASE DE DATOS COMPLETA E INTEGRAL DEL 2026 PRESERVADA
+    const DB_NATIVA_2026 = {
+        "8A": [
+            "Achurra Gomez, Gabriel", "Araúz Zapata, Ana Graciela", "Arosemena Simons, Julieta Isabel", 
+            "Barrios Gomez, Gabriel Alejandro", "Benavides Chiari, Sofia Cecilia", "Calzada De Oliveira, Gabriela", 
+            "Cattan Figueroa, Daniella Fernanda", "Cedeño Katsambanis, Diego Francisco", "Chong Loo, Lei Marie", 
+            "Espinosa Domínguez, Sergio Iván", "Esteriano Benitez, Nicole Victoria", "Fernandez Valdes, Marines", 
+            "Gomez Clement, Ana Victoria", "González Miró, Juliette del Carmen", "Jimenez Gonzalez, Matías", 
+            "Jodar Rios, Santiago", "Lopez Gonzalez, Agustin Omar", "Lopez Robles, Julio Jesús", 
+            "Melo Ramirez, Alicia Daniela", "Pessina Moreno, María Victoria", "Prado Correa, Alejandra Nicole", 
+            "Quirós Yap, Isabella Marie"
+        ],
+        "8B": [
+            "Arosemena Simons, Adriana Sofia", "Baruco Duarte, Lucas Eduardo", "Bazan Rodriguez, Enzo Alessandro", 
+            "Blanco Ureña, Maya Isabel", "Brin Arrue, Victoria", "Brostella Gonzalez, Gabriela Maria", 
+            "Carrizo Valderrama, Maria Luccia", "Chong Arosemena, Christopher Ryan", "Durufour Barsallo, Daniela Isabel", 
+            "Escobar Castro, Franco Antonio", "Espinosa Vega, Sophia Paola", "Gamboa Moreno, Isabella Sofía", 
+            "Gonzalez Berroa, Marieliz Isabella", "Gonzalez Martinez, Gabriela Denise", "Grimaldo Fragueiro, Camilo", 
+            "Guardia Liu, Daniella", "Jimenez Gonzalez, Alejandro", "Lam Pimentel, Francisco Javier", 
+            "Leiva Stanziola, Ambar Andrés", "Lopez Gonzalez, Ximena", "Mon Abood, Nicolás Alberto"
+        ],
+        "9A": [
+            "Aued Quiros, Nathalia Isabel", "Bayless Morales, Isabella Carolina", "Benitez ., Kamila Victoria", 
+            "Blanco Gutierrez, Eva Sofia", "Combe Ortega, Maria Gabriela", "Cruz Chandeck, Juan David", 
+            "Fernandez Boloboski, María Ángel", "Garcia Wilson, Ximena Alessandra", "Gianopulos Henderson, Anastasia Mercedes", 
+            "Gisbert Keene, Carla Elizabeth", "Jentz Bonilla, Lucas Daniel", "Jimenez Zambrano, Samuel Alejandro", 
+            "Kelly Castagnet, Sophia Marie", "Khelani Khelani, Daksh Dev", "Maduro Loaiza, Diego Alejandro", 
+            "Padilla Kinglow, Kenzo André", "Paredes Marcos, Juan José", "Paredes Mendoza, Gema Valentina", 
+            "Paz Rodriguez Gonzalez, Liz Gabriela", "Perez Hawkes, Antonio", "Rodriguez Bermudez, Alejandra María", 
+            "Sanchez Figueras, Gabriel", "Sierra Cedeño, Gian Alberto", "Sollami Giraldez, Emma Raquel", 
+            "Sossa Porcell, José Manuel", "Tello Diaz, María Eugenia"
+        ],
+        "9B": [
+            "Barranco Calvo, Liz Marie", "Chen Pinilla, María Fernanda", "Chong Loo, Jiang David", 
+            "Deir Barsallo, Daniel Eduardo", "Fong Melais, Carlosantiago", "Garrido Abrego, Ian André", 
+            "Gonzalez Gonzalez, Sofía Del Mar", "Guillen Davila, Ana Victoria", "Ibarra Cedeño, Juan David", 
+            "Leiva Stanziola, Lucía De Los Angeles", "Maduro Loaiza, Isabella Sofía", "Moscoso Chen, Ana Matilde", 
+            "Olcesi Bosano, Mia Isabella", "Palomo Castrellon, Camila Renée", "Paredes Caballero, Mariana Lucia", 
+            "Paredes Mendoza, Angel Francisco", "Perez Hawkes, Ximena Sofía", "Pimentel McLeod, Daniela Sofia", 
+            "Pineda De Leon, Carlos Fabián", "Puyol Sosa, Alejandro"
+        ],
+        "10A": [
+            "Aguilar Solis, María Fernanda", "Arosemena Fabrega, José Agustín", "Briceño Hernandez, Diego Enrique", 
+            "Champsaur Gamboa, Emilié", "De La Cruz Calderon, Sara Michelle", "Diaz Martinez, Alyssa Isabel", 
+            "Estrella Chu, Noah Agustin", "Fares Fares, Mohamed", "Franco Marcucci, Alejandra Marie", 
+            "Gomez Clement, Juan David", "González Arosemena, Natalia Sofía"
+        ],
+        "10B": [
+            "Achurra Gomez, Isabella", "Arauz Esturain, Ian Lucas", "Carrizo Valderrama, Juan Felipe", 
+            "Castillo Guardia, Sofía Victoria", "Castillo Rodriguez, Antonella Carla", "Chanis Puyol, Lucia Alexandra", 
+            "De Frias Carrillo, Emma Michelle", "Dunkley Rios, Isabella", "Escala Bravo, Isabella Marie", 
+            "Escalona Vallecillo, Andrés Manuel", "Fanilla Navarro, Fabiola Beatriz", "Godoy Prieto, Luna Valentina", 
+            "Jentz Bonilla, Miguel Andres", "Mejia Uno, Blanca Sofía", "Padilla Vergara, María Lourdes", 
+            "Paredes Brewer, Abigail Marianne", "Robinson Garcia, Amely Marie", "Roner Branca, Isabella Marie", 
+            "Vieto Martinez, Ian Andre", "Zarate Solis, Vanessa Isabel"
+        ],
+        "11A": [
+            "Androutsou , Georgia", "Arauz Alvarez, Vicente Antonio", "Aued Quiros, Maria Fernanda", 
+            "Cerrud Correa, Sebastian", "Chong Loo, Liang Marie", "Estrella Chu, Alexia Natalia", 
+            "Fagette Segundo, Anais Marie", "Fletcher Miranda, Sofia Victoria", "Gamboa Moreno, Giancarlo", 
+            "Gomez Kiamco, Patrick Fernando", "Gonzalez Gonzalez, Lia Rebeka", "Moscatelli Fritzsche, Isabella Anjali", 
+            "Osorio Vasquez, Lily Marie", "Palavicini Nativi, Fabiana Isabella", "Perez Hawkes, Ana Victoria", 
+            "Quintero Xatruch, Leo Alejandro", "Rada Rada, Haidar Ali", "Reyes Solis, Juan Pablo", 
+            "Rios Comeron, Julián", "Rodriguez De Leon, Analia Yissel"
+        ],
+        "11B": [
+            "Barranco Calvo, Ian Carlo", "Boutet Gonzalez, Jean Philippe", "Lopez Dotta, Mar", 
+            "Parajó Villalaz, Manuel Ricardo", "Perez Lim, Ana Cristina", "Russo Caponi, Leone", 
+            "Sanchez Constantakis, Nicolás", "Sanchez Diaz, Alejandro Francisco", "Selles Sucre, Astrid Sofia", 
+            "Tejera Gonzalez, Maria Del Carmen"
+        ],
+        "12A": [
+            "Adsett Paredes, Adriana Isabel", "Aguilar Ross, Adriana Maria", "Arauz Alvarez, Roberto Agustin", 
+            "Arosemena Simons, Lucia Victoria", "Cardenas Quiodettis, Christian David", "Cerrud Frogge, Bruno Antonio", 
+            "Costella Moreno, Alessandro", "De La Cruz Calderon, Alejandro Andre", "De Leon Bandiera, Marco Antonio", 
+            "Esteriano Benitez, Chelsea Alyssa", "Guillen Davila, Ana Sofia", "Huerta Andrade, Liz Marie", 
+            "Ibarra Cedeño, Gabriela Sofia", "Jimenez Zambrano, Andres Ramon", "Kosmas Kalormakis, Aristides Juan", 
+            "Latorraca Chea, Marco Emilio", "Lee Liao, Jose David", "Llaurado Barrera, Nicole Marie", 
+            "Montilla Singh, Xavier Francisco", "Muñoz Tapia, Carlos Alberto", "Oviedo Pravia, Ana Laura"
+        ],
+        "12B": [
+            "Alvarado Lee, Felipe Eduardo", "Andrade Garcia, Valeria Isabelle", "Caskey Jaen, Gabriela Stephanie", 
+            "Cerabona Lasso De La Vega, Francesca", "Eleta Chong, Gabriela Lucia", "Kiamco Valencia, Adriana Victoria", 
+            "Remon Sandoval, Sofia Isabel", "Reyna Iovane, Raffaela Antonella", "Rodriguez De Leon, Jose Angel"
+        ]
+    };
+
+    let baseDatosAlumnos = {};
+    let asistenciaDelDia = {};
+
+    function inicializarBaseDatos() {
+        baseDatosAlumnos = JSON.parse(JSON.stringify(DB_NATIVA_2026));
+        const importadaJSON = localStorage.getItem("DB_IMPORTADA_ANUAL");
+        if (importadaJSON) {
+            const dbImportada = JSON.parse(importadaJSON);
+            Object.keys(dbImportada).forEach(grupo => {
+                baseDatosAlumnos[grupo] = dbImportada[grupo];
+            });
+        }
+        construirSelectorGrupos();
+    }
+
+    function construirSelectorGrupos() {
+        const select = document.getElementById('grupo-select');
+        const prevVal = select.value;
+        select.innerHTML = "";
+        const grupos = Object.keys(baseDatosAlumnos).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+        
+        grupos.forEach((g, i) => {
+            const opt = document.createElement('option');
+            opt.value = g;
+            opt.text = DB_NATIVA_2026[g] ? `${g} Sección (Ciclo 2026 Fijo)` : `${g} Sección (Importado Externo)`;
+            if(prevVal === g || (!prevVal && i === 0)) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+    inicializarBaseDatos();
+    cargarTableroPorFechaYGrupo();
+
+    function obtenerStorageKey(grupo, fecha) {
+        return `Asistencia_${grupo}_${fecha}`;
+    }
+
+    function cargarTableroPorFechaYGrupo() {
+        const grupo = document.getElementById('grupo-select').value;
+        const fecha = document.getElementById('fecha').value;
+        const tablero = document.getElementById('tablero-estudiantes');
+        
+        tablero.innerHTML = "";
+        asistenciaDelDia = {};
+
+        if (!grupo || !fecha || !baseDatosAlumnos[grupo]) return;
+
+        const estudiantes = baseDatosAlumnos[grupo];
+        const storageKey = obtenerStorageKey(grupo, fecha);
+        const datosGuardados = localStorage.getItem(storageKey) ? JSON.parse(localStorage.getItem(storageKey)) : null;
+
+        const hoy = new Date().toISOString().split('T')[0];
+        const esFechaDiferente = (fecha !== hoy);
+
+        estudiantes.forEach((estudiante, index) => {
+            const idEst = index + 1;
+            let estadoInit = "Pendiente";
+            let motivoInit = "";
+            let notaInit = "";
+            let bloqueadoInit = false;
+
+            if (datosGuardados && datosGuardados[idEst]) {
+                estadoInit = datosGuardados[idEst].estado || "Pendiente";
+                motivoInit = datosGuardados[idEst].motivo || "";
+                notaInit = datosGuardados[idEst].nota || "";
+                bloqueadoInit = datosGuardados[idEst].bloqueado || false;
+            }
+
+            asistenciaDelDia[idEst] = { nombre: estudiante, estado: estadoInit, motivo: motivoInit, nota: notaInit, bloqueado: bloqueadoInit };
+
+            const card = document.createElement('div');
+            card.className = "card-estudiante";
+            card.id = `card-${idEst}`;
+            card.setAttribute("data-estado", estadoInit);
+
+            const deshabilitarControl = (modoActual === "ALUMNO") && (bloqueadoInit || esFechaDiferente);
+
+            card.innerHTML = `
+                <button class="btn-desbloqueo-individual" id="btn-desbloquear-${idEst}" onclick="solicitarDesbloqueoTarjeta(${idEst})" style="display: ${bloqueadoInit || modoActual === 'PROFESOR' ? 'block' : 'none'};">🔓 Desbloquear</button>
+                <div class="card-row-top">
+                    <div class="info-alumno">
+                        <span class="numero">ESTUDIANTE N° ${idEst}</span>
+                        <div class="nombre">${estudiante}</div>
+                        <div class="estado-actual" id="status-text-${idEst}">
+                            ${estadoInit === "Pendiente" ? "Sin registrar" : "Registrado: " + estadoInit}
+                        </div>
+                    </div>
+                    <div class="acciones">
+                        <select class="selector-asistencia" id="select-${idEst}" ${deshabilitarControl ? "disabled" : ""} onchange="evaluarDespliegueMotivo(${idEst})">
+                            <option value="Pendiente" ${estadoInit === 'Pendiente'?'selected':''}>-- Selección --</option>
+                            <option value="Asistencia" ${estadoInit === 'Asistencia'?'selected':''}>✅ Asistencia</option>
+                            <option value="Ausence" ${estadoInit === 'Ausence'?'selected':''}>❌ Ausencia</option>
+                            <option value="Tardanza" ${estadoInit === 'Tardanza'?'selected':''}>⚠️ Tardanza</option>
+                            <option value="Justificado" ${estadoInit === 'Justificado'?'selected':''}>🔷 Justificado</option>
+                        </select>
+                        <button class="btn-registrar" id="btn-reg-${idEst}" onclick="registrarEstudiante(${idEst})" ${deshabilitarControl ? "disabled" : ""}>
+                            ${bloqueadoInit && modoActual === "ALUMNO" ? "Bloqueado" : "Registrar"}
+                        </button>
+                    </div>
+                </div>
+                <select class="select-motivo" id="motivo-${idEst}" ${deshabilitarControl ? "disabled" : ""}>
+                    <option value="">-- Especificar Motivo de Ausencia --</option>
+                    <option value="Médica" ${motivoInit === 'Médica'?'selected':''}>🩺 Evidencia / Cita Médica</option>
+                    <option value="Institucional" ${motivoInit === 'Institucional'?'selected':''}>🏫 Comisión Institucional</option>
+                    <option value="Calamidad" ${motivoInit === 'Calamidad'?'selected':''}>🏠 Calamidad Doméstica</option>
+                    <option value="Injustificada" ${motivoInit === 'Injustificada'?'selected':''}>⚠️ Sin Justificar</option>
+                </select>
+                <input type="text" class="nota-input" id="nota-${idEst}" placeholder="Observaciones del docente..." value="${notaInit}" ${modoActual === "ALUMNO" ? "disabled" : ""} onchange="guardarNota(${idEst})">
+            `;
+            tablero.appendChild(card);
+            evaluarDespliegueMotivo(idEst);
+        });
+
+        actualizarMetricas();
+    }
+
+    function evaluarDespliegueMotivo(id) {
+        const selectEst = document.getElementById(`select-${id}`);
+        const selectMot = document.getElementById(`motivo-${id}`);
+        if(selectEst.value === "Ausence" || selectEst.value === "Justificado") {
+            selectMot.style.display = "block";
+        } else {
+            selectMot.style.display = "none";
+            selectMot.value = "";
+        }
+    }
+
+    function registrarEstudiante(id) {
+        const grupo = document.getElementById('grupo-select').value;
+        const fecha = document.getElementById('fecha').value;
+        const selectEst = document.getElementById(`select-${id}`);
+        const selectMot = document.getElementById(`motivo-${id}`);
+        const card = document.getElementById(`card-${id}`);
+
+        if (selectEst.value === "Pendiente") {
+            alert("Seleccione un estado válido antes de registrar.");
+            return;
+        }
+        if ((selectEst.value === "Ausence" || selectEst.value === "Justificado") && !selectMot.value) {
+            alert("Es obligatorio definir el motivo para Ausencias o Justificados.");
+            return;
+        }
+
+        asistenciaDelDia[id].estado = selectEst.value;
+        asistenciaDelDia[id].motivo = selectMot.value;
+        asistenciaDelDia[id].bloqueado = true;
+
+        card.setAttribute("data-estado", selectEst.value);
+        document.getElementById(`status-text-${id}`).innerText = "Registrado: " + selectEst.value;
+
+        localStorage.setItem(obtenerStorageKey(grupo, fecha), JSON.stringify(asistenciaDelDia));
+        actualizarMetricas();
+        actualizarEtiquetasGrupos();
+
+        // Al bloquearse en modo alumno, mostramos inmediatamente el botón de desbloqueo como acceso directo
+        const btnDesbloqueo = document.getElementById(`btn-desbloquear-${id}`);
+        if(btnDesbloqueo) btnDesbloqueo.style.display = "block";
+
+        if (modoActual === "ALUMNO") {
+            selectEst.disabled = true;
+            selectMot.disabled = true;
+            const btn = document.getElementById(`btn-reg-${id}`);
+            btn.disabled = true;
+            btn.innerText = "Bloqueado";
+        }
+    }
+
+    // ACCESO DIRECTO INTELIGENTE: Pide PIN si está en Modo Alumno, desbloquea directo si ya es Modo Profesor
+    function solicitarDesbloqueoTarjeta(id) {
+        if (modoActual === "ALUMNO") {
+            const pin = prompt("🔐 CONTROL DE DOCENTE:\nEl estudiante cometió un error. Ingrese el PIN de Profesor para desbloquear esta tarjeta:");
+            if (pin === MAESTRO_PIN) {
+                desbloquearEstudiante(id);
+                alert("Tarjeta desbloqueada con éxito.");
+            } else {
+                alert("PIN incorrecto. La tarjeta sigue bloqueada.");
+            }
+        } else {
+            // Si ya está en modo profesor, desbloquea de inmediato sin preguntar
+            desbloquearEstudiante(id);
+        }
+    }
+
+    function desbloquearEstudiante(id) {
+        const grupo = document.getElementById('grupo-select').value;
+        const fecha = document.getElementById('fecha').value;
+        
+        asistenciaDelDia[id].estado = "Pendiente";
+        asistenciaDelDia[id].motivo = "";
+        asistenciaDelDia[id].bloqueado = false;
+
+        localStorage.setItem(obtenerStorageKey(grupo, fecha), JSON.stringify(asistenciaDelDia));
+        cargarTableroPorFechaYGrupo();
+        resetearTemporizadorSeguridad();
+    }
+
+    function guardarNota(id) {
+        const grupo = document.getElementById('grupo-select').value;
+        const fecha = document.getElementById('fecha').value;
+        asistenciaDelDia[id].nota = document.getElementById(`nota-${id}`).value;
+        localStorage.setItem(obtenerStorageKey(grupo, fecha), JSON.stringify(asistenciaDelDia));
+        resetearTemporizadorSeguridad();
+    }
+
+    function alternarModoInterfaz() {
+        if (!document.body.classList.contains("admin-mode")) {
+            const pin = prompt("Ingrese el PIN de acceso del Profesor:");
+            if (pin === MAESTRO_PIN) {
+                document.body.classList.add("admin-mode");
+                modoActual = "PROFESOR";
+                document.getElementById("btn-cambiar-modo").innerText = "🔒 Salir Modo Profesor";
+                iniciarTemporizadorSeguridad();
+                cargarTableroPorFechaYGrupo();
+            } else {
+                alert("PIN de acceso incorrecto.");
+            }
+        } else {
+            cerrarSesionProfesor();
+        }
+    }
+
+    function iniciarTemporizadorSeguridad() {
+        segundosRestantes = TIEMPO_MAX_INACTIVIDAD;
+        clearInterval(logoutTimer);
+        logoutTimer = setInterval(() => {
+            segundosRestantes--;
+            document.getElementById("timerSeguridad").textContent = `${segundosRestantes}s`;
+            if (segundosRestantes <= 0) {
+                cerrarSesionProfesor();
+                alert("Sesión de Profesor cerrada automáticamente por inactividad.");
+            }
+        }, 1000);
+    }
+
+    function resetearTemporizadorSeguridad() {
+        if (modoActual === "PROFESOR") {
+            segundosRestantes = TIEMPO_MAX_INACTIVIDAD;
+            document.getElementById("timerSeguridad").textContent = `${segundosRestantes}s`;
+        }
+    }
+
+    function cerrarSesionProfesor() {
+        clearInterval(logoutTimer);
+        document.body.classList.remove("admin-mode");
+        modoActual = "ALUMNO";
+        document.getElementById("btn-cambiar-modo").innerText = "🔒 Entrar Modo Profesor";
+        cargarTableroPorFechaYGrupo();
+    }
+
+    window.addEventListener("click", resetearTemporizadorSeguridad);
+    window.addEventListener("keypress", resetearTemporizadorSeguridad);
+
+    function marcarTodosAsistentes() {
+        if (modoActual === "ALUMNO") return;
+        const grupo = document.getElementById('grupo-select').value;
+        const fecha = document.getElementById('fecha').value;
+        if (!confirm("¿Marcar a todos como Presentes?")) return;
+
+        Object.keys(asistenciaDelDia).forEach(id => {
+            asistenciaDelDia[id].estado = "Asistencia";
+            asistenciaDelDia[id].motivo = "";
+            asistenciaDelDia[id].bloqueado = true;
+        });
+
+        localStorage.setItem(obtenerStorageKey(grupo, fecha), JSON.stringify(asistenciaDelDia));
+        cargarTableroPorFechaYGrupo();
+    }
+
+    function actualizarMetricas() {
+        let total = 0, a = 0, x = 0, t = 0, j = 0;
+        Object.keys(asistenciaDelDia).forEach(id => {
+            total++;
+            const est = asistenciaDelDia[id].estado;
+            if (est === "Asistencia") a++;
+            if (est === "Ausence") x++;
+            if (est === "Tardanza") t++;
+            if (est === "Justificado") j++;
+        });
+        document.getElementById('stat-total').innerText = `Total Alumnos: ${total}`;
+        document.getElementById('stat-a').innerText = `Asistencias (A): ${a}`;
+        document.getElementById('stat-x').innerText = `Ausencias (X): ${x}`;
+        document.getElementById('stat-t').innerText = `Tardanzas (T): ${t}`;
+        document.getElementById('stat-j').innerText = `Justificados (J): ${j}`;
+    }
+
+    function filtrarTarjetas() {
+        const query = document.getElementById('buscador').value.toLowerCase();
+        const cards = document.getElementsByClassName('card-estudiante');
+        Array.from(cards).forEach(card => {
+            const nombre = card.querySelector('.nombre').innerText.toLowerCase();
+            card.style.display = nombre.includes(query) ? "flex" : "none";
+        });
+    }
+
+    function actualizarEtiquetasGrupos() {
+        const fecha = document.getElementById('fecha').value;
+        const select = document.getElementById('grupo-select');
+        if (!fecha || !select) return;
+        Array.from(select.options).forEach(opt => {
+            const gId = opt.value;
+            let base = opt.text.replace(" 📝 (Con Registros)", "");
+            if(localStorage.getItem(obtenerStorageKey(gId, fecha))) opt.text = base + " 📝 (Con Registros)";
+            else opt.text = base;
+        });
+    }
+
+    function procesarArchivoEstudiantes(e) {
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+        const lector = new FileReader();
+        lector.onload = function(evt) {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const libro = XLSX.read(data, { type: 'array' });
+                const hoja = libro.Sheets[libro.SheetNames[0]];
+                const filas = XLSX.utils.sheet_to_json(hoja);
+
+                let colGrupo = "", colNombre = "";
+                if(filas.length > 0) {
+                    Object.keys(filas[0]).forEach(c => {
+                        const norm = c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        if (norm.includes("grupo") || norm.includes("seccion") || norm.includes("aula")) colGrupo = c;
+                        if (norm.includes("nombre") || norm.includes("estudiante")) colNombre = c;
+                    });
+                }
+
+                if(!colGrupo || !colNombre) { alert("Columnas requeridas: 'Grupo' y 'Nombre'."); return; }
+
+                let dbImportada = JSON.parse(localStorage.getItem("DB_IMPORTADA_ANUAL") || "{}");
+                filas.forEach(f => {
+                    let g = String(f[colGrupo]).trim();
+                    let n = String(f[colNombre]).trim();
+                    if(g && n && !DB_NATIVA_2026[g]) { 
+                        if(!dbImportada[g]) dbImportada[g] = [];
+                        if(!dbImportada[g].includes(n)) dbImportada[g].push(n);
+                    }
+                });
+
+                localStorage.setItem("DB_IMPORTADA_ANUAL", JSON.stringify(dbImportada));
+                inicializarBaseDatos();
+                alert("Grupos externos anexados correctamente sin alterar el ciclo 2026.");
+            } catch(err) { alert("Error al procesar archivo."); }
+        };
+        lector.readAsArrayBuffer(archivo);
+    }
+
+    function exportarExcel() {
+        const grupo = document.getElementById('grupo-select').value;
+        const fecha = document.getElementById('fecha').value;
+        const rows = [
+            ["REPORTE DIARIO DE ASISTENCIA 2026"],
+            ["Grupo:", grupo, "Fecha:", fecha],
+            [],
+            ["N°", "Estudiante", "Estado", "Motivo", "Observación"]
+        ];
+        Object.keys(asistenciaDelDia).forEach(id => {
+            const al = asistenciaDelDia[id];
+            rows.push([id, al.nombre, al.estado, al.motivo, al.nota]);
+        });
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+        XLSX.writeFile(wb, `Asistencia_${grupo}_${fecha}.xlsx`);
+    }
+
+    function descargarRespaldoCompleto() {
+        let bkp = { local: {} };
+        for(let i=0; i<localStorage.length; i++) {
+            const k = localStorage.key(i);
+            bkp.local[k] = localStorage.getItem(k);
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bkp));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "Respaldo_Asistencias.json");
+        dl.click();
+    }
+
+    function limpiarSoloHistorialEImportaciones() {
+        if(!confirm("¿Eliminar historial e importaciones? La DB Fija de 2026 no se borrará.")) return;
+        localStorage.clear();
+        inicializarBaseDatos();
+        cargarTableroPorFechaYGrupo();
+    }
+</script>
+</body>
+</html>
