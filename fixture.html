@@ -1537,10 +1537,21 @@ function actualizarTVEliminatoria(id, nuevoTV) {
     let partidosEnVivo = DATA_MASTER_PARTIDOS.filter(p => p.status === 'En vivo');
     let partidoDestacado = null;
 
-    if(partidosEnVivo.length > 0) partidoDestacado = partidosEnVivo[0];
-    else {
-      let proximos = DATA_MASTER_PARTIDOS.filter(p => p.status === 'Próximo').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-      if(proximos.length > 0) partidoDestacado = proximos[0];
+    if(partidosEnVivo.length > 0) {
+      partidoDestacado = partidosEnVivo[0];
+    } else {
+      const hoyStr = new Date().toDateString();
+      let proximosHoy = DATA_MASTER_PARTIDOS
+        .filter(p => p.status === 'Próximo' && new Date(p.timestamp).toDateString() === hoyStr)
+        .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+      if(proximosHoy.length > 0) {
+        partidoDestacado = proximosHoy[0];
+      } else {
+        let proximos = DATA_MASTER_PARTIDOS
+          .filter(p => p.status === 'Próximo' && new Date(p.timestamp) > new Date())
+          .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+        if(proximos.length > 0) partidoDestacado = proximos[0];
+      }
     }
 
     if(!partidoDestacado) {
