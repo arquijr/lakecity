@@ -886,7 +886,7 @@
 'Chequia': '🇨🇿',
 'Bosnia y Herzegovina': '🇧🇦',
 'Haití': '🇭🇹',
-'Escocia': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+'Escocia': '🏴󠁧󠁢󠁳󠁣󠁴U+E007F',
 'Paraguay': '🇵🇾',
 'Turquía': '🇹🇷',
 'Curazao': '🇨🇼',
@@ -1176,10 +1176,6 @@
 
   // ==================== PIPELINE DATA RECOVERY ====================
   function ejecutarPipelineSincronizacionGlobal() {
-    // Limpiar cache previo para garantizar que los datos base corregidos se apliquen
-    localStorage.removeItem('MUNDIAL_2026_PARTIDOS_V4');
-    localStorage.removeItem('MUNDIAL_2026_ELIMINATORIAS_V4');
-
     if(localStorage.getItem('MUNDIAL_2026_PARTIDOS_V4')) {
       DATA_MASTER_PARTIDOS = JSON.parse(localStorage.getItem('MUNDIAL_2026_PARTIDOS_V4'));
     } else {
@@ -1399,7 +1395,8 @@ function propagarGanadoresEliminatorias() {
 
     DATA_MASTER_PARTIDOS.forEach(p => {
       if(p.grupo === grupoSeleccionado && mapaEstadistico[p.equipo1] && mapaEstadistico[p.equipo2]) {
-        if(p.status === 'Finalizado' || p.status === 'En vivo') {
+        const tieneGoles = (p.goles1 > 0 || p.goles2 > 0);
+        if(p.status === 'Finalizado' || p.status === 'En vivo' || (p.status === 'Próximo' && tieneGoles)) {
           mapaEstadistico[p.equipo1].pj++;
           mapaEstadistico[p.equipo2].pj++;
           mapaEstadistico[p.equipo1].gf += p.goles1;
