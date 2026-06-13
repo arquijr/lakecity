@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER_FORGE // Advanced Network Audit Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #060713;
+            --panel-bg: rgba(13, 16, 39, 0.65);
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --neon-blue: #00f2fe;
+            --neon-purple: #9b51e0;
+            --neon-cyan: #00ffe0;
+            --neon-pink: #ff007f;
+            --neon-green: #39ff14;
+            --text-main: #e2e8f0;
+            --font-cyber: 'Orbitron', sans-serif;
+            --font-hud: 'Rajdhani', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background-color: var(--bg-dark); color: var(--text-main); font-family: var(--font-hud);
+            overflow: hidden; height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(155, 81, 224, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(0, 242, 254, 0.15) 0%, transparent 40%);
+        }
+
+        .cyber-grid {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px; z-index: 0; pointer-events: none;
+        }
+
+        #main-menu {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #0e112a 0%, #04050f 100%); z-index: 100;
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+            transition: opacity 0.8s ease, transform 0.8s ease; padding: 40px 20px; overflow-y: auto;
+        }
+        #main-menu.hidden { opacity: 0; pointer-events: none; transform: scale(1.1); }
+
+        .logo-title {
+            font-family: var(--font-cyber); font-size: 3.5rem; font-weight: 900; letter-spacing: 5px;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple), var(--neon-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.6)); margin-bottom: 5px;
+        }
+
+        .student-reg-box {
+            background: rgba(13, 16, 39, 0.8); border: 1px solid var(--border-glow);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.1); border-radius: 6px;
+            padding: 20px; width: 100%; max-width: 550px; margin-top: 25px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .reg-title {
+            font-family: var(--font-cyber); font-size: 0.85rem; color: var(--neon-cyan);
+            letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid rgba(0,242,254,0.2);
+            padding-bottom: 6px; margin-bottom: 4px;
+        }
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-group label { font-size: 0.8rem; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .cyber-input {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 4px; padding: 10px 12px; color: #fff; font-family: var(--font-hud);
+            font-size: 1rem; outline: none; transition: all 0.3s;
+        }
+        .cyber-input:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0,242,254,0.2); background: rgba(0,242,254,0.05); }
+        .cyber-input::placeholder { color: rgba(255,255,255,0.25); }
+
+        .btn-premium {
+            font-family: var(--font-cyber); font-size: 1.1rem; padding: 12px 35px; color: #fff;
+            background: rgba(0, 242, 254, 0.1); border: 2px solid var(--neon-blue); border-radius: 4px;
+            cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 2px; transition: all 0.3s;
+            width: 100%; max-width: 550px; text-align: center;
+        }
+        .btn-premium:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 35px var(--neon-blue); }
+
+        .instructions-panel {
+            background: rgba(6, 8, 24, 0.85); border-left: 3px solid var(--neon-purple);
+            border-radius: 4px; width: 100%; max-width: 550px; margin-top: 25px;
+            padding: 15px 20px; max-height: 220px; overflow-y: auto; box-sizing: border-box;
+        }
+        .instructions-panel h3 { font-family: var(--font-cyber); font-size: 0.9rem; color: var(--neon-purple); margin-bottom: 10px; letter-spacing: 1px; }
+        .instructions-panel ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .instructions-panel li { font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; display: flex; align-items: flex-start; gap: 8px; }
+        .instructions-panel li span { color: var(--neon-cyan); font-weight: bold; }
+
+        .reg-error-msg { color: var(--neon-pink); font-size: 0.85rem; font-family: var(--font-cyber); text-align: center; display: none; margin-top: 5px; }
+
+        .app-container {
+            position: relative; width: 100vw; height: 100vh;
+            display: grid; grid-template-columns: 320px 1fr 380px; grid-template-rows: 70px 1fr;
+            z-index: 10; padding: 10px; gap: 15px;
+        }
+
+        header {
+            grid-column: 1 / -1; background: var(--panel-bg); backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glow); border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 25px;
+        }
+
+        .hud-logo { font-family: var(--font-cyber); font-size: 1.4rem; color: #fff; text-shadow: 0 0 10px var(--neon-blue); }
+        .hud-stats { display: flex; gap: 15px; }
+        .stat-box { background: rgba(255,255,255,0.03); padding: 6px 15px; border-radius: 4px; border-left: 3px solid var(--neon-cyan); min-width: 110px; }
+        .stat-box.danger-style { border-left-color: var(--neon-pink); }
+        .stat-box.warning-style { border-left-color: #ffaa00; display: none; }
+        .stat-label { font-size: 0.75rem; color: #8a99ad; text-transform: uppercase; }
+        .stat-value { font-family: var(--font-cyber); font-size: 1.1rem; color: #fff; }
+
+        .sidebar-left { grid-column: 1; background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-glow); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; }
+        .panel-title { font-family: var(--font-cyber); padding: 12px; background: rgba(0, 0, 0, 0.3); border-bottom: 1px solid var(--border-glow); font-size: 0.9rem; color: var(--neon-cyan); text-transform: uppercase; }
+        .inventory-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+        .part-card {
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px; padding: 10px; cursor: grab; transition: all 0.25s;
+        }
+        .part-card:hover { border-color: var(--neon-blue); background: rgba(0, 242, 254, 0.05); }
+        .part-card h4 { font-family: var(--font-cyber); font-size: 0.9rem; color: #fff; }
+        .part-tag { display: inline-block; font-size: 0.65rem; padding: 2px 6px; border-radius: 3px; background: var(--neon-purple); color: #fff; font-weight: bold; margin-bottom: 4px; }
+
+        .workspace { grid-column: 2; background: rgba(6, 8, 24, 0.6); border-radius: 8px; display: flex; align-items: center; justify-content: center; position: relative; flex-direction: column; gap: 10px;}
+        
+        .hacker-alert-banner {
+            width: 440px; background: rgba(255, 0, 127, 0.15); border: 1px solid var(--neon-pink);
+            border-radius: 4px; color: var(--neon-pink); font-family: var(--font-cyber);
+            font-size: 0.85rem; text-align: center; padding: 8px 0; letter-spacing: 2px;
+            font-weight: bold; display: none; margin-bottom: 5px;
+            animation: textFlicker 0.4s infinite alternate;
+        }
+        
+        @keyframes textFlicker {
+            0% { opacity: 0.5; box-shadow: 0 0 5px rgba(255, 0, 127, 0.2); }
+            100% { opacity: 1; box-shadow: 0 0 15px rgba(255, 0, 127, 0.5); }
+        }
+
+        .pc-case-bench { width: 440px; height: 440px; background: radial-gradient(circle, #151a3a 0%, #0a0d22 100%); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 12px; position: relative; transition: all 0.3s; }
+        
+        @keyframes alertPulse {
+            0% { border-color: rgba(255, 0, 127, 0.4); box-shadow: 0 0 10px rgba(255, 0, 127, 0.2); }
+            100% { border-color: var(--neon-pink); box-shadow: 0 0 30px var(--neon-pink); }
+        }
+
+        .dropzone {
+            position: absolute; border: 2px dashed rgba(0, 242, 254, 0.3); background: rgba(0, 242, 254, 0.02);
+            border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.75rem; font-family: var(--font-cyber); transition: all 0.3s; padding: 10px;
+        }
+        .dropzone.drag-over { border-color: var(--neon-pink); background: rgba(255, 0, 127, 0.12); }
+        .dropzone.installed { border: 2px solid var(--neon-cyan); background: rgba(0, 255, 224, 0.08); color: #fff; }
+
+        #dz-motherboard { width: 360px; height: 360px; top: 40px; left: 40px; }
+        #dz-p80         { width: 90px; height: 90px; top: 80px; left: 70px; display: none; }
+        #dz-p22         { width: 90px; height: 90px; top: 80px; left: 280px; display: none; }
+        #dz-p443        { width: 90px; height: 90px; top: 260px; left: 70px; display: none; }
+        #dz-p21         { width: 90px; height: 90px; top: 260px; left: 280px; display: none; }
+
+        .sidebar-right { 
+            grid-column: 3; background: var(--panel-bg); backdrop-filter: blur(12px); 
+            border: 1px solid var(--border-glow); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; gap: 5px;
+        }
+        
+        .screen-simulation {
+            flex: 1; background: #020309; padding: 12px; font-family: 'Courier New', monospace;
+            font-size: 0.8rem; color: var(--neon-green); overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+        }
+
+        .hacker-console-panel {
+            height: 180px; background: #0b0105; border-top: 2px solid var(--neon-pink);
+            display: none; flex-direction: column; overflow: hidden;
+        }
+        .hacker-screen {
+            flex: 1; background: #000; padding: 10px; font-family: 'Courier New', monospace;
+            font-size: 0.75rem; color: var(--neon-pink); overflow-y: auto;
+        }
+
+        .input-line { display: flex; align-items: center; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.05); padding: 10px; }
+        .input-line span { color: var(--neon-cyan); font-weight: bold; margin-right: 10px; font-family: monospace; }
+        .console-input {
+            flex: 1; background: transparent; border: none; color: #fff; font-family: monospace;
+            font-size: 0.85rem; outline: none; text-shadow: 0 0 5px var(--neon-cyan);
+        }
+
+        .quiz-options { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; }
+        .opt-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main);
+            padding: 6px; text-align: left; font-family: var(--font-hud); font-size: 0.8rem; cursor: pointer; border-radius: 4px;
+        }
+        .opt-btn:hover { background: rgba(0, 242, 254, 0.15); border-color: var(--neon-blue); }
+
+        .notification-center {
+            position: absolute; bottom: 20px; left: 345px; right: 405px; height: 80px;
+            background: rgba(6, 9, 26, 0.85); border-left: 4px solid var(--neon-blue); border-radius: 4px;
+            padding: 12px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cyber-grid"></div>
+
+    <div id="main-menu">
+        <h1 class="logo-title">NET_FORGE PRO</h1>
+        <div style="color: var(--neon-cyan); letter-spacing: 4px; margin-top: 5px; font-weight: bold;">LABORATORIO DE SEGURIDAD Y AUDITADO AVANZADO</div>
+        
+        <div class="student-reg-box">
+            <div class="reg-title">Credenciales de Acceso Estudiante</div>
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Nombre(s)</label>
+                    <input type="text" id="student-firstname" class="cyber-input" placeholder="Ej. Juan" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label>Apellido(s)</label>
+                    <input type="text" id="student-lastname" class="cyber-input" placeholder="Ej. Pérez" autocomplete="off">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Grado / Aula Académica</label>
+                <input type="text" id="student-grade" class="cyber-input" placeholder="Ej. 12° Grado - Informática B" autocomplete="off">
+            </div>
+            <div class="reg-error-msg" id="reg-error">⚠️ ACCESO DENEGADO: Todos los campos deben ser completados.</div>
+        </div>
+
+        <button class="btn-premium" onclick="validateAndStart()">Iniciar Servidor de Pruebas</button>
+
+        <div class="instructions-panel">
+            <h3> MANUAL DE OPERACIONES DE RED (CTF)</h3>
+            <ul>
+                <li><span>1. RECONOCIMIENTO BASH:</span> Interactúa con la terminal de comandos escribiendo rutinas de diagnóstico de red para mapear hosts activos en el laboratorio local.</li>
+                <li><span>2. DESPLIEGUE FÍSICO:</span> Una vez que compruebes las características del host mediante respuestas lógicas, arrastra el servidor correspondiente al banco modular.</li>
+                <li><span>3. CONTROL DE INFRAESTRUCTURA:</span> Inserta los puertos lógicos y ejecuta sentencias de conexión en crudo (como Telnet) para forzar diagnósticos avanzados.</li>
+                <li><span>4. ALERTA CYBER-ATTACK:</span> Cometer errores teóricos o de arrastrado físico disparará un ataque de inyección automatizado en tiempo real. Tendrás exactamente 3 minutos para neutralizar la amenaza respondiendo bien o el sistema comprometerá tu puntaje acumulado.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="hud-logo">NET_OS // ADVANCED_CTF_MODE</div>
+            <div class="hud-stats">
+                <div class="stat-box"><div class="stat-label">FASE ACTUAL</div><div class="stat-value" id="phase-display">1 / 4</div></div>
+                <div class="stat-box"><div class="stat-label">PUNTOS OBTENIDOS</div><div class="stat-value" id="score-display">40</div></div>
+                <div class="stat-box danger-style"><div class="stat-label">ERRORES COMETIDOS</div><div class="stat-value" id="errors-display">0</div></div>
+                <div class="stat-box warning-style" id="timer-box"><div class="stat-label">⚠️ TIEMPO LÍMITE ALARMA</div><div class="stat-value" id="countdown-display" style="color:var(--neon-pink)">03:00</div></div>
+            </div>
+        </header>
+
+        <aside class="sidebar-left">
+            <div class="panel-title">Módulos de Infraestructura</div>
+            <div class="inventory-list" id="inventory"></div>
+        </aside>
+
+        <main class="workspace">
+            <div class="hacker-alert-banner" id="hacker-alert-banner">🚨 HACKER ROMPIENDO EL SISTEMA</div>
+            
+            <div class="pc-case-bench" id="pc-bench">
+                <div class="dropzone" id="dz-motherboard" data-accept="server">
+                    <span>[FASE 1]<br>Identifica el Servidor Ubuntu Local usando comandos en la terminal de la derecha. Luego arrástralo aquí.</span>
+                </div>
+                <div class="dropzone" id="dz-p80" data-accept="p80"><span>PORT 80</span></div>
+                <div class="dropzone" id="dz-p22" data-accept="p22"><span>PORT 22</span></div>
+                <div class="dropzone" id="dz-p443" data-accept="p443"><span>PORT 443</span></div>
+                <div class="dropzone" id="dz-p21" data-accept="p21"><span>PORT 21</span></div>
+            </div>
+        </main>
+
+        <aside class="sidebar-right">
+            <div class="panel-title">Terminal Interactiva (Bash)</div>
+            <div class="screen-simulation" id="terminal-screen">
+                <div>[SISTEMA INICIALIZADO]</div>
+                <div>Para empezar, necesitamos mapear la red local.</div>
+                <div>Escribe <span style="color:var(--neon-pink)">ipconfig</span> o <span style="color:var(--neon-pink)">arp -a</span> en el prompt para encontrar nuestra IP o los nodos del laboratorio...</div>
+            </div>
+            
+            <div class="hacker-console-panel" id="hacker-panel">
+                <div class="panel-title" style="color:var(--neon-pink); border-bottom-color:rgba(255,0,127,0.3)">🚨 INTRUSIÓN DETECTADA // EXPLOIT BOT RUNNING</div>
+                <div class="hacker-screen" id="hacker-screen"></div>
+            </div>
+
+            <div class="input-line">
+                <span>student@netforge:~$</span>
+                <input type="text" class="console-input" id="console-input" placeholder="Escribe un comando..." autofocus autocomplete="off">
+            </div>
+        </aside>
+
+        <div class="notification-center">
+            <div style="font-size: 1.5rem;">⚡</div>
+            <div>
+                <h5 id="notif-title" style="color:#fff; font-family:var(--font-cyber); font-size:0.85rem;">Fase 1: Reconocimiento</h5>
+                <p id="notif-desc" style="font-size:0.8rem; color:#a0aec0;">Interactúa directamente con la consola de comandos de la derecha para descubrir datos ocultos de la red.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('beforeunload', function (e) {
+            e.preventDefault();
+            e.returnValue = '¿Estás seguro de que deseas salir? El progreso del examen de laboratorio se perderá.';
+        });
+
+        window.addEventListener('keydown', function (e) {
+            if (e.key === 'F5') {
+                e.preventDefault();
+                printToTerminal("<span style='color:var(--neon-pink)'>[SISTEMA] Intento de recarga (F5) denegado. No se permite reiniciar la prueba.</span>");
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                printToTerminal("<span style='color:var(--neon-pink)'>[SISTEMA] Intento de recarga (Ctrl+R) denegado. Continúe resolviendo el incidente.</span>");
+            }
+        });
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if (type==='click') { osc.frequency.setValueAtTime(700, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime+0.05); }
+            else if (type==='success') { osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.setValueAtTime(900, audioCtx.currentTime+0.1); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime+0.25); }
+            else if (type==='error') { osc.frequency.setValueAtTime(100, audioCtx.currentTime); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime+0.4); }
+        }
+    </script>
+
+    <script>
+        const networkComponents = [
+            { id: "srv-ubuntu", type: "server", name: "Ubuntu Main Frame", tag: "IP Oculta", specs: "Arrástrame solo cuando sepas su IP real." },
+            { id: "port-80", type: "p80", name: "Módulo HTTP (80)", tag: "Web", specs: "Puerto expuesto en texto plano." },
+            { id: "port-22", type: "p22", name: "Módulo SSH (22)", tag: "Remote", specs: "Administración segura por consola." },
+            { id: "port-443", type: "p443", name: "Módulo HTTPS (443)", tag: "SSL/TLS", specs: "Puerto web encriptado de producción." },
+            { id: "port-21", type: "p21", name: "Módulo FTP (21)", tag: "Transfer", specs: "Protocolo de transferencia de archivos." }
+        ];
+
+        let gameStatus = {
+            currentPhase: 1, 
+            score: 40, 
+            errors: 0, 
+            targetIP: "192.168.10.50",
+            serverPlaced: false,
+            portsAudited: 0,
+            activePortQuiz: null,
+            timerInterval: null,
+            hackerInterval: null,
+            timeLeft: 180, 
+            isAlarmActive: false,
+            studentData: {
+                firstName: "",
+                lastName: "",
+                grade: "",
+                timestamp: ""
+            }
+        };
+
+        const terminal = document.getElementById("terminal-screen");
+        const consoleInput = document.getElementById("console-input");
+        const hackerScreen = document.getElementById("hacker-screen");
+
+        function validateAndStart() {
+            const fName = document.getElementById("student-firstname").value.trim();
+            const lName = document.getElementById("student-lastname").value.trim();
+            const gradeStr = document.getElementById("student-grade").value.trim();
+            const errorBanner = document.getElementById("reg-error");
+
+            if (!fName || !lName || !gradeStr) {
+                playSound('error');
+                errorBanner.style.display = "block";
+                return;
+            }
+
+            errorBanner.style.display = "none";
+            
+            gameStatus.studentData.firstName = fName;
+            gameStatus.studentData.lastName = lName;
+            gameStatus.studentData.grade = gradeStr;
+            gameStatus.studentData.timestamp = new Date().toLocaleString('es-ES');
+
+            startGame();
+        }
+
+        function startGame() {
+            playSound('success');
+            document.getElementById('main-menu').classList.add('hidden');
+            renderInventory();
+            setupDragAndDrop();
+            
+            printToTerminal(`<br><span style="color:var(--neon-cyan)">[OPERADOR REGISTRADO]: ${gameStatus.studentData.firstName.toUpperCase()} ${gameStatus.studentData.lastName.toUpperCase()}</span>`);
+            printToTerminal(`<span style="color:var(--neon-cyan)">[CURSO / GRADO]: ${gameStatus.studentData.grade}</span>`);
+            printToTerminal(`<span style="color:var(--neon-purple)">[TIMESTAMP ACCESO]: ${gameStatus.studentData.timestamp}</span><br>`);
+        }
+
+        function renderInventory() {
+            const inv = document.getElementById("inventory");
+            inv.innerHTML = "";
+            networkComponents.forEach(comp => {
+                const card = document.createElement("div");
+                card.className = "part-card";
+                card.id = comp.id;
+                card.draggable = true;
+                card.innerHTML = `<span class="part-tag">${comp.tag}</span><h4>${comp.name}</h4><p class="part-specs">${comp.specs}</p>`;
+                card.addEventListener("dragstart", (e) => {
+                    if(gameStatus.currentPhase < 2 && comp.type === "server") {
+                        e.preventDefault();
+                        printToTerminal("<span style='color:var(--neon-pink)'>[ERROR] No puedes montar el servidor sin validar primero su existencia e IP en la consola.</span>");
+                        penalizeMove();
+                        return;
+                    }
+                    e.dataTransfer.setData("text/plain", comp.id);
+                });
+                inv.appendChild(card);
+            });
+        }
+
+        consoleInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                let cmd = this.value.trim().toLowerCase();
+                this.value = "";
+                if (!cmd) return;
+
+                printToTerminal(`<span style="color:#fff">> ${cmd}</span>`);
+                processCommand(cmd);
+            }
+        });
+
+        function printToTerminal(text) {
+            const line = document.createElement("div");
+            line.innerHTML = text;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function updateHUD(title, desc) {
+            document.getElementById("notif-title").innerText = title;
+            document.getElementById("notif-desc").innerText = desc;
+            document.getElementById("score-display").innerText = gameStatus.score;
+            document.getElementById("errors-display").innerText = gameStatus.errors;
+            document.getElementById("phase-display").innerText = `${gameStatus.currentPhase} / 4`;
+        }
+
+        function penalizeMove() {
+            gameStatus.errors += 1;
+            gameStatus.score = Math.max(0, gameStatus.score - 3); 
+            updateHUD("🚨 Error de Arrastre", "Mover de forma errónea las fichas físicas resta 3 puntos.");
+            triggerHackerAttack();
+        }
+
+        function penalizeTheory() {
+            gameStatus.errors += 1;
+            gameStatus.score = Math.max(0, gameStatus.score - 1); 
+            updateHUD("🚨 Error de Respuesta", "Responder de forma errónea en la terminal resta 1 punto.");
+            triggerHackerAttack();
+        }
+
+        function triggerHackerAttack() {
+            if(gameStatus.isAlarmActive || gameStatus.currentPhase === 4) return;
+            
+            playSound('error');
+            gameStatus.isAlarmActive = true;
+            gameStatus.timeLeft = 180; 
+            
+            document.getElementById("pc-bench").style.animation = "alertPulse 0.6s infinite alternate";
+            document.getElementById("hacker-alert-banner").style.display = "block";
+            document.getElementById("hacker-panel").style.display = "flex";
+            document.getElementById("timer-box").style.display = "block";
+
+            gameStatus.timerInterval = setInterval(() => {
+                gameStatus.timeLeft--;
+                let mins = Math.floor(gameStatus.timeLeft / 60);
+                let secs = gameStatus.timeLeft % 60;
+                document.getElementById("countdown-display").innerText = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+                
+                if(gameStatus.timeLeft <= 0) {
+                    clearInterval(gameStatus.timerInterval);
+                    clearInterval(gameStatus.hackerInterval);
+                    triggerTimeoutEvaluation(); 
+                }
+            }, 1000);
+
+            const hackerLogs = [
+                "[*] NMAP scanning target subnets...",
+                "[-] Infiltrating port buffer overflow...",
+                "[*] Bruteforcing login hashes...",
+                "[!] Exploit injected into internal memory addresses",
+                "[-] Downloading institutional files...",
+                "[💥] CLEARING BACKUP REGISTRIES..."
+            ];
+            gameStatus.hackerInterval = setInterval(() => {
+                let log = hackerLogs[Math.floor(Math.random() * hackerLogs.length)];
+                let item = document.createElement("div");
+                item.innerText = `[${new Date().toLocaleTimeString()}] ${log}`;
+                hackerScreen.appendChild(item);
+                hackerScreen.scrollTop = hackerScreen.scrollHeight;
+            }, 1400);
+        }
+
+        function stopHackerAttack() {
+            if(!gameStatus.isAlarmActive) return;
+            gameStatus.isAlarmActive = false;
+            clearInterval(gameStatus.timerInterval);
+            clearInterval(gameStatus.hackerInterval);
+            
+            document.getElementById("pc-bench").style.animation = "none";
+            document.getElementById("hacker-alert-banner").style.display = "none";
+            document.getElementById("hacker-panel").style.display = "none";
+            document.getElementById("timer-box").style.display = "none";
+            hackerScreen.innerHTML = "";
+            printToTerminal("<br><span style='color:var(--neon-green)'>[✓] CORTAFUEGOS RESTABLECIDO: Has mitigado la amenaza inmediata resolviendo la operación.</span>");
+        }
+
+        function triggerTimeoutEvaluation() {
+            gameStatus.currentPhase = 4;
+            document.getElementById("console-input").disabled = true;
+            
+            document.getElementById("pc-bench").style.animation = "none";
+            document.getElementById("hacker-alert-banner").style.display = "none";
+            document.getElementById("hacker-panel").style.display = "none";
+            document.getElementById("timer-box").style.display = "none";
+
+            let notaFinal = 1.0 + (gameStatus.score * 0.1);
+            notaFinal = Math.max(1.1, Math.min(5.0, notaFinal)).toFixed(1);
+            let finalTimestamp = new Date().toLocaleString('es-ES');
+
+            printToTerminal(`
+                <br><span style='color:var(--neon-pink); font-size:1.1rem;'>[💥 TIEMPO AGOTADO - PRÁCTICA FINALIZADA]</span><br>
+                El sistema ha bloqueado el laboratorio de forma segura. Se ha guardado el progreso automáticamente.<br>
+                • Estudiante Evaluado: ${gameStatus.studentData.firstName} ${gameStatus.studentData.lastName}<br>
+                • Puertos Asegurados: ${gameStatus.portsAudited} de 4.<br>
+                • Puntos Consolidados: ${gameStatus.score}<br>
+                • Hora de Cierre: ${finalTimestamp}
+            `);
+
+            document.getElementById("notif-title").innerHTML = "⏳ TIEMPO AGOTADO - EVALUACIÓN FINALIZADA ⏳";
+            document.getElementById("notif-desc").innerHTML = `<span style="color:#ffaa00; font-weight:bold;">CALIFICACIÓN: ${notaFinal} / 5.0</span> | Terminado el: ${finalTimestamp}`;
+            
+            document.getElementById("score-display").innerText = gameStatus.score;
+            document.getElementById("errors-display").innerText = gameStatus.errors;
+        }
+
+        function processCommand(cmd) {
+            if (gameStatus.currentPhase === 1) {
+                if (cmd === "ipconfig" || cmd === "arp -a") {
+                    playSound('success');
+                    printToTerminal(`
+                        <br>Leyendo interfaz Ethernet0...<br>
+                        Dirección IPv4 local: 192.168.10.15<br>
+                        --- Dispositivos detectados en el segmento ---<br>
+                        • IP: <span style="color:var(--neon-cyan)">192.168.10.50</span> [MAC: b8-27-eb-12-34-56] (Nodo Desconocido)<br><br>
+                        💡 <i>Pista de examen: Ejecuta un comando 'ping' directo al nodo remoto para analizar su TTL e identificar su SO.</i>
+                    `);
+                    updateHUD("Fase 1: Nodo Detectado", "Has mapeado la red. Analiza el TTL del host objetivo.");
+                } 
+                else if (cmd.includes("ping 192.168.10.50")) {
+                    playSound('success');
+                    printToTerminal(`
+                        Respuesta desde 192.168.10.50: bytes=32 tiempo=1.2ms <span style="color:var(--neon-blue)">TTL=64</span><br><br>
+                        [ANÁLISIS]: El TTL=64 confirma que el equipo remoto ejecuta un núcleo <span style="color:var(--neon-green)">Linux (Ubuntu)</span>.<br>
+                        🔓 <b>¡FASE 2 DESBLOQUEADA!</b> Ahora puedes arrastrar de forma segura el bastidor del Servidor Ubuntu al centro de la placa.
+                    `);
+                    gameStatus.currentPhase = 2;
+                    updateHUD("Fase 2: Arrastrar Infraestructura", "Arrastra el bloque de servidor desde el inventario hacia el espacio central.");
+                    
+                    const srvCard = document.getElementById("srv-ubuntu");
+                    if (srvCard) {
+                        srvCard.querySelector(".part-tag").innerText = "IP: 192.168.10.50";
+                        srvCard.querySelector(".part-tag").style.background = "var(--neon-green)";
+                    }
+                } else {
+                    printToTerminal("<span style='color:var(--neon-pink)'>Comando desconocido o inválido. Prueba con 'ipconfig' o 'ping 192.168.10.50'.</span>");
+                    penalizeTheory(); 
+                }
+            }
+            else if (gameStatus.currentPhase === 3) {
+                if (cmd.startsWith("telnet ")) {
+                    let parts = cmd.split(" ");
+                    if(parts.length < 3) {
+                        printToTerminal("<span style='color:var(--neon-pink)'>Sintaxis errónea. Uso: telnet [IP] [PUERTO]</span>");
+                        penalizeTheory();
+                        return;
+                    }
+                    let ip = parts[1];
+                    let port = parts[2];
+
+                    if(ip !== gameStatus.targetIP) {
+                        printToTerminal("<span style='color:var(--neon-pink)'>Host inalcanzable. Comprueba la dirección IP de destino.</span>");
+                        penalizeTheory();
+                        return;
+                    }
+
+                    handlePortValidation(port);
+                } else {
+                    printToTerminal("Consola en escucha activa. Ejecuta comandos <span style='color:var(--neon-cyan)'>telnet 192.168.10.50 [puerto]</span> para auditar.");
+                    penalizeTheory();
+                }
+            } else {
+                printToTerminal("Servidor procesando configuraciones. Sigue las instrucciones gráficas.");
+            }
+        }
+
+        function setupDragAndDrop() {
+            const zones = document.querySelectorAll('.dropzone');
+            zones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => e.preventDefault());
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const compId = e.dataTransfer.getData("text/plain");
+                    const comp = networkComponents.find(c => c.id === compId);
+
+                    if(!comp) return;
+
+                    if (zone.dataset.accept === comp.type) {
+                        if(comp.type === "server" && gameStatus.currentPhase === 2) {
+                            playSound('success');
+                            stopHackerAttack(); 
+                            zone.classList.add('installed');
+                            zone.innerHTML = `<div style="color:var(--neon-green); font-weight:bold;">UBUNTU SERVER LAYER ON</div><div style="font-size:0.7rem;">192.168.10.50</div>`;
+                            
+                            document.getElementById("dz-p80").style.display = "flex";
+                            document.getElementById("dz-p22").style.display = "flex";
+                            document.getElementById("dz-p443").style.display = "flex";
+                            document.getElementById("dz-p21").style.display = "flex";
+
+                            gameStatus.serverPlaced = true;
+                            gameStatus.currentPhase = 3;
+                            
+                            printToTerminal("<br><span style='color:var(--neon-cyan)'>[SERVIDOR EN LINEA]</span> Sockets lógicos energizados.<br><b>Fase 3:</b> Arrastra los módulos de puerto a sus ranuras correspondientes.");
+                            updateHUD("Fase 3: Mapeo de Puertos", "Instala los módulos de puerto y audítalos usando 'telnet 192.168.10.50 [puerto]'.");
+                        } 
+                        else if (comp.type !== "server" && gameStatus.serverPlaced) {
+                            playSound('success');
+                            stopHackerAttack(); 
+                            zone.classList.add('installed');
+                            zone.innerHTML = `<div style="color:var(--neon-blue); font-weight:bold; font-size:0.75rem;">${comp.name}</div><div style="font-size:0.6rem; color:var(--neon-pink)">PENDIENTE AUDITORÍA</div>`;
+                            document.getElementById(comp.id).remove();
+                            
+                            printToTerminal(`[+] Módulo físico del puerto asignado. Corre <span style="color:var(--neon-cyan)">telnet 192.168.10.50 ${comp.type.replace('p','')}</span>`);
+                        }
+                    } else {
+                        penalizeMove();
+                    }
+                });
+            });
+        }
+
+        const portQuizzes = {
+            "21": {
+                q: "Auditoría Puerto 21 (FTP): ¿Qué vulnerabilidad crítica presenta este protocolo al autenticar un usuario en la red de la escuela?",
+                opts: [
+                    { t: "Envía los nombres de usuario y contraseñas en texto claro (sin cifrar), vulnerables a sniffing.", c: true },
+                    { t: "Bloquea automáticamente los firewalls de los sistemas clientes Windows.", c: false },
+                    { t: "Requiere obligatoriamente un token hardware físico para permitir el paso de archivos.", c: false }
+                ]
+            },
+            "80": {
+                q: "Auditoría Puerto 80: Al conectarte por HTTP, ¿cuál es el riesgo principal?",
+                opts: [
+                    { t: "Inyección SQL en la tarjeta de red física.", c: false },
+                    { t: "Interceptación de tráfico de datos al no contar con cifrado SSL/TLS.", c: true },
+                    { t: "Pérdida de la dirección MAC del host.", c: false }
+                ]
+            },
+            "22": {
+                q: "Auditoría Puerto 22: ¿Por qué se prefiere SSH sobre Telnet para la administración remota?",
+                opts: [
+                    { t: "SSH comprime el ancho de banda a la mitad.", c: false },
+                    { t: "SSH establece un canal cifrado para proteger credenciales y comandos ejecutados.", c: true },
+                    { t: "Telnet solo funciona en entornos locales inalámbricos.", c: false }
+                ]
+            },
+            "443": {
+                q: "Auditoría Puerto 443: ¿Qué mecanismo valida la autenticidad e integridad en HTTPS?",
+                opts: [
+                    { t: "Certificados digitales asimétricos validados por una CA de confianza.", c: true },
+                    { t: "Protocolo de control de temperatura de la CPU.", c: false },
+                    { t: "Mapeo dinámico estricto por la tabla caché ARP.", c: false }
+                ]
+            }
+        };
+
+        function handlePortValidation(port) {
+            let quiz = portQuizzes[port];
+            if(!quiz) {
+                printToTerminal(`Puerto ${port} cerrado o no monitorizado por las directivas del laboratorio.`);
+                penalizeTheory();
+                return;
+            }
+
+            let zone = document.getElementById(`dz-p${port}`);
+            if(!zone.classList.contains('installed')) {
+                printToTerminal(`[!] Error de conexión: El hardware del puerto ${port} no ha sido insertado en la placa base.`);
+                triggerHackerAttack();
+                return;
+            }
+
+            printToTerminal("<br><span style='color:#000; background:var(--neon-purple); padding:2px 5px;'>SISTEMA DE CONTROL INTERACTIVO:</span><br>" + quiz.q);
+            
+            const optionsContainer = document.createElement("div");
+            optionsContainer.className = "quiz-options";
+            
+            quiz.opts.forEach((opt, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "opt-btn";
+                btn.innerText = `${idx + 1}. ${opt.t}`;
+                btn.onclick = () => evaluatePortAnswer(port, opt.c, optionsContainer, zone);
+                optionsContainer.appendChild(btn);
+            });
+            
+            terminal.appendChild(optionsContainer);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function evaluatePortAnswer(port, isCorrect, container, zone) {
+            container.remove();
+            if(isCorrect) {
+                playSound('success');
+                stopHackerAttack(); 
+                printToTerminal(`<span style="color:var(--neon-green)">[✓ AUDITORÍA EXITOSA]: Puerto ${port} verificado correctamente. Servicio seguro.</span><br>`);
+                zone.innerHTML = `<div style="color:var(--neon-green); font-weight:bold; font-size:0.75rem;">PORT ${port}</div><div style="font-size:0.65rem; color:#fff">AUDITED // SECURE</div>`;
+                
+                gameStatus.portsAudited++;
+                updateHUD("Auditoría en Progreso", `Llevas ${gameStatus.portsAudited} de 4 puertos verificados técnicamente.`);
+
+                if(gameStatus.portsAudited === 4) {
+                    triggerFinalPhase();
+                }
+            } else {
+                penalizeTheory(); 
+                printToTerminal("<span style='color:var(--neon-pink)'>[X FALLO DE AUDITORÍA]: Conexión rechazada. Ejecuta el comando Telnet nuevamente para reintentar. (-1 pt)</span><br>");
+            }
+        }
+
+        // CONTROLADOR DE FINALIZACIÓN CON ÉXITO E INYECCIÓN CRONOLÓGICA SOLICITADA
+        function triggerFinalPhase() {
+            gameStatus.currentPhase = 4;
+            playSound('success');
+            clearInterval(gameStatus.timerInterval);
+            clearInterval(gameStatus.hackerInterval);
+            
+            document.getElementById("pc-bench").style.animation = "none";
+            document.getElementById("hacker-alert-banner").style.display = "none";
+            document.getElementById("hacker-panel").style.display = "none";
+            document.getElementById("timer-box").style.display = "none";
+            
+            let notaFinal = 1.0 + (gameStatus.score * 0.1);
+            notaFinal = Math.max(1.1, Math.min(5.0, notaFinal)).toFixed(1);
+
+            // Capturar la fecha y hora exacta del envío exitoso
+            let finalTimestamp = new Date().toLocaleString('es-ES');
+
+            printToTerminal(`
+                <br><span style="color:var(--neon-green)">████████████████████████████████████████</span><br>
+                <b>[SISTEMA GLOBAL COMPLETADO CON ÉXITO]</b><br>
+                • Estudiante Evaluado: ${gameStatus.studentData.firstName} ${gameStatus.studentData.lastName}<br>
+                • Nodos Auditados: 100%<br>
+                • Servicios Securizados: FTP (21), HTTP (80), SSH (22), HTTPS (443).<br>
+                • Hora de Finalización: ${finalTimestamp}<br>
+                <span style="color:var(--neon-cyan)">¡Felicidades, Ingeniero de Redes! El servidor está totalmente protegido contra intrusiones.</span>
+            `);
+
+            // Añadir fecha y hora de cierre al mensaje HUD inferior de felicitación
+            document.getElementById("notif-title").innerHTML = "🎉 ¡FELICITACIONES, LABORATORIO TERMINADO! 🎉";
+            document.getElementById("notif-desc").innerHTML = `<span style="color:var(--neon-green); font-weight:bold;">CALIFICACIÓN OBTENIDA: ${notaFinal} / 5.0</span> | Finalizado con éxito el: ${finalTimestamp}`;
+            
+            document.getElementById("score-display").innerText = gameStatus.score;
+            document.getElementById("errors-display").innerText = gameStatus.errors;
+        }
+    </script>
+</body>
+</html>
