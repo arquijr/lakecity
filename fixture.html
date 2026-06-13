@@ -1308,7 +1308,7 @@ function propagarGanadoresEliminatorias() {
   function renderizarFixtureCronologicoCompleto() {
     const anchor = document.getElementById('full-cronologico-anchor');
     if(!anchor) return;
-    let ordenado = [...DATA_MASTER_PARTIDOS].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+    let ordenado = [...DATA_MASTER_PARTIDOS].sort((a,b) => tsToDate(a.timestamp) - tsToDate(b.timestamp));
     inyectarEstructuraCardsPartidos(anchor, ordenado);
   }
 
@@ -1349,6 +1349,9 @@ function propagarGanadoresEliminatorias() {
         <div style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; display:flex; justify-content:space-between;">
           <span>🏟️ ${partido.estadio}</span>
           <span style="color:var(--neon-cyan)">📺 ${partido.tv}</span>
+        </div>
+        <div style="font-size:0.72rem; color:var(--neon-gold); margin-top:5px; font-family:'Share Tech Mono',monospace;">
+          🕐 ${partido.fecha} — ${horaEnPanama(partido.timestamp)} (Panamá)
         </div>
       `;
       contenedor.appendChild(card);
@@ -1524,11 +1527,40 @@ function actualizarTVEliminatoria(id, nuevoTV) {
 }
 
   // ==================== LIVE FOCUS ====================
+  // Los timestamps del fixture están en ET (Eastern Daylight Time = UTC-4).
+  // Panamá opera en UTC-5 (sin cambio de horario).
+  // ET en verano = UTC-4 → Panamá = ET - 1h
+  function tsToDate(ts) { return new Date(ts + '-04:00'); }
+
+  // Convierte un Date (ya correctamente parseado) a la hora de Panamá (UTC-5)
+  function toHoraPanama(date) {
+    // Panamá = UTC-5 fijo; usamos Intl si está disponible, sino offset manual
+    try {
+      return new Date(date.toLocaleString('en-US', { timeZone: 'America/Panama' }));
+    } catch(e) {
+      // fallback: restar 1h a ET (UTC-4)
+      return new Date(date.getTime() - 60 * 60 * 1000);
+    }
+  }
+
+  // Devuelve string "HH:MM" de la hora Panamá para un timestamp de fixture
+  function horaEnPanama(ts) {
+    const d = tsToDate(ts);
+    const dp = toHoraPanama(d);
+    const h = String(dp.getHours()).padStart(2, '0');
+    const m = String(dp.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
+  }
+
   function reproducirMotorTiempoInteligente() {
     const clock = document.getElementById('live-ticker-clock');
     if(clock) {
       const now = new Date();
-      clock.innerText = `SISTEMA OPERATIVO // ${now.toLocaleTimeString('es-ES')} // UTC-5`;
+      const nowPanama = toHoraPanama(now);
+      const hh = String(nowPanama.getHours()).padStart(2,'0');
+      const mm = String(nowPanama.getMinutes()).padStart(2,'0');
+      const ss = String(nowPanama.getSeconds()).padStart(2,'0');
+      clock.innerText = `SISTEMA OPERATIVO // ${hh}:${mm}:${ss} // PANAMÁ (UTC-5)`;
     }
 
     const anchorFocus = document.getElementById('smart-focus-container');
@@ -1536,22 +1568,19 @@ function actualizarTVEliminatoria(id, nuevoTV) {
 
     let partidosEnVivo = DATA_MASTER_PARTIDOS.filter(p => p.status === 'En vivo');
     let partidoDestacado = null;
+    const ahora = new Date();
+    const DURACION_PARTIDO_MS = 105 * 60 * 1000; // 90 min de juego + ~15 min de medio tiempo
 
     if(partidosEnVivo.length > 0) {
       partidoDestacado = partidosEnVivo[0];
     } else {
-      const hoyStr = new Date().toDateString();
-      let proximosHoy = DATA_MASTER_PARTIDOS
-        .filter(p => p.status === 'Próximo' && new Date(p.timestamp).toDateString() === hoyStr)
-        .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-      if(proximosHoy.length > 0) {
-        partidoDestacado = proximosHoy[0];
-      } else {
-        let proximos = DATA_MASTER_PARTIDOS
-          .filter(p => p.status === 'Próximo' && new Date(p.timestamp) > new Date())
-          .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-        if(proximos.length > 0) partidoDestacado = proximos[0];
-      }
+      // Candidato: el partido 'Próximo' más próximo cuya ventana (inicio + 90 min) aún no cerró.
+      // Cubre en curso (ya empezó < 90 min) y próximos (aún no empiezan). Funciona cualquier día/hora.
+      let candidatos = DATA_MASTER_PARTIDOS
+        .filter(p => p.status === 'Próximo'
+          && (tsToDate(p.timestamp).getTime() + DURACION_PARTIDO_MS) > ahora.getTime())
+        .sort((a,b) => tsToDate(a.timestamp) - tsToDate(b.timestamp));
+      if(candidatos.length > 0) partidoDestacado = candidatos[0];
     }
 
     if(!partidoDestacado) {
@@ -1562,10 +1591,39 @@ function actualizarTVEliminatoria(id, nuevoTV) {
     let flag1 = BANDERAS[partidoDestacado.equipo1] || '🏳️';
     let flag2 = BANDERAS[partidoDestacado.equipo2] || '🏳️';
 
+    const msDesdeInicio = ahora - tsToDate(partidoDestacado.timestamp);
+    const estaEnCurso = (partidoDestacado.status === 'En vivo') ||
+                        (partidoDestacado.status === 'Próximo' && msDesdeInicio >= 0 && msDesdeInicio < DURACION_PARTIDO_MS);
+
     let htmlInyectable = '';
-    if(partidoDestacado.status === 'En vivo') {
+    if(estaEnCurso) {
+      const minutoReal = Math.floor(msDesdeInicio / 60000);
+      // En tiempo real el pitido de medio tiempo suele sonar entre el min 47-50 (tiempo añadido 1T)
+      // y el 2do tiempo arranca ~15 min después → min real ~62-65
+      // Usamos ventana más amplia para cubrir variaciones reales
+      const MEDIO_TIEMPO_INICIO = 47; // min real donde suele empezar el descanso
+      const MEDIO_TIEMPO_FIN    = 63; // min real donde arranca el 2do tiempo
+      let badgeTexto, esMedioTiempo = false;
+      if(minutoReal < MEDIO_TIEMPO_INICIO) {
+        // 1er tiempo
+        const seg = Math.floor((msDesdeInicio % 60000) / 1000);
+        const minMostrar = Math.min(minutoReal, 45);
+        badgeTexto = `⚽ EN VIVO — ${String(minMostrar).padStart(2,'0')}:${String(seg).padStart(2,'0')}'`;
+      } else if(minutoReal < MEDIO_TIEMPO_FIN) {
+        // Medio tiempo
+        esMedioTiempo = true;
+        badgeTexto = `⏸ MEDIO TIEMPO`;
+      } else {
+        // 2do tiempo: mostrar minuto de juego real (restando el descanso)
+        const minuto2T = 46 + (minutoReal - MEDIO_TIEMPO_FIN);
+        const msResto = msDesdeInicio - (MEDIO_TIEMPO_FIN * 60000);
+        const seg = Math.floor((msResto % 60000) / 1000);
+        badgeTexto = minuto2T <= 90
+          ? `⚽ EN VIVO — ${String(minuto2T).padStart(2,'0')}:${String(seg).padStart(2,'0')}'`
+          : `⚽ EN VIVO — 90+${minuto2T - 90}'`;
+      }
       htmlInyectable = `
-        <div class="live-focus-header"><span>🏆 PARTIDO DEL DÍA DESTACADO</span><div class="live-badge">EN VIVO PENDIENTE</div></div>
+        <div class="live-focus-header"><span>${esMedioTiempo ? '⏸ MEDIO TIEMPO' : '🏆 PARTIDO EN CURSO'}</span><div class="${esMedioTiempo ? 'upcoming-badge' : 'live-badge'}">${badgeTexto}</div></div>
         <div class="focus-match-arena">
           <div class="focus-team-card"><div class="focus-team-flag">${flag1}</div><div class="focus-team-name">${partidoDestacado.equipo1}</div></div>
           <div class="focus-score-center"><div class="focus-score-digits">${partidoDestacado.goles1} : ${partidoDestacado.goles2}</div><div class="focus-vs-label" style="color:var(--neon-green)">FASE DE GRUPOS</div></div>
@@ -1573,7 +1631,7 @@ function actualizarTVEliminatoria(id, nuevoTV) {
         </div>
       `;
     } else {
-      const difTime = new Date(partidoDestacado.timestamp) - new Date();
+      const difTime = tsToDate(partidoDestacado.timestamp) - ahora;
       let cuentaRegresivaTexto = "00h : 00m : 00s";
       if(difTime > 0) {
         const h = Math.floor(difTime / (1000*60*60));
@@ -1594,7 +1652,7 @@ function actualizarTVEliminatoria(id, nuevoTV) {
     htmlInyectable += `
       <div class="focus-meta-footer">
         <div class="meta-footer-item">🏟️ Sede: <strong>${partidoDestacado.estadio} (${partidoDestacado.ciudad})</strong></div>
-        <div class="meta-footer-item">📅 Programación: <strong>${partidoDestacado.fecha} - ${partidoDestacado.hora}</strong></div>
+        <div class="meta-footer-item">📅 Programación: <strong>${partidoDestacado.fecha} — ${horaEnPanama(partidoDestacado.timestamp)} (Hora Panamá)</strong></div>
         <div class="meta-footer-item" style="justify-content: flex-end;">📺 Transmisión: <strong style="color:var(--neon-cyan)">${partidoDestacado.tv}</strong></div>
       </div>
     `;
@@ -1602,7 +1660,8 @@ function actualizarTVEliminatoria(id, nuevoTV) {
   }
 
   function renderizarListasCountdownYAlertas() {
-    const deadline = new Date("2026-06-11T15:00:00");
+    // Partido inaugural: 11 JUN 2026 15:00 ET (UTC-4) = 14:00 Panamá (UTC-5)
+    const deadline = new Date("2026-06-11T15:00:00-04:00");
     const dif = deadline - new Date();
     const cdBox = document.getElementById('fifa-deadline-countdown');
     if(cdBox) {
@@ -1730,7 +1789,7 @@ function actualizarTVEliminatoria(id, nuevoTV) {
     }
 
     const bannerBanner = document.getElementById('selection-countdown-banner');
-    let proxPartidos = DATA_MASTER_PARTIDOS.filter(p => (p.equipo1 === pais || p.equipo2 === pais) && p.status === 'Próximo').sort((a,b)=> new Date(a.timestamp) - new Date(b.timestamp));
+    let proxPartidos = DATA_MASTER_PARTIDOS.filter(p => (p.equipo1 === pais || p.equipo2 === pais) && p.status === 'Próximo').sort((a,b)=> tsToDate(a.timestamp) - tsToDate(b.timestamp));
     if(proxPartidos.length > 0) {
       let match = proxPartidos[0];
       let rival = match.equipo1 === pais ? match.equipo2 : match.equipo1;
@@ -1739,7 +1798,7 @@ function actualizarTVEliminatoria(id, nuevoTV) {
       
       if(window.bannerTimerGlobal) clearInterval(window.bannerTimerGlobal);
       window.bannerTimerGlobal = setInterval(() => {
-        const diff = new Date(match.timestamp) - new Date();
+        const diff = tsToDate(match.timestamp) - new Date();
         const digitsAnchor = document.getElementById('banner-live-countdown-digits');
         if(!digitsAnchor) return;
         if(diff > 0) {
@@ -1793,7 +1852,7 @@ function actualizarTVEliminatoria(id, nuevoTV) {
       const iterDate = new Date(año, mes, dia);
       const iterDateStr = iterDate.toDateString();
 
-      let partidosDia = DATA_MASTER_PARTIDOS.filter(p => new Date(p.timestamp).toDateString() === iterDateStr);
+      let partidosDia = DATA_MASTER_PARTIDOS.filter(p => tsToDate(p.timestamp).toDateString() === iterDateStr);
 
       let cellClass = "";
       if (iterDate.toDateString() === hoy.toDateString()) cellClass = "today";
@@ -1841,7 +1900,7 @@ function actualizarTVEliminatoria(id, nuevoTV) {
 
   function mostrarDetallesDiaCalendario(dateStr) {
     const selectedDate = new Date(dateStr);
-    const partidosDia = DATA_MASTER_PARTIDOS.filter(p => new Date(p.timestamp).toDateString() === selectedDate.toDateString());
+    const partidosDia = DATA_MASTER_PARTIDOS.filter(p => tsToDate(p.timestamp).toDateString() === selectedDate.toDateString());
 
     const titleEl = document.getElementById('calendar-detail-title');
     const matchesContainer = document.getElementById('calendar-detail-matches-modern');
@@ -2161,6 +2220,164 @@ function actualizarTVEliminatoria(id, nuevoTV) {
     }
   }
 
+  // ==================== LIVE DATA ENGINE (IA + WEB SEARCH) ====================
+  // Datos en vivo traídos por IA con búsqueda web. Se actualiza cada 60s.
+  let LIVE_DATA_IA = null; // { equipo1, equipo2, goles1, goles2, minuto, status, timestamp_et }
+
+  async function buscarPartidoEnVivoConIA() {
+    const anchorFocus = document.getElementById('smart-focus-container');
+    if(!anchorFocus) return;
+
+    // Indicador sutil de que está buscando (sin destruir lo que hay)
+    const indicador = document.createElement('div');
+    indicador.id = 'ia-sync-indicator';
+    indicador.style.cssText = 'position:absolute;top:10px;right:10px;font-family:"Share Tech Mono",monospace;font-size:0.7rem;color:var(--neon-gold);opacity:0.8;';
+    indicador.innerText = '🔄 SINCRONIZANDO...';
+    if(anchorFocus.style.position !== 'relative') anchorFocus.style.position = 'relative';
+    const prev = document.getElementById('ia-sync-indicator');
+    if(prev) prev.remove();
+    anchorFocus.appendChild(indicador);
+
+    const ahora = new Date();
+    const fechaHoy = ahora.toLocaleDateString('es-PA', { timeZone: 'America/Panama', day: '2-digit', month: 'long', year: 'numeric' });
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          system: `Eres un asistente de datos deportivos del FIFA World Cup 2026. 
+Hoy es ${fechaHoy}. La hora actual en Panamá (UTC-5) es ${new Date().toLocaleTimeString('es-PA', { timeZone: 'America/Panama' })}.
+Tu única tarea es buscar si hay partidos del Mundial 2026 EN CURSO AHORA MISMO o que acaban de terminar en las últimas 2 horas.
+Responde SOLO con un objeto JSON válido, sin texto adicional, sin markdown, sin backticks:
+{
+  "hayPartido": true/false,
+  "equipo1": "nombre en español",
+  "equipo2": "nombre en español",
+  "goles1": número,
+  "goles2": número,
+  "minuto": número o "MT" para medio tiempo o "FIN" si terminó,
+  "status": "En vivo" | "Medio tiempo" | "Finalizado" | "Próximo",
+  "horaET": "HH:MM",
+  "fecha": "DD MMM YYYY",
+  "estadio": "nombre del estadio",
+  "ciudad": "ciudad"
+}
+Si no hay ningún partido activo ni reciente, responde: {"hayPartido": false}`,
+          messages: [{ role: 'user', content: `Busca en internet: ¿hay algún partido del FIFA World Cup 2026 en curso AHORA? Dame el marcador y minuto actual. Fecha y hora Panamá: ${fechaHoy} ${new Date().toLocaleTimeString('es-PA', { timeZone: 'America/Panama' })}` }]
+        })
+      });
+
+      const data = await response.json();
+      const textoRespuesta = (data.content || [])
+        .filter(b => b.type === 'text')
+        .map(b => b.text)
+        .join('');
+
+      // Limpiar y parsear JSON
+      const jsonMatch = textoRespuesta.match(/\{[\s\S]*\}/);
+      if(!jsonMatch) throw new Error('Sin JSON');
+      const resultado = JSON.parse(jsonMatch[0]);
+
+      const ind = document.getElementById('ia-sync-indicator');
+      if(ind) ind.remove();
+
+      if(!resultado.hayPartido) {
+        LIVE_DATA_IA = null;
+        return; // Sin partido activo, el motor local toma el control
+      }
+
+      LIVE_DATA_IA = resultado;
+
+      // Actualizar el partido en DATA_MASTER_PARTIDOS si lo encontramos
+      const nombre1 = (resultado.equipo1 || '').trim();
+      const nombre2 = (resultado.equipo2 || '').trim();
+      const matchLocal = DATA_MASTER_PARTIDOS.find(p =>
+        (normalizarCadenaTexto(p.equipo1).includes(normalizarCadenaTexto(nombre1)) ||
+         normalizarCadenaTexto(nombre1).includes(normalizarCadenaTexto(p.equipo1))) &&
+        (normalizarCadenaTexto(p.equipo2).includes(normalizarCadenaTexto(nombre2)) ||
+         normalizarCadenaTexto(nombre2).includes(normalizarCadenaTexto(p.equipo2)))
+      );
+
+      if(matchLocal) {
+        matchLocal.goles1 = resultado.goles1 ?? matchLocal.goles1;
+        matchLocal.goles2 = resultado.goles2 ?? matchLocal.goles2;
+        if(resultado.status === 'Finalizado') matchLocal.status = 'Finalizado';
+        else if(resultado.status === 'En vivo' || resultado.status === 'Medio tiempo') matchLocal.status = 'En vivo';
+        guardarEnDisco();
+        recalcularYRenderizarTablas();
+        actualizarWidgetsYContadores();
+      }
+
+      // Renderizar panel con datos IA
+      renderizarFocusConDatosIA(resultado, matchLocal);
+      triggerToast('🌐 DATOS EN VIVO SINCRONIZADOS');
+
+    } catch(err) {
+      const ind = document.getElementById('ia-sync-indicator');
+      if(ind) { ind.innerText = '⚡ MODO LOCAL'; setTimeout(() => ind.remove(), 3000); }
+      LIVE_DATA_IA = null;
+    }
+  }
+
+  function renderizarFocusConDatosIA(d, matchLocal) {
+    const anchorFocus = document.getElementById('smart-focus-container');
+    if(!anchorFocus) return;
+
+    const flag1 = BANDERAS[d.equipo1] || (matchLocal ? BANDERAS[matchLocal.equipo1] : '🏳️') || '🏳️';
+    const flag2 = BANDERAS[d.equipo2] || (matchLocal ? BANDERAS[matchLocal.equipo2] : '🏳️') || '🏳️';
+
+    const esMedioTiempo = d.status === 'Medio tiempo' || d.minuto === 'MT';
+    const esFinalizado  = d.status === 'Finalizado'   || d.minuto === 'FIN';
+    const minTexto = esMedioTiempo ? '⏸ MEDIO TIEMPO'
+                   : esFinalizado  ? '🏁 FINALIZADO'
+                   : typeof d.minuto === 'number' ? `⚽ EN VIVO — ${String(d.minuto).padStart(2,'0')}'`
+                   : '🔴 EN VIVO';
+
+    const badgeClass = esMedioTiempo ? 'upcoming-badge' : esFinalizado ? 'ended-badge' : 'live-badge';
+    const headerLabel = esMedioTiempo ? '⏸ MEDIO TIEMPO' : esFinalizado ? '🏁 PARTIDO FINALIZADO' : '🏆 PARTIDO EN CURSO';
+
+    const estadio = d.estadio || (matchLocal ? matchLocal.estadio : '—');
+    const ciudad  = d.ciudad  || (matchLocal ? matchLocal.ciudad  : '—');
+    const tv      = matchLocal ? matchLocal.tv : '—';
+
+    // Hora Panamá desde horaET si disponible
+    let horaPanama = '—';
+    if(d.horaET) {
+      try {
+        const [hh, mm] = d.horaET.split(':');
+        const base = new Date(); base.setHours(parseInt(hh), parseInt(mm), 0, 0);
+        horaPanama = horaEnPanama(matchLocal ? matchLocal.timestamp : base.toISOString().slice(0,16));
+      } catch(e) {}
+    } else if(matchLocal) {
+      horaPanama = horaEnPanama(matchLocal.timestamp);
+    }
+
+    anchorFocus.innerHTML = `
+      <div style="position:absolute;top:10px;right:10px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--neon-gold);opacity:0.7;">🌐 IA LIVE</div>
+      <div class="live-focus-header">
+        <span>${headerLabel}</span>
+        <div class="${badgeClass}">${minTexto}</div>
+      </div>
+      <div class="focus-match-arena">
+        <div class="focus-team-card"><div class="focus-team-flag">${flag1}</div><div class="focus-team-name">${d.equipo1}</div></div>
+        <div class="focus-score-center">
+          <div class="focus-score-digits">${d.goles1 ?? 0} : ${d.goles2 ?? 0}</div>
+          <div class="focus-vs-label" style="color:var(--neon-green)">FASE DE GRUPOS</div>
+        </div>
+        <div class="focus-team-card"><div class="focus-team-flag">${flag2}</div><div class="focus-team-name">${d.equipo2}</div></div>
+      </div>
+      <div class="focus-meta-footer">
+        <div class="meta-footer-item">🏟️ Sede: <strong>${estadio} (${ciudad})</strong></div>
+        <div class="meta-footer-item">📅 ${d.fecha || ''} — <strong>${horaPanama} (Hora Panamá)</strong></div>
+        <div class="meta-footer-item" style="justify-content:flex-end;">📺 Transmisión: <strong style="color:var(--neon-cyan)">${tv}</strong></div>
+      </div>
+    `;
+  }
+
   // ==================== INICIALIZACIÓN GENERAL ====================
   window.addEventListener('DOMContentLoaded', () => {
     construirTabsDeGrupos();
@@ -2182,6 +2399,10 @@ function actualizarTVEliminatoria(id, nuevoTV) {
 
     reproducirMotorTiempoInteligente();
     renderizarListasCountdownYAlertas();
+
+    // Buscar datos en vivo al cargar y cada 60 segundos
+    buscarPartidoEnVivoConIA();
+    setInterval(buscarPartidoEnVivoConIA, 60000);
 
     document.addEventListener('click', (e) => {
       if(!e.target.closest('.hud-search-container')) {
