@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SISTEMA DE EVALUACIÓN // Historia de la Informática & Robótica</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-cyan:   #00f5ff;
+    --neon-pink:   #ff00c8;
+    --neon-green:  #39ff14;
+    --neon-yellow: #fff01f;
+    --neon-purple: #b700ff;
+    --dark-bg:     #030712;
+    --dark-panel:  #0a0f1e;
+    --dark-card:   #0d1526;
+    --grid-line:   rgba(0, 245, 255, 0.07);
+    --text-main:   #e0f7ff;
+    --text-dim:    #6b8a9a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark-bg);
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none; z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+    position: relative; z-index: 1;
+  }
+
+  /* ══════════════════════
+     HEADER
+  ══════════════════════ */
+  header {
+    text-align: center;
+    padding: 30px 20px 20px;
+    position: relative;
+  }
+
+  .header-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    animation: blink-line 3s infinite;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.6rem, 5vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 18px rgba(0,245,255,0.5));
+    margin-bottom: 8px;
+  }
+
+  .header-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--neon-pink);
+    letter-spacing: 0.15em;
+    margin-bottom: 18px;
+  }
+
+  .neon-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), transparent);
+    margin: 0 auto 20px;
+    max-width: 500px;
+    box-shadow: 0 0 12px var(--neon-cyan);
+  }
+
+  /* ══════════════════════
+     SCREENS & PANELS
+  ══════════════════════ */
+  .screen {
+    display: none;
+    animation: card-in 0.4s ease;
+  }
+
+  .screen.active {
+    display: block;
+  }
+
+  /* Formulario Registro */
+  .reg-card {
+    background: var(--dark-card);
+    border: 1px solid rgba(0, 245, 255, 0.25);
+    border-radius: 8px;
+    padding: 36px 30px;
+    margin: 0 auto;
+    max-width: 500px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .reg-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+    box-shadow: 0 0 10px var(--neon-cyan);
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+    text-align: left;
+  }
+
+  .form-group label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--neon-cyan);
+    margin-bottom: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    border-radius: 4px;
+    padding: 12px 14px;
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 12px rgba(255, 0, 200, 0.3);
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .stat-chip {
+    background: var(--dark-panel);
+    border: 1px solid rgba(0,245,255,0.25);
+    border-radius: 4px;
+    padding: 8px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-chip .label { color: var(--text-dim); }
+  .stat-chip .value { color: var(--neon-cyan); font-weight: bold; }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .progress-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 10px var(--neon-cyan);
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--dark-card);
+    border: 1px solid rgba(0,245,255,0.18);
+    border-radius: 8px;
+    padding: 32px 28px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+    box-shadow: 0 0 8px var(--neon-cyan);
+  }
+
+  .q-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .q-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: var(--neon-cyan);
+    letter-spacing: 0.2em;
+  }
+
+  .q-category {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .cat-fecha    { background: rgba(255,240,31,0.12);  color: var(--neon-yellow);  border: 1px solid rgba(255,240,31,0.3);  }
+  .cat-persona  { background: rgba(183,0,255,0.12);   color: var(--neon-purple);  border: 1px solid rgba(183,0,255,0.3);  }
+  .cat-hito     { background: rgba(0,245,255,0.12);   color: var(--neon-cyan);    border: 1px solid rgba(0,245,255,0.3);  }
+  .cat-robotica { background: rgba(57,255,20,0.12);   color: var(--neon-green);   border: 1px solid rgba(57,255,20,0.3);  }
+
+  .q-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--text-main);
+    margin-bottom: 26px;
+  }
+
+  /* OPCIONES */
+  .options-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(0,245,255,0.15);
+    border-radius: 5px;
+    padding: 13px 16px;
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: rgba(0,245,255,0.08);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 14px rgba(0,245,255,0.2);
+    transform: translateX(4px);
+  }
+
+  .opt-letter {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    width: 26px; height: 26px;
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,245,255,0.1);
+    border: 1px solid rgba(0,245,255,0.3);
+    color: var(--neon-cyan);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-btn.correct {
+    background: rgba(57,255,20,0.12);
+    border-color: var(--neon-green);
+    box-shadow: 0 0 18px rgba(57,255,20,0.25);
+  }
+
+  .option-btn.correct .opt-letter {
+    background: rgba(57,255,20,0.25);
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+  }
+
+  .option-btn.wrong {
+    background: rgba(255,0,80,0.12);
+    border-color: #ff0050;
+    box-shadow: 0 0 18px rgba(255,0,80,0.2);
+  }
+
+  .option-btn.wrong .opt-letter {
+    background: rgba(255,0,80,0.25);
+    border-color: #ff0050;
+    color: #ff0050;
+  }
+
+  .option-btn.reveal-correct {
+    background: rgba(57,255,20,0.06);
+    border-color: rgba(57,255,20,0.4);
+    box-shadow: 0 0 10px rgba(57,255,20,0.1);
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  /* FEEDBACK */
+  .feedback {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    display: none;
+    animation: fade-up 0.3s ease;
+  }
+
+  .feedback.correct {
+    background: rgba(57,255,20,0.08);
+    border: 1px solid rgba(57,255,20,0.3);
+    color: var(--neon-green);
+  }
+
+  .feedback.warning {
+    background: rgba(255, 240, 31, 0.08);
+    border: 1px solid rgba(255, 240, 31, 0.3);
+    color: var(--neon-yellow);
+  }
+
+  .feedback.wrong {
+    background: rgba(255,0,80,0.08);
+    border: 1px solid rgba(255,0,80,0.3);
+    color: #ff6b8a;
+  }
+
+  /* BOTONES */
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px 30px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-next {
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+    color: var(--dark-bg);
+    box-shadow: 0 0 20px rgba(0,245,255,0.35);
+  }
+
+  .btn-next:hover:not(:disabled) {
+    box-shadow: 0 0 30px rgba(0,245,255,0.6);
+    transform: translateY(-2px);
+  }
+
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* BLOCK SCREEN */
+  .blocked-card {
+    background: rgba(255, 0, 80, 0.04);
+    border: 1px solid rgba(255, 0, 80, 0.3);
+    border-radius: 8px;
+    padding: 40px;
+    max-width: 550px;
+    margin: 40px auto 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .blocked-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left:0; right:0;
+    height: 3px;
+    background: #ff0050;
+    box-shadow: 0 0 15px #ff0050;
+  }
+
+  .blocked-title {
+    font-family: 'Orbitron', monospace;
+    color: #ff0050;
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+  }
+
+  .blocked-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-main);
+  }
+
+  /* MODAL DE RESULTADO FINAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.95);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-box {
+    background: var(--dark-panel);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 40px rgba(0, 245, 255, 0.4);
+    border-radius: 8px;
+    max-width: 550px;
+    width: 90%;
+    padding: 36px 30px;
+    text-align: center;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .modal-overlay.active .modal-box {
+    transform: scale(1);
+  }
+
+  .modal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .modal-data {
+    margin: 20px 0;
+    text-align: left;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(0,245,255,0.15);
+    padding: 18px 22px;
+    border-radius: 6px;
+  }
+
+  .modal-data-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+  }
+
+  .modal-data-row:last-child { margin-bottom: 0; }
+  .modal-data-row .label { color: var(--text-dim); }
+  .modal-data-row .val { color: var(--text-main); font-weight: bold; }
+
+  .final-grade-wrap {
+    margin-top: 24px;
+    background: rgba(57,255,20,0.06);
+    border: 1px solid rgba(57,255,20,0.3);
+    padding: 16px;
+    border-radius: 6px;
+  }
+
+  .final-score-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: var(--neon-green);
+    line-height: 1;
+    text-shadow: 0 0 15px rgba(57,255,20,0.6);
+  }
+
+  .final-grade-lbl {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--neon-green);
+    letter-spacing: 0.2em;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  /* ANIMACIONES */
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink-line {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+  }
+
+  @keyframes pulse-glow {
+    0%,100% { filter: drop-shadow(0 0 20px var(--neon-cyan)); }
+    50%      { filter: drop-shadow(0 0 40px var(--neon-pink)); }
+  }
+
+  .ticker {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(0,245,255,0.35);
+    letter-spacing: 0.2em;
+    text-align: center;
+    margin-bottom: 24px;
+    animation: flicker 8s infinite;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-eyebrow">// SISTEMA DE EVALUACIÓN OFICIAL // 2026 //</div>
+    <h1>Historia de la<br>Informática & Robótica</h1>
+    <div class="header-sub">8° GRADO &nbsp;·&nbsp; TRIMESTRE II &nbsp;·&nbsp; EXAMEN DE CONTROL</div>
+    <div class="neon-bar"></div>
+  </header>
+
+  <div class="ticker" id="ticker">SISTEMA LISTO PARA INICIAR... INGRESE CREDENCIALES... PROTOCOLO DE EXAMEN ÚNICO ACTIVO...</div>
+
+  <!-- REGISTRATION SCREEN -->
+  <div id="reg-screen" class="screen active">
+    <div class="reg-card">
+      <h2 style="font-family:'Orbitron', monospace; font-size:1.2rem; margin-bottom:24px; color:var(--neon-cyan)">REGISTRO DEL ESTUDIANTE</h2>
+      <form id="reg-form" onsubmit="startExam(event)">
+        <div class="form-group">
+          <label for="student-name">Nombre Completo:</label>
+          <input type="text" id="student-name" required placeholder="Ej: Juan Pérez">
+        </div>
+        <div class="form-group">
+          <label for="student-grade">Grado / Sección:</label>
+          <select id="student-grade" required>
+            <option value="" disabled selected>Selecciona tu sección</option>
+            <option value="8° A">8° Grado - Sección A</option>
+            <option value="8° B">8° Grado - Sección B</option>
+            <option value="8° C">8° Grado - Sección C</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-next" style="width:100%">INICIAR EVALUACIÓN ▶</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" class="screen">
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+      <div class="stat-chip">
+        <span class="label">PREGUNTA</span>
+        <span class="value" id="stat-q">—</span>
+      </div>
+      <div class="stat-chip">
+        <span class="label">PUNTOS</span>
+        <span class="value" id="stat-points" style="color:var(--neon-green)">40</span>
+      </div>
+      <div class="stat-chip">
+        <span class="label">TIEMPO</span>
+        <span class="value" id="stat-time">0:00</span>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>PROGRESO EXAMEN</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="question-card" id="q-card">
+      <div class="q-meta">
+        <span class="q-number" id="q-number">PREGUNTA 01 / 40</span>
+        <span class="q-category" id="q-cat">FECHA</span>
+      </div>
+      <div class="q-text" id="q-text">Cargando pregunta...</div>
+      <div class="options-grid" id="options-grid"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-next" id="btn-next" disabled onclick="nextQuestion()">SIGUIENTE PREGUNTA ▶</button>
+    </div>
+  </div>
+
+  <!-- BLOCKED SCREEN -->
+  <div id="blocked-screen" class="screen">
+    <div class="blocked-card">
+      <div class="blocked-title" id="blocked-title">ACCESO BLOQUEADO</div>
+      <div class="blocked-text" id="blocked-text">
+        Este dispositivo ya ha iniciado o completado una sesión de evaluación. 
+        De acuerdo con las normativas académicas vigentes, no se permiten múltiples intentos ni recargas.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- MODAL RESULTADOS -->
+<div class="modal-overlay" id="results-modal">
+  <div class="modal-box">
+    <div class="modal-title">EVALUACIÓN CONCLUIDA</div>
+    <div class="ticker">// REGISTRO DE CALIFICACIÓN ALMACENADO EN EL SISTEMA //</div>
+    
+    <div class="modal-data">
+      <div class="modal-data-row">
+        <span class="label">Estudiante:</span>
+        <span class="val" id="res-name">—</span>
+      </div>
+      <div class="modal-data-row">
+        <span class="label">Grado:</span>
+        <span class="val" id="res-grade">—</span>
+      </div>
+      <div class="modal-data-row">
+        <span class="label">Puntos Obtenidos:</span>
+        <span class="val" id="res-points">—</span>
+      </div>
+      <div class="modal-data-row">
+        <span class="label">Tiempo Empleado:</span>
+        <span class="val" id="res-time">—</span>
+      </div>
+    </div>
+
+    <div class="final-grade-wrap">
+      <div class="final-score-val" id="res-grade-final">0.0</div>
+      <div class="final-grade-lbl">NOTA FINAL OBTENIDA</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  BANCO UNIFICADO DE PREGUNTAS (40 PREGUNTAS EXACTAS)
+// ═══════════════════════════════════════
+const ALL_QUESTIONS = [
+  // --- SET 1 ---
+  {
+    cat: "FECHA", catClass: "cat-fecha",
+    q: "¿En qué año Charles Babbage diseñó la 'Máquina Analítica', considerada el primer concepto de computadora programable de la historia?",
+    opts: ["1822", "1837", "1854", "1801"],
+    ans: 1,
+    exp: "En 1837, Charles Babbage propuso el diseño de la Máquina Analítica. Podía programarse mediante tarjetas perforadas e incluía unidad de control, memoria y unidad aritmética."
+  },
+  {
+    cat: "FECHA", catClass: "cat-fecha",
+    q: "¿En qué año se creó la ENIAC, la primera computadora electrónica de propósito general de la primera generación?",
+    opts: ["1939", "1945", "1950", "1951"],
+    ans: 1,
+    exp: "La ENIAC fue construida en 1945. Utilizaba unos 18.000 tubos de vacío, ocupaba un espacio de 167 m² y realizaba unas 5.000 sumas por segundo."
+  },
+  {
+    cat: "FECHA", catClass: "cat-fecha",
+    q: "¿En qué año George Devol patentó el Unimate, considerado el primer brazo robótico programable de la historia?",
+    opts: ["1947", "1954", "1961", "1966"],
+    ans: 1,
+    exp: "George Devol patentó el Unimate en 1954. Posteriormente, en 1961, se instaló por primera vez de forma práctica en una fábrica de General Motors."
+  },
+  {
+    cat: "FECHA", catClass: "cat-fecha",
+    q: "¿En qué año propuso Alan Turing la célebre pregunta '¿Pueden pensar las máquinas?' que sentó las bases de la computación teórica y la IA?",
+    opts: ["1936", "1945", "1950", "1956"],
+    ans: 2,
+    exp: "En 1950, Alan Turing planteó esta pregunta fundamental para evaluar la inteligencia de las máquinas, consolidando el campo de la computación teórica moderna."
+  },
+  {
+    cat: "FECHA", catClass: "cat-fecha",
+    q: "¿En qué año Tim Berners-Lee inventó la World Wide Web (WWW) mientras trabajaba en el CERN?",
+    opts: ["1985", "1989", "1991", "1995"],
+    ans: 1,
+    exp: "Tim Berners-Lee inventó la WWW en 1989 en el CERN, diseñando los estándares de hipervínculo globales conocidos como HTML, HTTP y URL."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿Qué matemático y filósofo perfeccionó la sumadora mecánica de Pascal con su 'Stepped Reckoner' y desarrolló el sistema binario actual?",
+    opts: ["Charles Babbage", "Gottfried Leibniz", "John von Neumann", "Alan Turing"],
+    ans: 1,
+    exp: "Leibniz desarrolló el sistema de numeración binario (ceros y unos) que es el lenguaje básico de las computadoras actuales, además de diseñar la calculadora mecánica 'Stepped Reckoner'."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿Quién es considerada la primera programadora del mundo por estructurar el primer algoritmo en 1842 para la Máquina Analítica de Babbage?",
+    opts: ["Grace Hopper", "Ada Lovelace", "Margaret Hamilton", "Hedy Lamarr"],
+    ans: 1,
+    exp: "Ada Lovelace redactó en 1842 un conjunto detallado de instrucciones lógicas para calcular los números de Bernoulli en la máquina de Babbage, siendo el primer algoritmo computacional de la historia."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿Qué matemático lideró el descifrado del código Enigma en la WWII y teorizó la informática moderna con su Máquina en 1936?",
+    opts: ["John von Neumann", "Alan Turing", "Charles Babbage", "Bill Gates"],
+    ans: 1,
+    exp: "Alan Turing es el padre de la computación teórica. Propuso su Máquina teórica en 1936, descifró el código Enigma y propuso las primeras directrices formales de la Inteligencia Artificial."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿Qué matemática desarrolló el primer compilador (A-0) en 1952, aportó al COBOL y popularizó la noción de 'bug' en sistemas?",
+    opts: ["Ada Lovelace", "Grace Hopper", "Mary Jackson", "Dorothy Vaughan"],
+    ans: 1,
+    exp: "Grace Hopper inventó el compilador A-0 para simplificar la programación y popularizó el término 'bug' tras documentar el hallazgo de una polilla física que bloqueaba la Mark II."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿Quién es conocido como el 'padre de la robótica industrial' por cofundar Unimation junto a George Devol en los años 60?",
+    opts: ["Joseph Engelberger", "Rodney Brooks", "Marc Raibert", "Jacques de Vaucanson"],
+    ans: 0,
+    exp: "Joseph Engelberger se asoció con Devol para comercializar el brazo Unimate e instalarlo en la industria de automóviles de la época, impulsando la automatización industrial."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿Qué roboticista australiano cofundó iRobot (diseñadores de Roomba) y propuso la robótica basada en el comportamiento?",
+    opts: ["Marc Raibert", "George Devol", "Rodney Brooks", "Joseph Engelberger"],
+    ans: 2,
+    exp: "Rodney Brooks revolucionó el desarrollo autónomo al postular que los robots pueden interactuar de forma ágil mediante reglas reactivas simples frente al entorno físico."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Qué calculadora mecánica de engranajes capaz de realizar sumas y restas automáticas fue creada por Blaise Pascal en 1642?",
+    opts: ["La Pascalina", "La Máquina Analítica", "La Máquina de Diferencias", "El Ábaco"],
+    ans: 0,
+    exp: "Blaise Pascal inventó 'La Pascalina' en 1642. Fue una de las primeras calculadoras mecánicas del mundo basada en un sistema de engranajes y ruedas dentadas."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "Según el modelo formalizado por John von Neumann en 1945, ¿cuál es la característica clave de su arquitectura de computadoras?",
+    opts: [
+      "El uso exclusivo de transistores miniaturizados en placas físicas",
+      "El almacenamiento de instrucciones y datos dentro de la misma memoria común",
+      "La desestimación del sistema binario en favor de sistemas analógicos",
+      "La supresión del software para programar exclusivamente con cableado mecánico"
+    ],
+    ans: 1,
+    exp: "La Arquitectura Von Neumann almacena las instrucciones de ejecución y los datos de manera unificada en una sola memoria, principio que rige a las computadoras modernas."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Qué componente de la segunda generación electrónica (inventado en 1947 en Laboratorios Bell) sustituyó de manera eficiente a los tubos de vacío?",
+    opts: ["El Microprocesador", "El Transistor", "El Circuito Integrado", "El Chip de Silicio"],
+    ans: 1,
+    exp: "El transistor fue inventado en 1947 por Bardeen, Brattain y Shockley. Sustituyó a los tubos de vacío, abriendo paso a dispositivos mucho más pequeños y confiables."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Qué computadora experimental de 1973 de la firma Xerox introdujo por primera vez la GUI, el mouse y la metáfora de escritorio?",
+    opts: ["Apple II", "Xerox Alto", "Macintosh", "EDVAC"],
+    ans: 1,
+    exp: "La Xerox Alto de 1973 fue pionera al integrar la interfaz gráfica de usuario (GUI), un ratón óptico y la clásica estructura de escritorio virtual."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿De qué infraestructura experimental militar creada a finales de los años 60 se originó la red global de Internet?",
+    opts: ["EDVAC Link", "ARPANET", "CERN Network", "Xerox Link"],
+    ans: 1,
+    exp: "El Internet actual nació de la red experimental de defensa ARPANET, escalando después mediante estándares unificados creados en los años posteriores."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "¿En qué célebre obra teatral de 1921 escrita por Karel Čapek se introdujo formalmente el concepto y palabra 'robot'?",
+    opts: ["Runaround", "R.U.R. (Robots Universales de Rossum)", "Yo, Robot", "Pneumática"],
+    ans: 1,
+    exp: "El término apareció en la obra R.U.R. en 1921, procedente del término checo 'robota', que traduce literalmente 'trabajo forzado'."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "¿En qué obra escrita por Isaac Asimov en 1942 se postularon formalmente las Tres Leyes de la Robótica?",
+    opts: ["R.U.R.", "Runaround", "Yo, Robot", "Pneumática"],
+    ans: 1,
+    exp: "Las Tres Leyes de la Robótica se detallaron originalmente en el relato 'Runaround' de 1942 (integrado después en su libro 'Yo, Robot' de 1950)."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "¿Cómo se llamó el robot móvil de 1966 desarrollado por el SRI, capaz de percibir su entorno y tomar decisiones autónomas con IA?",
+    opts: ["Unimate", "Shakey", "Atlas", "ASIMO"],
+    ans: 1,
+    exp: "Shakey (1966) fue el primer robot móvil experimental capaz de aplicar algoritmos lógicos e inteligencia artificial para coordinar acciones físicas."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "¿Qué célebre máquina autómata de 1739, construida por Jacques de Vaucanson, emulaba movimientos complejos orgánicos como la digestión?",
+    opts: ["La Pascalina", "El Pato Mecánico", "Shakey", "El Telar Programable"],
+    ans: 1,
+    exp: "Jacques de Vaucanson construyó el Pato Mecánico en 1739, asombrando a la sociedad de su época con sus complejos engranajes mecánicos internos."
+  },
+
+  // --- SET 2 ---
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿En qué antigua civilización y durante cuál dinastía del siglo XII a.C. se sitúan los orígenes históricos del ábaco?",
+    opts: [
+      "Dinastía Zhou en China",
+      "Dinastía Ming en China",
+      "Imperio Antiguo de Egipto",
+      "Civilización Sumeria en Mesopotamia"
+    ],
+    ans: 0,
+    exp: "El texto sitúa los orígenes históricos del ábaco en civilizaciones antiguas, destacando su uso documentado bajo la dinastía Zhou en China (siglo XII a.C.)."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Cuáles son los nombres de las variantes de origen japonés y ruso del ábaco mencionadas en la teoría?",
+    opts: [
+      "Suanpan y Pascalina",
+      "Soroban y Schoty",
+      "Suanpan y Soroban",
+      "Mark II y Pneumática"
+    ],
+    ans: 1,
+    exp: "El texto menciona que con el tiempo surgieron variantes regionales del ábaco, tales como el suanpan chino, el soroban japonés y el schoty ruso."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "¿En qué tratado de ingeniería del siglo I d.C. diseñó Herón de Alejandría sus primeros mecanismos neumáticos automáticos?",
+    opts: ["Runaround", "R.U.R.", "Pneumática", "Pato Mecánico"],
+    ans: 2,
+    exp: "Herón de Alejandría diseñó e ilustró complejos mecanismos automáticos en su célebre obra antigua titulada Pneumática."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "Además de simular el aleteo, ¿qué proceso biológico intentaba emular de forma mecánica el Pato Mecánico de Vaucanson en 1739?",
+    opts: ["La respiración pulmonar", "La digestión de alimentos", "El graznido sonoro", "La circulación sanguínea"],
+    ans: 1,
+    exp: "Construido en 1739 por Jacques de Vaucanson, este famoso autómata mecánico era capaz de agitar sus alas y simular de forma asombrosa el proceso de digestión."
+  },
+  {
+    cat: "FECHA", catClass: "cat-fecha",
+    q: "¿Qué modelo matemático utilizaba la inconclusa Máquina Diferencial de Charles Babbage (1822) para realizar sus cálculos?",
+    opts: [
+      "Ecuaciones diferenciales de segundo grado",
+      "El cálculo de tablas de polinomios mediante diferencias finitas",
+      "Lógica difusa y sistema binario integrado",
+      "Sistemas de engranajes de acarreo electromagnético"
+    ],
+    ans: 1,
+    exp: "Diseñada en 1822, la Máquina Diferencial de Charles Babbage estaba diseñada para calcular tablas de polinomios usando diferencias finitas."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "En los planos de la Máquina Analítica (1837), ¿con qué nombre bautizó Babbage a la unidad interna encargada de la memoria?",
+    opts: ["The Mill", "The Store", "The Accumulator", "The Controller"],
+    ans: 1,
+    exp: "La Máquina Analítica de Babbage dividía sus procesos lógicos en unidades diferenciadas: la memoria se denominaba 'store' y la unidad aritmética se llamaba 'mill'."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "En sus notas publicadas en 1843, ¿qué elementos predijo Ada Lovelace que las máquinas podrían procesar además de los números?",
+    opts: [
+      "Base de datos relacionales y código binario",
+      "Fuerzas físicas y ondas de radio",
+      "Música, texto e imágenes",
+      "Patrones de tejido de algodón industrial"
+    ],
+    ans: 2,
+    exp: "Con una visión muy adelantada a su tiempo, Ada Lovelace previó que las computadoras del futuro procesarían música, texto e imágenes, superando el simple cálculo matemático."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Qué invento de la Revolución Industrial, patentado en 1804 por Jacquard, inspiró las tarjetas perforadas usadas por Babbage?",
+    opts: [
+      "La máquina de vapor rotativa",
+      "El telar automatizado para patrones de tejido",
+      "La sumadora de ruedas dentadas",
+      "El dínamo generador de electricidad"
+    ],
+    ans: 1,
+    exp: "El telar de Joseph Marie Jacquard (1804) utilizaba tarjetas de cartón perforadas para automatizar diseños de tejido, inspirando el sistema de programación de Babbage."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Qué computadora de 1951 introdujo formalmente el concepto de programa almacenado e instrucciones binarias según la arquitectura von Neumann?",
+    opts: ["ENIAC", "EDVAC", "Xerox Alto", "Harvard Mark II"],
+    ans: 1,
+    exp: "A diferencia de ENIAC, la EDVAC (1951) introdujo de forma práctica el almacenamiento interno del programa e instrucciones procesadas enteramente en binario."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Qué científicos de los Laboratorios Bell desarrollaron el revolucionario transistor de estado sólido en 1947?",
+    opts: [
+      "Jack Kilby y Robert Noyce",
+      "Bardeen, Brattain y Shockley",
+      "Dennis Ritchie y Ken Thompson",
+      "George Devol y Joseph Engelberger"
+    ],
+    ans: 1,
+    exp: "El transistor fue inventado en 1947 por John Bardeen, Walter Brattain y William Shockley en las instalaciones de los Laboratorios Bell."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Qué dos ingenieros desarrollaron de forma independiente el circuito integrado sobre pastillas de silicio a finales de los años 50?",
+    opts: [
+      "Steve Jobs y Bill Gates",
+      "Jack Kilby y Robert Noyce",
+      "Alan Turing y John von Neumann",
+      "Gottfried Leibniz y Blaise Pascal"
+    ],
+    ans: 1,
+    exp: "Kilby (Texas Instruments) y Noyce (Fairchild Semiconductor) patentaron y desarrollaron de forma independiente los primeros circuitos integrados del mundo."
+  },
+  {
+    cat: "FECHA", catClass: "cat-fecha",
+    q: "Tras el lanzamiento del Intel 4004 de 4 bits en 1971, ¿cuál fue el primer microprocesador comercial de 8 bits lanzado en 1972?",
+    opts: ["Intel 8008", "Intel 8086", "Intel 8080", "Intel Pentium"],
+    ans: 0,
+    exp: "El Intel 8008, lanzado en 1972, fue el primer microprocesador comercial con arquitectura de procesamiento interno de 8 bits."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿A través de qué dos icónicos modelos de computadora personal es reconocido Steve Jobs por popularizar la informática doméstica?",
+    opts: [
+      "EDVAC y ENIAC",
+      "Apple II y Macintosh",
+      "IBM PC y Xerox Alto",
+      "Altair 8800 y Commodore 64"
+    ],
+    ans: 1,
+    exp: "El texto destaca que Steve Jobs fue clave en la popularización comercial de la computadora personal de uso masivo mediante el Apple II y la Macintosh."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿De qué sistemas operativos de amplia adopción corporativa y doméstica se reconoce a Bill Gates como el principal impulsor histórico?",
+    opts: [
+      "Unix y Linux",
+      "MS-DOS y Windows",
+      "iOS y Mac OS Classic",
+      "OS/2 y Android"
+    ],
+    ans: 1,
+    exp: "Bill Gates llevó la computación a millones de hogares a través de su empresa Microsoft impulsando los sistemas operativos MS-DOS y Windows."
+  },
+  {
+    cat: "HITO IT", catClass: "cat-hito",
+    q: "¿Quiénes formularon en 1943 el primer modelo matemático teórico de las redes neuronales inspirado en el cerebro humano?",
+    opts: [
+      "Alan Turing y John von Neumann",
+      "McCulloch y Pitts",
+      "Rodney Brooks y Marc Raibert",
+      "Jack Kilby y Robert Noyce"
+    ],
+    ans: 1,
+    exp: "Las redes neuronales tienen su origen teórico temprano en 1943 gracias a los investigadores Warren McCulloch y Walter Pitts."
+  },
+  {
+    cat: "PERSONAJE", catClass: "cat-persona",
+    q: "¿Cuál es la filosofía de diseño robótico por la que es reconocido Rodney Brooks en el campo de la automatización?",
+    opts: [
+      "La robótica basada en el comportamiento a través de reglas reactivas simples",
+      "La programación dinámica por tarjetas perforadas",
+      "El desarrollo de brazos robóticos rotativos hidráulicos",
+      "La creación de software de cirugía remota"
+    ],
+    ans: 0,
+    exp: "Brooks demostró que un robot puede generar conductas interactivas complejas interactuando directamente con su entorno con base en reglas de comportamiento muy sencillas."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "¿Qué avance físico de equilibrio dinámico destaca a la empresa Boston Dynamics (Marc Raibert) en la robótica actual?",
+    opts: [
+      "El uso de nanotecnología molecular cancerígena",
+      "El desarrollo de robots con locomoción dinámica y equilibrio avanzado",
+      "La invención del primer brazo articulado repetitivo",
+      "La automatización de tejido de algodón industrial"
+    ],
+    ans: 1,
+    exp: "Boston Dynamics, fundada por Marc Raibert, se hizo famosa mundialmente por diseñar robots antropomorfos y cuadrúpedos de altísima movilidad y estabilidad dinámica (Spot, Atlas)."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "De acuerdo con el texto, ¿qué beneficio aportó la computación en la nube a las aplicaciones y sistemas de cómputo globales?",
+    opts: [
+      "Sustituyó los circuitos de silicio por válvulas de vacío",
+      "Eliminó la dependencia del usuario de un único equipo físico",
+      "Permitió prescindir por completo de la alimentación eléctrica",
+      "Limitó la interacción al control manual directo sin algoritmos"
+    ],
+    ans: 1,
+    exp: "La computación en la nube eliminó la dependencia de un único equipo local, facilitando la colaboración mundial y reduciendo enormemente costos físicos."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "¿Qué características definen a los llamados 'Cobots' dentro de las líneas de producción industriales modernas?",
+    opts: [
+      "Robots autónomos de exploración espacial profunda",
+      "Robots colaborativos diseñados para cooperar físicamente al lado de personas",
+      "Vehículos aéreos operados por control analógico remoto",
+      "Nanobots microscópicos inyectados de forma celular"
+    ],
+    ans: 1,
+    exp: "Los cobots (robots colaborativos) comparten espacio físico de trabajo de forma segura con operarios humanos, adaptando sus movimientos para evitar colisiones accidentales."
+  },
+  {
+    cat: "ROBÓTICA", catClass: "cat-robotica",
+    q: "En el campo de la robótica médica moderna, ¿cuál de las siguientes opciones representa una aplicación real descrita en el documento?",
+    opts: [
+      "Sistemas de recomendación para búsquedas web globales",
+      "Brazos de alta precisión para cirugías mínimamente invasivas",
+      "Sistemas de propulsión de cohetes espaciales de combustible líquido",
+      "Sistemas de tejido industrial por tarjetas físicas de cartón"
+    ],
+    ans: 1,
+    exp: "El documento resalta el uso de brazos de alta precisión para intervenciones mínimamente invasivas, minimizando riesgos y acelerando la recuperación de los pacientes."
+  }
+];
+
+// ═══════════════════════════════════════
+//  ESTADO GLOBAL DEL EXAMEN
+// ═══════════════════════════════════════
+let studentName = "";
+let studentGrade = "";
+let questions = [];
+let currentIndex = 0;
+let points = 40; // Empezamos en 40 puntos totales
+let currentAttempts = 0; // Intentos para la pregunta actual (máx. 2)
+let answered = false;
+let timerInterval;
+let elapsedSeconds = 0;
+
+// ═══════════════════════════════════════
+//  AL ARRANQUE: CONTROLES DE ACCESO
+// ═══════════════════════════════════════
+window.onload = function() {
+  // Comprobar si el examen ya fue realizado con éxito
+  if (localStorage.getItem("quiz_completed") === "true") {
+    showSystemLock("EVALUACIÓN YA COMPLETADA", 
+      `El estudiante ${localStorage.getItem("student_name")} (${localStorage.getItem("student_grade")}) ya realizó esta prueba con una puntuación de ${localStorage.getItem("final_points")}/40 (Nota: ${localStorage.getItem("final_grade")}) en un tiempo de ${localStorage.getItem("final_time")}. No se permiten reintentos.`);
+    return;
+  }
+
+  // Comprobar si hubo un intento anterior que fue interrumpido (fraude o recarga involuntaria)
+  if (localStorage.getItem("quiz_in_progress") === "true") {
+    // Si recargó y estaba en curso, se anula y se guarda nota mínima automática
+    localStorage.setItem("quiz_completed", "true");
+    localStorage.setItem("final_points", "0");
+    localStorage.setItem("final_grade", "1.0");
+    localStorage.setItem("final_time", "N/A");
+    localStorage.setItem("student_name", localStorage.getItem("temp_name") || "Anónimo");
+    localStorage.setItem("student_grade", localStorage.getItem("temp_grade") || "Desconocido");
+    
+    showSystemLock("SISTEMA BLOQUEADO (ANTI-FRAUDE)", 
+      "Se detectó una recarga de página (F5 / Ctrl + R) o abandono involuntario a mitad del examen. De acuerdo con las normas, el intento ha sido anulado. Calificación asignada de forma irreversible: Nota 1.0 (0/40 puntos).");
+  }
+};
+
+// ═══════════════════════════════════════
+//  RESTRICCIONES FÍSICAS DE TECLADO
+// ═══════════════════════════════════════
+window.addEventListener('keydown', (e) => {
+  if (localStorage.getItem("quiz_in_progress") === "true") {
+    // Bloquear F5 y combinaciones Ctrl+R o Cmd+R
+    if (e.key === 'F5' || 
+        (e.ctrlKey && e.key === 'r') || 
+        (e.metaKey && e.key === 'r') ||
+        e.key === 'BrowserRefresh') {
+      e.preventDefault();
+      alert("ALERTA DE SEGURIDAD: La recarga de página está bloqueada para preservar los datos del examen.");
+    }
+  }
+});
+
+// Mensaje nativo antes de cerrar o recargar
+window.addEventListener('beforeunload', (e) => {
+  if (localStorage.getItem("quiz_in_progress") === "true" && localStorage.getItem("quiz_completed") !== "true") {
+    e.preventDefault();
+    e.returnValue = "Si sales de la página, tu examen se anulará automáticamente.";
+  }
+});
+
+// ═══════════════════════════════════════
+//  LÓGICA DE CONTROL DEL JUEGO
+// ═══════════════════════════════════════
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showSystemLock(title, message) {
+  // Ocultar pantallas activas
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  
+  // Mostrar pantalla de bloqueo
+  document.getElementById("blocked-screen").classList.add("active");
+  document.getElementById("blocked-title").textContent = title;
+  document.getElementById("blocked-text").textContent = message;
+}
+
+function startExam(e) {
+  e.preventDefault();
+  
+  studentName = document.getElementById("student-name").value.trim();
+  studentGrade = document.getElementById("student-grade").value;
+
+  if (!studentName || !studentGrade) return;
+
+  // Registrar estado en progreso local
+  localStorage.setItem("quiz_in_progress", "true");
+  localStorage.setItem("temp_name", studentName);
+  localStorage.setItem("temp_grade", studentGrade);
+
+  // Mezclar preguntas para este intento específico
+  questions = shuffle(ALL_QUESTIONS);
+  currentIndex = 0;
+  points = 40;
+  elapsedSeconds = 0;
+
+  // Ocultar registro y pasar a Quiz
+  document.getElementById("reg-screen").classList.remove("active");
+  document.getElementById("quiz-screen").classList.add("active");
+
+  // Iniciar temporizador
+  startTimer();
+  renderQuestion();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    elapsedSeconds++;
+    document.getElementById("stat-time").textContent = formatTime(elapsedSeconds);
+  }, 1000);
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function renderQuestion() {
+  answered = false;
+  currentAttempts = 0;
+  const q = questions[currentIndex];
+  const total = questions.length;
+
+  // Actualizar Progreso
+  const pct = Math.round((currentIndex / total) * 100);
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("prog-pct").textContent = pct + "%";
+
+  // Actualizar Stats
+  document.getElementById("stat-q").textContent = `${String(currentIndex + 1).padStart(2,'0')} / ${total}`;
+  document.getElementById("stat-points").textContent = points;
+
+  // Meta del Card
+  document.getElementById("q-number").textContent = `PREGUNTA ${String(currentIndex + 1).padStart(2,'0')} / ${total}`;
+  
+  const catEl = document.getElementById("q-cat");
+  catEl.textContent = q.cat;
+  catEl.className = `q-category ${q.catClass}`;
+
+  document.getElementById("q-text").textContent = q.q;
+
+  // Cargar opciones aleatorias
+  const letters = ['A', 'B', 'C', 'D'];
+  const grid = document.getElementById("options-grid");
+  grid.innerHTML = "";
+
+  const indices = shuffle([0, 1, 2, 3]);
+  correctMappedGlobal = null;
+
+  indices.forEach((origIdx, displayPos) => {
+    if (origIdx === q.ans) correctMappedGlobal = displayPos;
+
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.dataset.orig = origIdx;
+    btn.innerHTML = `<span class="opt-letter">${letters[displayPos]}</span> <span class="opt-text">${q.opts[origIdx]}</span>`;
+    btn.onclick = () => selectAnswer(btn, origIdx, q);
+    grid.appendChild(btn);
+  });
+
+  // Limpiar Feedback
+  const fb = document.getElementById("feedback");
+  fb.style.display = "none";
+  fb.className = "feedback";
+
+  // Bloquear Siguiente
+  document.getElementById("btn-next").disabled = true;
+
+  // Reiniciar animación del contenedor
+  const card = document.getElementById("q-card");
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'card-in 0.35s ease';
+}
+
+function selectAnswer(btn, origIdx, q) {
+  if (answered) return;
+
+  const isCorrect = (origIdx === q.ans);
+  const fb = document.getElementById("feedback");
+  const allBtns = document.querySelectorAll(".option-btn");
+
+  if (isCorrect) {
+    // CORRECTA (en cualquiera de los dos intentos)
+    answered = true;
+    btn.classList.add("correct");
+    
+    // Desactivar todas las opciones
+    allBtns.forEach(b => b.disabled = true);
+    
+    fb.className = "feedback correct";
+    fb.innerHTML = `<span class="icon">✓</span><strong>¡CORRECTO!</strong> ${q.exp}`;
+    fb.style.display = "block";
+    
+    document.getElementById("btn-next").disabled = false;
+    document.getElementById("btn-next").focus();
+  } else {
+    // INCORRECTA
+    if (currentAttempts === 0) {
+      // PRIMER FALLO -> OPORTUNIDAD SECUNDARIA
+      currentAttempts = 1;
+      btn.disabled = true;
+      btn.classList.add("wrong");
+      
+      fb.className = "feedback warning";
+      fb.innerHTML = `<span class="icon">⚠</span><strong>RESPUESTA INCORRECTA.</strong> Tienes una segunda oportunidad para esta pregunta. Intenta de nuevo seleccionando otra opción.`;
+      fb.style.display = "block";
+    } else {
+      // SEGUNDO FALLO -> SE DESCUENTA 1 PUNTO
+      answered = true;
+      btn.classList.add("wrong");
+      
+      // Aplicar deducción directa
+      points = Math.max(0, points - 1);
+      document.getElementById("stat-points").textContent = points;
+
+      // Desactivar opciones
+      allBtns.forEach(b => b.disabled = true);
+
+      // Mostrar cuál era la correcta
+      allBtns.forEach((b, pos) => {
+        if (pos === correctMappedGlobal) b.classList.add("reveal-correct");
+      });
+
+      fb.className = "feedback wrong";
+      fb.innerHTML = `<span class="icon">✗</span><strong>INCORRECTO (SEGUNDO INTENTO).</strong> Se descuenta 1 punto de la calificación total.<br><br><em>Justificación:</em> ${q.exp}`;
+      fb.style.display = "block";
+
+      document.getElementById("btn-next").disabled = false;
+      document.getElementById("btn-next").focus();
+    }
+  }
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= questions.length) {
+    finishExam();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ═══════════════════════════════════════
+//  CONVERSIÓN DE NOTA SEGÚN TABLA EXACTA
+// ═══════════════════════════════════════
+function getFinalGrade(pts) {
+  const safePts = Math.max(0, Math.min(40, pts));
+  if (safePts === 0) return "1.0";
+  // El mapa de conversión exacto obedece a la función lineal: Nota = 1.0 + (Puntos * 0.1)
+  // Ejemplos: 40 pts = 5.0 || 20 pts = 3.0 || 1 pt = 1.1
+  return (1.0 + (safePts * 0.1)).toFixed(1);
+}
+
+// ═══════════════════════════════════════
+//  FINALIZACIÓN DE LA EVALUACIÓN
+// ═══════════════════════════════════════
+function finishExam() {
+  clearInterval(timerInterval);
+  const finalTime = formatTime(elapsedSeconds);
+  const finalGradeStr = getFinalGrade(points);
+
+  // Registrar en localStorage para bloquear reintentos de forma segura
+  localStorage.setItem("quiz_completed", "true");
+  localStorage.setItem("final_points", points);
+  localStorage.setItem("final_grade", finalGradeStr);
+  localStorage.setItem("final_time", finalTime);
+  localStorage.setItem("student_name", studentName);
+  localStorage.setItem("student_grade", studentGrade);
+  localStorage.removeItem("quiz_in_progress"); // Remover estado intermedio
+
+  // Pintar datos en el Modal
+  document.getElementById("res-name").textContent = studentName;
+  document.getElementById("res-grade").textContent = studentGrade;
+  document.getElementById("res-points").textContent = `${points} / 40`;
+  document.getElementById("res-time").textContent = finalTime;
+  document.getElementById("res-grade-final").textContent = finalGradeStr;
+
+  // Activar modal en pantalla
+  document.getElementById("results-modal").classList.add("active");
+}
+</script>
+</body>
+</html>
