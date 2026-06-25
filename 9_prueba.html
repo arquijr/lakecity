@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KALI LINUX // Terminal de Penetración v3.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-cyan:   #00f5ff;
+    --neon-pink:   #ff00c8;
+    --neon-green:  #39ff14;
+    --neon-yellow: #fff01f;
+    --neon-purple: #b700ff;
+    --dark-bg:     #0a0a0a;
+    --dark-panel:  #141414;
+    --dark-card:   #121812;
+    --grid-line:   rgba(57, 255, 20, 0.05);
+    --text-main:   #c8ffc8;
+    --text-dim:    #558c55;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark-bg);
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    transition: background-color 0.3s ease;
+  }
+
+  body.alarm-active {
+    animation: alarm-pulse 1.2s infinite;
+  }
+
+  @keyframes alarm-pulse {
+    0%, 100% { background-color: #0a0a0a; }
+    50% { background-color: #240005; }
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.2) 2px,
+      rgba(0,0,0,0.2) 4px
+    );
+    pointer-events: none; z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+    position: relative; z-index: 1;
+  }
+
+  /* ══════════════════════
+     HEADER
+  ══════════════════════ */
+  header {
+    text-align: center;
+    padding: 20px 20px 10px;
+    position: relative;
+  }
+
+  .header-eyebrow {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--neon-green);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    animation: blink-line 3s infinite;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
+    font-weight: 900;
+    line-height: 1.1;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 15px rgba(57,255,20,0.4));
+    margin-bottom: 6px;
+  }
+
+  .header-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--neon-cyan);
+    letter-spacing: 0.15em;
+    margin-bottom: 12px;
+  }
+
+  .neon-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-green), var(--neon-cyan), transparent);
+    margin: 0 auto 15px;
+    max-width: 500px;
+    box-shadow: 0 0 10px var(--neon-green);
+  }
+
+  /* ══════════════════════
+     SCREENS
+  ══════════════════════ */
+  .screen {
+    display: none;
+    animation: card-in 0.4s ease;
+  }
+
+  .screen.active {
+    display: block;
+  }
+
+  /* Registro */
+  .reg-card {
+    background: var(--dark-panel);
+    border: 1px solid rgba(57, 255, 20, 0.25);
+    border-radius: 8px;
+    padding: 36px 30px;
+    margin: 0 auto;
+    max-width: 500px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .reg-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+    box-shadow: 0 0 10px var(--neon-green);
+  }
+
+  .form-group {
+    margin-bottom: 24px;
+    text-align: left;
+  }
+
+  .form-group label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--neon-green);
+    margin-bottom: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(57, 255, 20, 0.3);
+    border-radius: 4px;
+    padding: 12px 14px;
+    color: var(--text-main);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 12px rgba(0, 245, 255, 0.3);
+  }
+
+  /* MATRIZ DE SERVIDORES OBJETIVO */
+  .node-grid-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    letter-spacing: 0.15em;
+    text-align: left;
+  }
+
+  .node-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+    margin-bottom: 24px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(57, 255, 20, 0.2);
+    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .node-dot {
+    height: 22px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(57, 255, 20, 0.15);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(57, 255, 20, 0.3);
+  }
+
+  .node-dot.active-node {
+    background: rgba(0, 245, 255, 0.1);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 8px var(--neon-cyan);
+    color: var(--neon-cyan);
+  }
+
+  .node-dot.secured {
+    background: rgba(57, 255, 20, 0.15);
+    border-color: var(--neon-green);
+    box-shadow: 0 0 8px var(--neon-green);
+    color: var(--neon-green);
+  }
+
+  .node-dot.compromised {
+    background: rgba(255, 0, 80, 0.15);
+    border-color: #ff0050;
+    box-shadow: 0 0 8px #ff0050;
+    color: #ff0050;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .stat-chip {
+    background: var(--dark-panel);
+    border: 1px solid rgba(57,255,20,0.25);
+    border-radius: 4px;
+    padding: 8px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-chip .label { color: var(--text-dim); }
+  .stat-chip .value { color: var(--neon-green); font-weight: bold; }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .progress-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 10px var(--neon-green);
+  }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: var(--dark-card);
+    border: 1px solid rgba(57, 255, 20, 0.2);
+    border-radius: 8px;
+    padding: 32px 28px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+    box-shadow: 0 0 8px var(--neon-green);
+  }
+
+  .q-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .q-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: var(--neon-cyan);
+    letter-spacing: 0.2em;
+  }
+
+  .q-category {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .cat-definicion { background: rgba(0,245,255,0.08);  color: var(--neon-cyan);    border: 1px solid rgba(0,245,255,0.2); }
+  .cat-kernel     { background: rgba(183,0,255,0.08);   color: var(--neon-purple);  border: 1px solid rgba(183,0,255,0.2); }
+  .cat-historia   { background: rgba(255,240,31,0.08);  color: var(--neon-yellow);  border: 1px solid rgba(255,240,31,0.2); }
+  .cat-distro     { background: rgba(57,255,20,0.08);   color: var(--neon-green);   border: 1px solid rgba(57,255,20,0.2); }
+
+  .q-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.55;
+    color: var(--text-main);
+    margin-bottom: 26px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* OPCIONES */
+  .options-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(57, 255, 20, 0.2);
+    border-radius: 5px;
+    padding: 13px 16px;
+    color: var(--text-main);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: rgba(57,255,20,0.06);
+    border-color: var(--neon-green);
+    box-shadow: 0 0 14px rgba(57,255,20,0.2);
+    transform: translateX(4px);
+  }
+
+  .opt-letter {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    width: 26px; height: 26px;
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(57,255,20,0.05);
+    border: 1px solid rgba(57,255,20,0.25);
+    color: var(--neon-green);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-btn.correct {
+    background: rgba(57,255,20,0.1);
+    border-color: var(--neon-green);
+    box-shadow: 0 0 18px rgba(57,255,20,0.25);
+  }
+
+  .option-btn.correct .opt-letter {
+    background: rgba(57,255,20,0.2);
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+  }
+
+  .option-btn.wrong {
+    background: rgba(255,0,80,0.1);
+    border-color: #ff0050;
+    box-shadow: 0 0 18px rgba(255,0,80,0.25);
+  }
+
+  .option-btn.wrong .opt-letter {
+    background: rgba(255,0,80,0.2);
+    border-color: #ff0050;
+    color: #ff0050;
+  }
+
+  .option-btn.reveal-correct {
+    background: rgba(57,255,20,0.04);
+    border-color: rgba(57,255,20,0.4);
+    box-shadow: 0 0 10px rgba(57,255,20,0.1);
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  /* FEEDBACK */
+  .feedback {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 5px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    display: none;
+    animation: fade-up 0.3s ease;
+  }
+
+  .feedback.correct {
+    background: rgba(57,255,20,0.05);
+    border: 1px solid rgba(57,255,20,0.25);
+    color: var(--neon-green);
+  }
+
+  .feedback.warning {
+    background: rgba(255, 0, 80, 0.1);
+    border: 1px solid #ff0050;
+    color: #ff6b8a;
+    box-shadow: 0 0 15px rgba(255, 0, 80, 0.15);
+  }
+
+  .feedback.wrong {
+    background: rgba(255,0,80,0.05);
+    border: 1px solid rgba(255,0,80,0.2);
+    color: #ff6b8a;
+  }
+
+  /* BOTONES */
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px 30px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-next {
+    background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+    color: #000;
+    box-shadow: 0 0 20px rgba(57,255,20,0.3);
+  }
+
+  .btn-next:hover:not(:disabled) {
+    box-shadow: 0 0 30px rgba(57,255,20,0.5);
+    transform: translateY(-2px);
+  }
+
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* BLOCK SCREEN */
+  .blocked-card {
+    background: rgba(255, 0, 80, 0.02);
+    border: 1px solid rgba(255, 0, 80, 0.3);
+    border-radius: 8px;
+    padding: 40px;
+    max-width: 550px;
+    margin: 40px auto 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .blocked-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left:0; right:0;
+    height: 3px;
+    background: #ff0050;
+    box-shadow: 0 0 15px #ff0050;
+  }
+
+  .blocked-title {
+    font-family: 'Orbitron', monospace;
+    color: #ff0050;
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+  }
+
+  .blocked-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    text-align: left;
+    white-space: pre-line;
+  }
+
+  /* MODAL DE RESULTADO FINAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal-box {
+    background: var(--dark-panel);
+    border: 2px solid var(--neon-green);
+    box-shadow: 0 0 40px rgba(57, 255, 20, 0.3);
+    border-radius: 8px;
+    max-width: 550px;
+    width: 90%;
+    padding: 36px 30px;
+    text-align: center;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .modal-overlay.active .modal-box {
+    transform: scale(1);
+  }
+
+  .modal-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--neon-green);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .modal-data {
+    margin: 20px 0;
+    text-align: left;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(57,255,20,0.15);
+    padding: 18px 22px;
+    border-radius: 6px;
+  }
+
+  .modal-data-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+  }
+
+  .modal-data-row:last-child { margin-bottom: 0; }
+  .modal-data-row .label { color: var(--text-dim); }
+  .modal-data-row .val { color: var(--text-main); font-weight: bold; }
+
+  .final-grade-wrap {
+    margin-top: 24px;
+    background: rgba(57,255,20,0.06);
+    border: 1px solid rgba(57,255,20,0.3);
+    padding: 16px;
+    border-radius: 6px;
+  }
+
+  .final-score-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: var(--neon-green);
+    line-height: 1;
+    text-shadow: 0 0 15px rgba(57,255,20,0.5);
+  }
+
+  .final-grade-lbl {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--neon-green);
+    letter-spacing: 0.2em;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  /* ANIMACIONES */
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink-line {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.5; }
+  }
+
+  .ticker {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(57,255,20,0.3);
+    letter-spacing: 0.2em;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-eyebrow">root@kali:~# ./start_exploit_module_2026.sh</div>
+    <h1>KALI PENTESTING SYSTEM<br>OPERACIÓN EXPLOIT OS</h1>
+    <div class="header-sub">9° GRADO &nbsp;·&nbsp; SIMULADOR DE INFILTRACIÓN DE SERVIDORES</div>
+    <div class="neon-bar"></div>
+  </header>
+
+  <div class="ticker" id="ticker">KALI OS LOADER V3.0... CARGANDO MÓDULOS DE METASPLOIT... LISTO PARA CONEXIÓN...</div>
+
+  <!-- REGISTRATION SCREEN -->
+  <div id="reg-screen" class="screen active">
+    <div class="reg-card">
+      <h2 style="font-family:'Orbitron', monospace; font-size:1.1rem; margin-bottom:24px; color:var(--neon-green)">KALI TERMINAL // ACCESO PENTESTER</h2>
+      <form id="reg-form" onsubmit="startExam(event)">
+        <div class="form-group">
+          <label for="student-name">Alias / Nombre del Operador:</label>
+          <input type="text" id="student-name" required placeholder="Ej: Hacker_9000">
+        </div>
+        <div class="form-group">
+          <label for="student-grade">Subred de Infiltración (Sección):</label>
+          <select id="student-grade" required>
+            <option value="" disabled selected>Selecciona tu subred de red</option>
+            <option value="9A">9A (Subred Alfa)</option>
+            <option value="9B">9B (Subred Beta)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-next" style="width:100%">ESTABLECER ENLACE KALI ▶</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" class="screen">
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+      <div class="stat-chip">
+        <span class="label">OBJETIVO ACTIVO</span>
+        <span class="value" id="stat-q">—</span>
+      </div>
+      <div class="stat-chip">
+        <span class="label">ANONIMATO PROXY</span>
+        <span class="value" id="stat-points" style="color:var(--neon-green)">100%</span>
+      </div>
+      <div class="stat-chip">
+        <span class="label">TIEMPO EJECUCIÓN</span>
+        <span class="value" id="stat-time">0:00</span>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>ESTADO DE PENETRACIÓN GLOBAL</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- VISUAL GRID MAP OF 40 NODES -->
+    <div class="node-grid-title">MATRIZ DE RACK OPERATIVO (40 SERVIDORES OBJETIVO)</div>
+    <div class="node-grid" id="node-grid"></div>
+
+    <div class="question-card" id="q-card">
+      <div class="q-meta">
+        <span class="q-number" id="q-number">PREGUNTA 01 / 40</span>
+        <span class="q-category" id="q-cat">CARGANDO...</span>
+      </div>
+      <div class="q-text" id="q-text">Estableciendo vector de ataque...</div>
+      <div class="options-grid" id="options-grid"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-next" id="btn-next" disabled onclick="nextQuestion()">INFILTRAR SIGUIENTE SERVIDOR ▶</button>
+    </div>
+  </div>
+
+  <!-- BLOCKED SCREEN -->
+  <div id="blocked-screen" class="screen">
+    <div class="blocked-card">
+      <div class="blocked-title" id="blocked-title">ACCESO BLOQUEADO</div>
+      <div class="blocked-text" id="blocked-text">Consola de depuración bloqueada...</div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- MODAL RESULTADOS -->
+<div class="modal-overlay" id="results-modal">
+  <div class="modal-box">
+    <div class="modal-title" style="color: var(--neon-green)">CIBER-REPORTE DE PENETRACIÓN</div>
+    <div class="ticker">// METASPLOIT COMPILATION COMPLETED // SYSTEM SHUTDOWN //</div>
+    
+    <div class="modal-data">
+      <div class="modal-data-row">
+        <span class="label">Operador Kali:</span>
+        <span class="val" id="res-name">—</span>
+      </div>
+      <div class="modal-data-row">
+        <span class="label">Subred Infiltrada:</span>
+        <span class="val" id="res-grade">—</span>
+      </div>
+      <div class="modal-data-row">
+        <span class="label">Servidores Hackeados:</span>
+        <span class="val" id="res-points">—</span>
+      </div>
+      <div class="modal-data-row">
+        <span class="label">Tiempo total de Ataque:</span>
+        <span class="val" id="res-time">—</span>
+      </div>
+    </div>
+
+    <div class="final-grade-wrap">
+      <div class="final-score-val" id="res-grade-final">0.0</div>
+      <div class="final-grade-lbl">GRADO DE COMPILACIÓN (NOTA FINAL)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  BANCO UNIFICADO DE PREGUNTAS (40 PREGUNTAS ASOCIADAS A SERVIDORES DE LA TEORÍA)
+// ═══════════════════════════════════════
+const ALL_QUESTIONS = [
+  {
+    target: "Servidor GM-NAA I/O [IBM 704 OS]",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en Servidor GM-NAA I/O (1956): ¿Cuál es considerado el primer sistema operativo conocido de la historia, desarrollado para la IBM 704 para automatizar procesos repetitivos?",
+    opts: [
+      "Bell Labs UNIX",
+      "Microsoft MS-DOS",
+      "GM-NAA I/O",
+      "Apple Lisa OS"
+    ],
+    ans: 2,
+    exp: "El primer sistema operativo conocido de la historia fue el GM-NAA I/O, creado en 1956 para automatizar procesos repetitivos en la computadora IBM 704."
+  },
+  {
+    target: "Servidor IBM 704 Hardware",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en Hardware IBM (1956): ¿Para qué modelo de computadora de IBM fue diseñado el primer sistema operativo conocido (GM-NAA I/O)?",
+    opts: [
+      "IBM 704",
+      "IBM PC XT",
+      "IBM System/360",
+      "IBM AS/400"
+    ],
+    ans: 0,
+    exp: "GM-NAA I/O fue desarrollado específicamente por General Motors y North American Aviation para la computadora mainframe IBM 704."
+  },
+  {
+    target: "Servidor Bell Labs Research Node",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en Bell Labs (1962): ¿Qué prestigiosa institución inició investigaciones iniciales sobre sistemas operativos avanzados en el año 1962?",
+    opts: [
+      "MIT (Massachusetts Institute of Technology)",
+      "Bell Labs (Laboratorios Bell)",
+      "IBM Research Center",
+      "Google Labs"
+    ],
+    ans: 1,
+    exp: "Bell Labs inició investigaciones sobre sistemas avanzados de cómputo en 1962, sentando las bases teóricas de lo que luego sería UNIX."
+  },
+  {
+    target: "Servidor UNIX Mainframe",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en UNIX Base (1969): ¿En qué año nació el influyente sistema operativo UNIX, creado por Ken Thompson y Dennis Ritchie?",
+    opts: ["1962", "1969", "1971", "1975"],
+    ans: 1,
+    exp: "El sistema operativo UNIX nació en 1969 en los laboratorios Bell Labs de la mano de Ken Thompson y Dennis Ritchie."
+  },
+  {
+    target: "Servidor UNIX Architecture Core",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en Arquitectura UNIX (1969): ¿Cuáles son las cuatro características fundamentales que definieron a UNIX en su nacimiento?",
+    opts: [
+      "Monousuario, monotarea, sin sistema de archivos y código libre",
+      "Multiusuario, multitarea, sistema de archivos jerárquico y seguridad mediante permisos",
+      "Interfaz gráfica, mouse, menús de ventanas y compatibilidad con discos ópticos",
+      "Procesamiento por lotes rígido, almacenamiento electromecánico y sin permisos"
+    ],
+    ans: 1,
+    exp: "UNIX destacó por introducir un esquema lógico revolucionario: ser multiusuario, multitarea, poseer un sistema de archivos jerárquico y seguridad por permisos."
+  },
+  {
+    target: "Servidor UNIX Versión 1 [First Release]",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en UNIX V1 (1971): En el año 1971 se publicó una de las siguientes versiones de UNIX, ¿cuál corresponde?",
+    opts: ["UNIX Versión 1", "UNIX Versión 2.0", "UNIX Versión 3.0", "UNIX Versión LTS"],
+    ans: 0,
+    exp: "La primera versión oficial de UNIX (UNIX Versión 1) fue publicada formalmente en el año 1971."
+  },
+  {
+    target: "Servidor Microsoft BASIC Engine",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en BASIC Module (1975): ¿Qué importante producto de software para microordenadores publicó la naciente Microsoft en el año 1975?",
+    opts: ["MS-DOS", "Microsoft BASIC", "Windows 1.0", "OS/2"],
+    ans: 1,
+    exp: "Microsoft inició su historia de éxito de software para consumo en 1975 publicando su versión del intérprete BASIC."
+  },
+  {
+    target: "Servidor Microsoft MS-DOS Shell",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en Terminal MS-DOS (1981): ¿Qué sistema operativo de comandos lanzado en 1981 dominó las computadoras personales durante toda la década de los 80?",
+    opts: ["UNIX", "Apple Lisa", "MS-DOS", "OS/2"],
+    ans: 2,
+    exp: "MS-DOS, basado enteramente en interfaces de línea de comandos de texto, dominó el sector doméstico y empresarial de PC de los años 80."
+  },
+  {
+    target: "Servidor Apple Lisa GUI",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en Apple Lisa (1983): Lanzado en 1983, ¿cuál fue el primer sistema operativo comercial dotado con una interfaz gráfica avanzada?",
+    opts: ["Macintosh", "Apple Lisa", "Windows 1.0", "OS/2"],
+    ans: 1,
+    exp: "El primer computador comercialmente disponible con un sistema operativo de interfaz gráfica GUI de alta resolución fue Apple Lisa en 1983."
+  },
+  {
+    target: "Servidor Macintosh Desktop",
+    cat: "HISTORIA", catClass: "cat-historia",
+    q: "Infiltración en Macintosh OS (1984): ¿Qué computadora comercializada en 1984 popularizó masivamente el uso de ventanas, iconos y ratón (mouse)?",
+    opts: ["Apple Lisa", "Macintosh", "IBM PC XT", "Xerox Alto"],
+    ans: 1,
+    exp: "La Macintosh de Apple (1984) popularizó a nivel masivo y de consumo general el escritorio con ventanas, carpetas, iconos y mouse."
+  },
+  {
+    cat: "DEFINICIÓN", catClass: "cat-definicion",
+    target: "Servidor Core OS Definition",
+    q: "Infiltración en Core OS (Definición): ¿Qué es un Sistema Operativo (SO) según la teoría estudiada?",
+    opts: [
+      "El software principal que sirve de puente entre el usuario y la máquina administrando el hardware",
+      "Un microprocesador físico encargado del almacenamiento binario",
+      "Una aplicación de oficina para crear hojas de cálculo",
+      "Un lenguaje de programación desarrollado por Bell Labs en 1969"
+    ],
+    ans: 0,
+    exp: "El sistema operativo es el software base imprescindible que administra el hardware y sirve de puente para que las aplicaciones de usuario funcionen."
+  },
+  {
+    cat: "DEFINICIÓN", catClass: "cat-definicion",
+    target: "Servidor RAM & CPU Resource Allocator",
+    q: "Infiltración en Resource Allocator: ¿Qué función del Sistema Operativo se encarga de asignar la memoria RAM, el tiempo de procesador y el espacio de almacenamiento a cada programa?",
+    opts: [
+      "Administración de archivos",
+      "Control de dispositivos",
+      "Gestión de recursos",
+      "Interfaz de usuario"
+    ],
+    ans: 2,
+    exp: "La gestión de recursos reparte equitativa e inteligentemente los componentes físicos (RAM, procesador, disco) entre las apps activas."
+  },
+  {
+    cat: "DEFINICIÓN", catClass: "cat-definicion",
+    target: "Servidor GUI Window Server",
+    q: "Infiltración en Window GUI: ¿Qué función del Sistema Operativo proporciona un entorno visual (como escritorios o ventanas) o de comandos para interactuar con el equipo?",
+    opts: [
+      "Control de dispositivos",
+      "Interfaz de usuario",
+      "Administración de archivos",
+      "Gestión de recursos"
+    ],
+    ans: 1,
+    exp: "La interfaz de usuario provee las herramientas estéticas (carpetas, iconos, barras) para que el operador controle la máquina."
+  },
+  {
+    cat: "DEFINICIÓN", catClass: "cat-definicion",
+    q: "Infiltración en Servidor FileSystem. ¿Qué función del Sistema Operativo es responsable directa de organizar, guardar y recuperar la información del usuario?",
+    opts: [
+      "Administración de archivos",
+      "Control de dispositivos",
+      "Interfaz de usuario",
+      "Gestión de recursos"
+    ],
+    ans: 0,
+    exp: "La administración de archivos maneja de forma jerárquica la creación, lectura y almacenamiento de todos los ficheros lógicos."
+  },
+  {
+    cat: "DEFINICIÓN", catClass: "cat-definicion",
+    q: "Infiltración en Servidor I/O. ¿Qué función del Sistema Operativo permite que los periféricos (como teclado, mouse e impresora) se comuniquen con el sistema?",
+    opts: [
+      "Gestión de recursos",
+      "Interfaz de usuario",
+      "Control de dispositivos",
+      "Administración de archivos"
+    ],
+    ans: 2,
+    exp: "El control de dispositivos gestiona los controladores o drivers para asegurar la comunicación fluida con teclados, mouses o impresoras."
+  },
+  {
+    cat: "KERNEL", catClass: "cat-kernel",
+    target: "Servidor Kernel Core Module",
+    q: "Infiltración en Kernel Core: ¿Qué es el Kernel en la estructura interna de un Sistema Operativo?",
+    opts: [
+      "La interfaz gráfica externa de ventanas",
+      "El núcleo del sistema operativo",
+      "Un compilador de código de alto nivel",
+      "La memoria de almacenamiento secundario"
+    ],
+    ans: 1,
+    exp: "El kernel es el corazón o núcleo central del SO, encargándose de las operaciones más delicadas de control del sistema."
+  },
+  {
+    cat: "KERNEL", catClass: "cat-kernel",
+    target: "Servidor Kernel RAM / CPU Scheduler",
+    q: "Infiltración en Kernel Scheduler: ¿Cuál de las siguientes es una función directa del Kernel según el material de estudio?",
+    opts: [
+      "Diseñar aplicaciones de bases de datos",
+      "Proporcionar una interfaz de comandos visual",
+      "Administrar la memoria RAM, controlar la CPU y gestionar discos",
+      "Instalar suites de oficina para el usuario"
+    ],
+    ans: 2,
+    exp: "Las tareas fundamentales del Kernel incluyen coordinar la memoria RAM, el procesador (CPU), los discos de almacenamiento y periféricos."
+  },
+  {
+    cat: "KERNEL", catClass: "cat-kernel",
+    target: "Servidor Linux Kernel Definition",
+    q: "Infiltración en Linux Kernel. De acuerdo con las aclaraciones del texto, ¿cuál de las siguientes afirmaciones sobre Linux es correcta?",
+    opts: [
+      "Linux es un sistema operativo completo listo para usar",
+      "Linux NO es un sistema operativo completo; Linux es un kernel",
+      "Linux es una suite de oficina gráfica basada en comandos",
+      "Linux es una distribución propietaria de IBM"
+    ],
+    ans: 1,
+    exp: "Linux es únicamente el núcleo (kernel). Para usarse como SO requiere componentes y aplicaciones (distribución)."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor Ubuntu & Debian Repository",
+    q: "Infiltración en Distros Libres: Según el texto, ¿cuáles de los siguientes ejemplos corresponden a Sistemas Operativos completos basados en el Kernel Linux?",
+    opts: [
+      "Ubuntu, Debian y Fedora",
+      "IBM OS/2 y MS-DOS",
+      "Xerox Alto y Macintosh",
+      "Apple Lisa y Windows 1.0"
+    ],
+    ans: 0,
+    exp: "Ubuntu, Debian y Fedora son sistemas completos formados al integrar el kernel Linux con utilidades operativas completas."
+  },
+  {
+    cat: "KERNEL", catClass: "cat-kernel",
+    target: "Servidor Linux Kernel 0.01 Legacy",
+    q: "Infiltración en Linux 0.01 (1991): ¿En qué año se lanzó la primera versión del Kernel de Linux, denominada Linux 0.01?",
+    opts: ["1989", "1991", "1993", "1995"],
+    ans: 1,
+    exp: "Linus Torvalds publicó la versión primigenia de código abierto 0.01 en el año 1991."
+  },
+  {
+    cat: "KERNEL", catClass: "cat-kernel",
+    target: "Servidor Linux Kernel 1.0 Node",
+    q: "Infiltración en Linux 1.0 (1994): ¿En qué año se alcanzó formalmente el lanzamiento de la versión de Linux 1.0?",
+    opts: ["1992", "1994", "1996", "1998"],
+    ans: 1,
+    exp: "La versión estable 1.0 del kernel Linux llegó oficialmente en el año 1994."
+  },
+  {
+    cat: "KERNEL", catClass: "cat-kernel",
+    target: "Servidor Linux Kernel 3.0 Node",
+    q: "Infiltración en Linux 3.0 (2011): ¿En qué año se liberó la versión estable de transición Linux 3.0?",
+    opts: ["2001", "2003", "2011", "2015"],
+    ans: 2,
+    exp: "El kernel de Linux saltó generacionalmente a la versión 3.0 en el año 2011."
+  },
+  {
+    cat: "KERNEL", catClass: "cat-kernel",
+    target: "Servidor Linux Kernel 6.12 LTS",
+    q: "Infiltración en Linux 6.12 LTS (2025): ¿Qué versión con soporte de largo plazo (LTS) del Kernel Linux se consolidó en el año 2025?",
+    opts: [
+      "Linux 5.15 LTS",
+      "Linux 6.1 LTS",
+      "Linux 6.6 LTS",
+      "Linux 6.12 LTS"
+    ],
+    ans: 3,
+    exp: "El desarrollo de largo plazo de Linux consolidó su versión LTS 6.12 en el año 2025."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Windows 1.0 GUI",
+    q: "Infiltración en Windows 1.0 (1985): ¿Cuál fue la primera interfaz gráfica desarrollada y comercializada por Microsoft en el año 1985?",
+    opts: ["Windows 3.1", "MS-DOS 2.0", "Windows 1.0", "Windows 95"],
+    ans: 2,
+    exp: "La primera aproximación gráfica de Microsoft fue Windows 1.0, lanzado al mercado en el año 1985."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor IBM OS/2 Core",
+    q: "Infiltración en IBM OS/2 (1987): ¿Qué compañía tecnológica desarrolló el sistema operativo OS/2 en el año 1987?",
+    opts: ["IBM", "Microsoft", "Apple", "Bell Labs"],
+    ans: 0,
+    exp: "IBM desarrolló e introdujo en solitario o cooperación de la época el sistema operativo de escritorio OS/2 en 1987."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor MCC Interim Linux Legacy",
+    q: "Infiltración en MCC Interim (1992): ¿Qué distribución se lanzó en 1992 y destaca como una de las primeras disponibles públicamente para descargar?",
+    opts: ["Slackware", "MCC Interim Linux", "Debian", "SUSE"],
+    ans: 1,
+    exp: "MCC Interim Linux, de 1992, es históricamente valorada por ser de las primeras distros que los usuarios podían descargar libremente en Internet."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor Debian Project Stability",
+    q: "Infiltración en Debian Project (1993): ¿En qué año nació Debian como un proyecto de distribución comunitaria basado en la estabilidad y el software libre?",
+    opts: ["1991", "1992", "1993", "1995"],
+    ans: 2,
+    exp: "En 1993 nació la distribución comunitaria Debian, un pilar del software libre."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor Red Hat Linux Corporate",
+    q: "Infiltración en Red Hat (1993): Fundada en 1993, ¿qué distribución se convertiría posteriormente en uno de los pilares empresariales de Linux más importantes?",
+    opts: ["Red Hat Linux", "Debian", "Slackware", "SuSE"],
+    ans: 0,
+    exp: "La marca Red Hat fue fundada en 1993 y dominó el mercado corporativo comercial de servidores Linux."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor SUSE Linux Germany",
+    q: "Infiltración en SUSE Linux (1994): ¿En qué país de Europa fue fundada y creada la distribución SUSE Linux en el año 1994?",
+    opts: ["Francia", "Reino Unido", "Alemania", "Suiza"],
+    ans: 2,
+    exp: "SUSE Linux tiene sus raíces en Alemania, donde fue concebida en 1994."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Windows 95 Desktop",
+    q: "Infiltración en Windows 95 (1995): En el año 1995 se lanzó Windows 95, ¿qué novedades del sistema operativo cambiaron para siempre la interacción doméstica?",
+    opts: [
+      "Consola de comandos UNIX nativa y cifrado de permisos",
+      "Menú Inicio, Barra de tareas y soporte Plug and Play",
+      "La primera terminal táctil integrada",
+      "Eliminación de la interfaz gráfica y carpetas locales"
+    ],
+    ans: 1,
+    exp: "Windows 95 popularizó de forma masiva el Menú Inicio, la Barra de Tareas y el reconocimiento de hardware Plug and Play."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Windows NT Corporate Node",
+    q: "Infiltración en Windows NT (1996): ¿Qué sistema de Microsoft lanzado en 1996 estuvo orientado específicamente a entornos de empresas y servidores?",
+    opts: ["Windows 95", "Windows NT 4.0", "Windows 98", "Windows 2000"],
+    ans: 1,
+    exp: "Windows NT 4.0 se enfocó prioritariamente en robustecer el uso empresarial y de servidores de alto rendimiento en 1996."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Windows 98 USB & DVD",
+    q: "Infiltración en Windows 98 (1998): Lanzado en 1998, ¿qué mejoras de hardware integró de manera avanzada el sistema Windows 98?",
+    opts: [
+      "Soporte USB mejorado, Plug and Play avanzado y soporte para DVD",
+      "Soporte exclusivo para disquetes y eliminación de carpetas virtuales",
+      "Integración nativa con procesadores de 64 bits",
+      "Primer kernel de comandos híbrido sin mouse"
+    ],
+    ans: 0,
+    exp: "Windows 98 incorporó soporte nativo maduro para puertos USB, mejor Plug and Play y lectoras de DVD domésticas."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Windows XP Legacy Node",
+    q: "Infiltración en Windows XP (2001): ¿En qué año se lanzó Windows XP, consolidándose como uno de los sistemas operativos más exitosos y longevos de Microsoft?",
+    opts: ["1998", "2000", "2001", "2003"],
+    ans: 2,
+    exp: "Windows XP, amado por su estabilidad visual y de núcleo, llegó al mercado en 2001."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Apple Mac OS X UNIX Core",
+    q: "Infiltración en Mac OS X (2001): Surgido en el año 2001, ¿en qué arquitectura de sistemas operativos clásicos está basado el Mac OS X de Apple?",
+    opts: ["Windows NT", "MS-DOS", "UNIX", "OS/2"],
+    ans: 2,
+    exp: "Apple rediseñó por completo su SO lanzando Mac OS X basado sobre los robustos cimientos de UNIX."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor Fedora Core Community",
+    q: "Infiltración en Fedora Linux (2003): Surgido originalmente en 2003, ¿qué distribución de Linux nació como un proyecto comunitario patrocinado por Red Hat?",
+    opts: ["SUSE", "Debian", "Fedora", "Ubuntu"],
+    ans: 2,
+    exp: "Fedora Linux se estableció como el brazo libre y comunitario patrocinado por Red Hat en 2003."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor Ubuntu Canonical Repository",
+    q: "Infiltración en Ubuntu (2004): ¿Qué compañía u organización lanzó en el año 2004 la distribución Ubuntu 4.10, enfocada en facilidad de uso y gratuidad?",
+    opts: ["Red Hat", "Canonical", "IBM", "Google"],
+    ans: 1,
+    exp: "Ubuntu fue creado y distribuido de forma gratuita por la empresa Canonical a partir del año 2004."
+  },
+  {
+    cat: "DISTRO LINUX", catClass: "cat-distro",
+    target: "Servidor openSUSE Community",
+    q: "Infiltración en openSUSE (2005): ¿En qué año openSUSE se convirtió oficialmente en la versión comunitaria del ecosistema SUSE?",
+    opts: ["2001", "2003", "2005", "2007"],
+    ans: 2,
+    exp: "SUSE abrió su desarrollo a la comunidad liberando openSUSE en el año 2005."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Windows Vista Aero GUI",
+    q: "Infiltración en Windows Vista (2007): ¿Qué versión de Windows, lanzada en 2007, introdujo de manera destacada la interfaz visual Aero y mejoras de seguridad?",
+    opts: ["Windows XP", "Windows Vista", "Windows 7", "Windows 8"],
+    ans: 1,
+    exp: "Windows Vista (2007) integró el diseño Aero con transparencias y complejos protocolos de seguridad de sistema."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Google Android Linux Mobile",
+    q: "Infiltración en Android OS (2008): ¿En qué año Google presentó de forma oficial el sistema operativo móvil Android basado en Linux?",
+    opts: ["2005", "2007", "2008", "2010"],
+    ans: 2,
+    exp: "Android, el gigante del ecosistema móvil basado en el Kernel Linux, fue presentado en 2008."
+  },
+  {
+    cat: "HISTORIA", catClass: "cat-historia",
+    target: "Servidor Google ChromeOS Cloud Edge",
+    q: "Infiltración en ChromeOS Cloud (2011): ¿Qué sistema operativo de Google enfocado en la computación en la nube llegó al mercado en el año 2011?",
+    opts: ["Android", "ChromeOS", "Debian Bookworm", "Linux Mint"],
+    ans: 1,
+    exp: "Google lanzó ChromeOS en 2011 como una arquitectura enfocada enteramente en la nube."
+  }
+];
+
+// ═══════════════════════════════════════
+//  ESTADO GLOBAL DEL EXAMEN
+// ═══════════════════════════════════════
+let studentName = "";
+let studentGrade = "";
+let questions = [];
+let currentIndex = 0;
+let points = 40; // Empezamos en 40 puntos totales (Nivel de Anonimato)
+let currentAttempts = 0; // Intentos para la pregunta actual (máx. 2)
+let answered = false;
+let timerInterval;
+let elapsedSeconds = 0;
+let correctMappedGlobal = null;
+
+// Control del temporizador de Alarma de 2 minutos
+let alarmTimerInterval;
+let alarmSecondsRemaining = 120; // 2 minutos
+
+// ═══════════════════════════════════════
+//  AL ARRANQUE: CONTROLES DE ACCESO
+// ═══════════════════════════════════════
+window.onload = function() {
+  if (localStorage.getItem("quiz_completed") === "true") {
+    showSystemLock("SESIÓN CERRADA // EXPLOIT NO DISPONIBLE", 
+      `LOG: El operador ${localStorage.getItem("student_name")} de la subred ${localStorage.getItem("student_grade")} ya realizó esta simulación de ataque.\nNivel de anonimato final: ${localStorage.getItem("final_points")}/40 (Grado de Compilación: ${localStorage.getItem("final_grade")}).\nTiempo de hackeo: ${localStorage.getItem("final_time")}.\nNo se permiten múltiples vectores de ataque desde esta IP.`);
+    return;
+  }
+
+  if (localStorage.getItem("quiz_in_progress") === "true") {
+    localStorage.setItem("quiz_completed", "true");
+    localStorage.setItem("final_points", "0");
+    localStorage.setItem("final_grade", "1.0");
+    localStorage.setItem("final_time", "N/A");
+    localStorage.setItem("student_name", localStorage.getItem("temp_name") || "Pentester_Anonimo");
+    localStorage.setItem("student_grade", localStorage.getItem("temp_grade") || "Desconocida");
+    
+    showSystemLock("[K_PANIC]: TRACE-ROUTE DETECTADO", 
+      `----------------------------------------------------------------------
+      [¡ALERTA!] SISTEMA DE MONITOREO DE RED DETECTÓ RECARGA DE PÁGINA (F5) o CIERRE INVOLUNTARIO.
+      EL PROTOCOLO ANTI-RANSOMWARE SE HA DISPARADO EN TU MÁQUINA DE ATAQUE KALI.
+      
+      LOG: IP del operador rastreada por el ciber-crimen.
+      ESTADO: SESIÓN VIRTUAL DESTRUIDA.
+      CALIFICACIÓN ASIGNADA DE FORMA IRREVOCABLE: Nota 1.0 (0/40 servidores controlados).
+      ----------------------------------------------------------------------`);
+  }
+};
+
+// ═══════════════════════════════════════
+//  RESTRICCIONES FÍSICAS DE TECLADO
+// ═══════════════════════════════════════
+window.addEventListener('keydown', (e) => {
+  if (localStorage.getItem("quiz_in_progress") === "true") {
+    if (e.key === 'F5' || 
+        (e.ctrlKey && e.key === 'r') || 
+        (e.metaKey && e.key === 'r') ||
+        e.key === 'BrowserRefresh') {
+      e.preventDefault();
+      alert("KALI SECURITY SHIELD: La recarga de la terminal está deshabilitada durante la inyección de exploits.");
+    }
+  }
+});
+
+// Mensaje antes de salir
+window.addEventListener('beforeunload', (e) => {
+  if (localStorage.getItem("quiz_in_progress") === "true" && localStorage.getItem("quiz_completed") !== "true") {
+    e.preventDefault();
+    e.returnValue = "Si sales o recargas, tu vector de ataque Kali se destruirá por completo.";
+  }
+});
+
+// ═══════════════════════════════════════
+//  LÓGICA DE CONTROL DEL JUEGO
+// ═══════════════════════════════════════
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showSystemLock(title, message) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("blocked-screen").classList.add("active");
+  document.getElementById("blocked-title").textContent = title;
+  document.getElementById("blocked-text").textContent = message;
+}
+
+function startExam(e) {
+  e.preventDefault();
+  
+  studentName = document.getElementById("student-name").value.trim();
+  studentGrade = document.getElementById("student-grade").value;
+
+  if (!studentName || !studentGrade) return;
+
+  localStorage.setItem("quiz_in_progress", "true");
+  localStorage.setItem("temp_name", studentName);
+  localStorage.setItem("temp_grade", studentGrade);
+
+  questions = shuffle(ALL_QUESTIONS);
+  currentIndex = 0;
+  points = 40;
+  elapsedSeconds = 0;
+
+  generateNodeGrid();
+
+  document.getElementById("reg-screen").classList.remove("active");
+  document.getElementById("quiz-screen").classList.add("active");
+
+  startTimer();
+  renderQuestion();
+}
+
+function generateNodeGrid() {
+  const grid = document.getElementById("node-grid");
+  grid.innerHTML = "";
+  for (let i = 0; i < 40; i++) {
+    const dot = document.createElement("div");
+    dot.className = "node-dot";
+    dot.id = `node-${i}`;
+    dot.textContent = `S-${String(i + 1).padStart(2, '0')}`;
+    grid.appendChild(dot);
+  }
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    elapsedSeconds++;
+    document.getElementById("stat-time").textContent = formatTime(elapsedSeconds);
+  }, 1000);
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function renderQuestion() {
+  answered = false;
+  currentAttempts = 0;
+  clearInterval(alarmTimerInterval);
+  document.body.classList.remove("alarm-active");
+
+  const q = questions[currentIndex];
+  const total = questions.length;
+
+  // Actualizar nodo activo en el grid visual
+  document.querySelectorAll(".node-dot").forEach(dot => dot.classList.remove("active-node"));
+  const activeDot = document.getElementById(`node-${currentIndex}`);
+  if (activeDot) activeDot.classList.add("active-node");
+
+  // Actualizar barra de progreso
+  const pct = Math.round((currentIndex / total) * 100);
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("prog-pct").textContent = pct + "%";
+
+  document.getElementById("stat-q").textContent = `${String(currentIndex + 1).padStart(2,'0')} / ${total}`;
+  document.getElementById("stat-points").textContent = `${Math.round((points/40)*100)}%`;
+
+  document.getElementById("q-number").textContent = `CONEXIÓN OBJETIVO: ${q.target}`;
+  
+  const catEl = document.getElementById("q-cat");
+  catEl.textContent = q.cat;
+  catEl.className = `q-category ${q.catClass}`;
+
+  document.getElementById("q-text").textContent = `[TARGET_PROMPT] ~# ${q.q}`;
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const grid = document.getElementById("options-grid");
+  grid.innerHTML = "";
+
+  const indices = shuffle([0, 1, 2, 3]);
+  correctMappedGlobal = null;
+
+  indices.forEach((origIdx, displayPos) => {
+    if (origIdx === q.ans) correctMappedGlobal = displayPos;
+
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.dataset.orig = origIdx;
+    btn.innerHTML = `<span class="opt-letter">${letters[displayPos]}</span> <span class="opt-text">${q.opts[origIdx]}</span>`;
+    btn.onclick = () => selectAnswer(btn, origIdx, q);
+    grid.appendChild(btn);
+  });
+
+  const fb = document.getElementById("feedback");
+  fb.style.display = "none";
+  fb.className = "feedback";
+
+  document.getElementById("btn-next").disabled = true;
+
+  const card = document.getElementById("q-card");
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'card-in 0.35s ease';
+}
+
+function selectAnswer(btn, origIdx, q) {
+  if (answered) return;
+
+  const isCorrect = (origIdx === q.ans);
+  const fb = document.getElementById("feedback");
+  const allBtns = document.querySelectorAll(".option-btn");
+  const activeDot = document.getElementById(`node-${currentIndex}`);
+
+  if (isCorrect) {
+    // EXPLOIT EXITOSO
+    answered = true;
+    clearInterval(alarmTimerInterval);
+    document.body.classList.remove("alarm-active");
+
+    btn.classList.add("correct");
+    allBtns.forEach(b => b.disabled = true);
+
+    if (activeDot) {
+      activeDot.classList.remove("active-node");
+      activeDot.classList.add("secured");
+    }
+    
+    fb.className = "feedback correct";
+    fb.innerHTML = `<span class="icon">[+]</span><strong>EXPLOIT INYECTADO: ACCESO ROOT CONCEDIDO.</strong> El servidor ha sido penetrado con éxito.<br><br><em>Comando compilado:</em> ${q.exp}`;
+    fb.style.display = "block";
+    
+    document.getElementById("btn-next").disabled = false;
+    document.getElementById("btn-next").focus();
+  } else {
+    // INTENTO ERRONEO
+    if (currentAttempts === 0) {
+      // PRIMERA ALERTA ROJA (KALI DETECTADO POR EL SERVIDOR ENEMIGO)
+      currentAttempts = 1;
+      btn.disabled = true;
+      btn.classList.add("wrong");
+      
+      document.body.classList.add("alarm-active");
+
+      // Lanzar cuenta regresiva de 2 minutos
+      alarmSecondsRemaining = 120;
+      fb.className = "feedback warning";
+      fb.innerHTML = `<span class="icon">[!]</span><strong>[¡ALERTA ROJA!] DETECCIÓN DE RED HOSTIL.</strong> El cortafuegos de este servidor detectó tu inyección de código. Su administrador de seguridad ha iniciado un contra-hackeo.<br>Iniciando script de ofuscación. Tienes exactamente <strong><span id="alarm-timer">02:00</span></strong> minutos para aplicar el exploit de bypass antes de ser baneado.`;
+      fb.style.display = "block";
+
+      startAlarmTimer(q);
+    } else {
+      // SEGUNDO INTENTO INCORRECTO -> PROXY DESTRUIDO
+      failQuestion(q);
+    }
+  }
+}
+
+function startAlarmTimer(q) {
+  clearInterval(alarmTimerInterval);
+  alarmTimerInterval = setInterval(() => {
+    alarmSecondsRemaining--;
+    
+    const minutes = Math.floor(alarmSecondsRemaining / 60);
+    const seconds = alarmSecondsRemaining % 60;
+    const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    const timerDisplay = document.getElementById("alarm-timer");
+    if (timerDisplay) {
+      timerDisplay.textContent = timeString;
+    }
+
+    if (alarmSecondsRemaining <= 0) {
+      clearInterval(alarmTimerInterval);
+      failQuestion(q);
+    }
+  }, 1000);
+}
+
+function failQuestion(q) {
+  answered = true;
+  clearInterval(alarmTimerInterval);
+  document.body.classList.remove("alarm-active");
+
+  const fb = document.getElementById("feedback");
+  const allBtns = document.querySelectorAll(".option-btn");
+  const activeDot = document.getElementById(`node-${currentIndex}`);
+
+  // Restar puntos de Anónimato
+  points = Math.max(0, points - 1);
+  document.getElementById("stat-points").textContent = `${Math.round((points/40)*100)}%`;
+
+  if (activeDot) {
+    activeDot.classList.remove("active-node");
+    activeDot.classList.add("compromised");
+  }
+
+  allBtns.forEach(b => {
+    b.disabled = true;
+    if (b.classList.contains("correct") === false && b.classList.contains("wrong") === false) {
+      if (parseInt(b.dataset.orig) === q.ans) {
+        b.classList.add("reveal-correct");
+      }
+    }
+  });
+
+  fb.className = "feedback wrong";
+  fb.innerHTML = `<span class="icon">[!]</span><strong>ATAQUE FALLIDO & RASTREO EXITOSO:</strong> Tu proxy de anonimato fue reventado. El servidor objetivo bloqueó tu puerto y encriptó tu terminal local. Se pierde integridad en red (-1% de anonimato).<br><br><em>Comando de bypass esperado:</em> ${q.exp}`;
+  fb.style.display = "block";
+
+  document.getElementById("btn-next").disabled = false;
+  document.getElementById("btn-next").focus();
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= questions.length) {
+    finishExam();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ═══════════════════════════════════════
+//  CONVERSIÓN DE NOTA SEGÚN TABLA EXACTA
+// ═══════════════════════════════════════
+function getFinalGrade(pts) {
+  const safePts = Math.max(0, Math.min(40, pts));
+  if (safePts === 0) return "1.0";
+  return (1.0 + (safePts * 0.1)).toFixed(1);
+}
+
+// ═══════════════════════════════════════
+//  FINALIZACIÓN DE LA EVALUACIÓN
+// ═══════════════════════════════════════
+function finishExam() {
+  clearInterval(timerInterval);
+  clearInterval(alarmTimerInterval);
+  document.body.classList.remove("alarm-active");
+
+  const finalTime = formatTime(elapsedSeconds);
+  const finalGradeStr = getFinalGrade(points);
+
+  localStorage.setItem("quiz_completed", "true");
+  localStorage.setItem("final_points", points);
+  localStorage.setItem("final_grade", finalGradeStr);
+  localStorage.setItem("final_time", finalTime);
+  localStorage.setItem("student_name", studentName);
+  localStorage.setItem("student_grade", studentGrade);
+  localStorage.removeItem("quiz_in_progress");
+
+  document.getElementById("res-name").textContent = studentName;
+  document.getElementById("res-grade").textContent = studentGrade;
+  document.getElementById("res-points").textContent = `${points} de 40 Servidores Dominados`;
+  document.getElementById("res-time").textContent = finalTime;
+  document.getElementById("res-grade-final").textContent = finalGradeStr;
+
+  document.getElementById("results-modal").classList.add("active");
+}
+</script>
+</body>
+</html>

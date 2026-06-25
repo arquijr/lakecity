@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Operativo - Presentación Interactiva</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #38bdf8;
+            --accent2: #818cf8;
+            --accent3: #34d399;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        .slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 4rem;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            overflow-y: auto;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+        .slide.prev {
+            transform: translateX(-100px);
+        }
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--accent3);
+            margin: 1rem 0 0.5rem;
+        }
+        p, li {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: var(--text);
+            max-width: 900px;
+        }
+        ul { list-style: none; padding: 0; }
+        li {
+            position: relative;
+            padding-left: 1.8rem;
+            margin-bottom: 0.6rem;
+        }
+        li::before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1100px;
+            margin-top: 1rem;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(56, 189, 248, 0.15);
+        }
+        .card h3 { margin-top: 0; font-size: 1.2rem; }
+        .card p, .card li { font-size: 1rem; color: var(--text-muted); }
+        .card li::before { color: var(--accent2); }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(129,140,248,0.1));
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin: 1rem 0;
+            max-width: 800px;
+            text-align: center;
+        }
+        .highlight-box strong {
+            color: var(--accent3);
+            font-size: 1.3rem;
+        }
+        .timeline {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            max-width: 1000px;
+            margin-top: 1rem;
+        }
+        .timeline-item {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            padding: 0.8rem 1.2rem;
+            border-radius: 0 8px 8px 0;
+            min-width: 180px;
+        }
+        .timeline-item .year {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .timeline-item .event {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+        }
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        .btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .btn:hover {
+            background: var(--accent);
+            color: var(--bg-dark);
+            border-color: var(--accent);
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transition: width 0.3s;
+            z-index: 100;
+        }
+        .slide-counter {
+            position: fixed;
+            top: 1.5rem;
+            right: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            z-index: 100;
+        }
+        .keyboard-hint {
+            position: fixed;
+            bottom: 1rem;
+            right: 2rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            z-index: 100;
+        }
+        .competencias-box {
+            position: fixed;
+            top: 1.5rem;
+            left: 2rem;
+            z-index: 100;
+        }
+        .competencias-box button {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .competencias-panel {
+            position: fixed;
+            top: 3.5rem;
+            left: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.2rem;
+            width: 320px;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        .competencias-panel.show { display: block; }
+        .competencias-panel h4 {
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+        .competencias-panel p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+            line-height: 1.5;
+        }
+        .competencias-panel strong {
+            color: var(--text);
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1000px;
+            width: 100%;
+            align-items: start;
+        }
+        .os-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            max-width: 900px;
+            margin-top: 1rem;
+        }
+        .os-item {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .os-item .icon { font-size: 1.8rem; margin-bottom: 0.3rem; }
+        .os-item .name { font-weight: 600; color: var(--accent); font-size: 0.95rem; }
+        .os-item .desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .slide { padding: 1.5rem; }
+            .two-col { grid-template-columns: 1fr; }
+            .os-grid { grid-template-columns: 1fr 1fr; }
+            .card-grid { grid-template-columns: 1fr; }
+            .timeline { flex-direction: column; align-items: center; }
+        }
+        .fade-in { animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .big-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+        }
+        .kernel-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+        .layer-box {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .layer-app { background: rgba(56,189,248,0.2); border: 2px solid var(--accent); color: var(--accent); }
+        .layer-kernel { background: rgba(129,140,248,0.2); border: 2px solid var(--accent2); color: var(--accent2); }
+        .layer-hw { background: rgba(52,211,153,0.2); border: 2px solid var(--accent3); color: var(--accent3); }
+        .arrow { font-size: 1.5rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="slide-counter" id="slideCounter">1 / 12</div>
+
+    <div class="competencias-box">
+        <button onclick="toggleCompetencias()">📚 Competencias</button>
+        <div class="competencias-panel" id="compPanel">
+            <h4>Competencias trabajadas</h4>
+            <p><strong>Competencia Digital:</strong> Manejo de entornos virtuales, TIC y herramientas tecnológicas.</p>
+            <p><strong>Competencia Matemática, Ciencia y Tecnología:</strong> Aplicación de pensamiento lógico y científico a situaciones reales.</p>
+            <p><strong>Aprender a Aprender:</strong> Gestión autónoma del aprendizaje y pensamiento crítico.</p>
+            <p><strong>Trabajo en Equipo/Colaborativo:</strong> Capacidad para trabajar de manera interdisciplinaria e inclusiva.</p>
+        </div>
+    </div>
+
+    <div class="presentation" id="presentation">
+
+        <!-- SLIDE 1: Portada -->
+        <div class="slide active">
+            <div class="fade-in" style="text-align:center;">
+                <div style="font-size:5rem; margin-bottom:1rem;">💻</div>
+                <h1>Sistema Operativo</h1>
+                <p style="color:var(--text-muted); font-size:1.3rem; margin-bottom:2rem;">Teoría fundamental para estudiantes de Informática</p>
+                <div class="highlight-box">
+                    <p>El software principal de cualquier dispositivo electrónico.<br>Funciona como <strong>puente entre el usuario y la máquina</strong>.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: ¿Qué es un SO? -->
+        <div class="slide">
+            <h2>¿Qué es el Sistema Operativo?</h2>
+            <p style="text-align:center; margin-bottom:2rem; color:var(--text-muted);">Software principal que administra el hardware y permite que otras aplicaciones funcionen.</p>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🧠 Gestión de recursos</h3>
+                    <ul>
+                        <li>Asigna memoria RAM</li>
+                        <li>Distribuye tiempo de procesador (CPU)</li>
+                        <li>Administra espacio de almacenamiento</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🖥️ Interfaz de usuario</h3>
+                    <ul>
+                        <li>Entorno visual (escritorio, ventanas)</li>
+                        <li>Interfaz de comandos (CLI)</li>
+                        <li>Permite la interacción humano-máquina</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>📁 Administración de archivos</h3>
+                    <ul>
+                        <li>Organiza la información</li>
+                        <li>Guarda y recupera datos</li>
+                        <li>Gestiona permisos de acceso</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🔌 Control de dispositivos</h3>
+                    <ul>
+                        <li>Teclado y mouse</li>
+                        <li>Impresoras y escáneres</li>
+                        <li>Comunicación hardware-software</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: El Kernel -->
+        <div class="slide">
+            <h2>¿Qué es el Kernel?</h2>
+            <p style="text-align:center; margin-bottom:1.5rem;">El <strong style="color:var(--accent3);">núcleo</strong> de un sistema operativo.</p>
+            <div class="kernel-visual">
+                <div class="layer-box layer-app">Aplicaciones<br><span style="font-size:0.8rem; font-weight:400;">Software de usuario</span></div>
+                <div class="arrow">↕</div>
+                <div class="layer-box layer-kernel">KERNEL<br><span style="font-size:0.8rem; font-weight:400;">Núcleo del SO</span></div>
+                <div class="arrow">↕</div>
+                <div class="layer-box layer-hw">Hardware<br><span style="font-size:0.8rem; font-weight:400;">CPU, RAM, Disco</span></div>
+            </div>
+            <div class="card-grid" style="max-width:800px;">
+                <div class="card">
+                    <h3>⚡ Funciones del Kernel</h3>
+                    <ul>
+                        <li>Administrar memoria RAM</li>
+                        <li>Controlar la CPU</li>
+                        <li>Gestionar discos</li>
+                        <li>Administrar dispositivos</li>
+                        <li>Comunicar software y hardware</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color:var(--accent3);">
+                    <h3>🚨 Dato importante</h3>
+                    <p style="font-size:1.1rem; color:var(--text);"><strong>Linux NO es un sistema operativo completo.</strong></p>
+                    <p style="margin-top:0.5rem;">Linux es un <strong style="color:var(--accent3);">kernel</strong>.</p>
+                    <p style="margin-top:0.8rem; font-size:0.95rem;">Ubuntu, Debian y Fedora sí son sistemas operativos completos que utilizan el kernel Linux.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Evolución Kernel Linux -->
+        <div class="slide">
+            <h2>Evolución del Kernel Linux</h2>
+            <p style="text-align:center; margin-bottom:1rem; color:var(--text-muted);">De la versión 0.01 hasta la serie 6.x actual</p>
+            <div class="timeline">
+                <div class="timeline-item"><div class="year">1991</div><div class="event">Linux 0.01</div></div>
+                <div class="timeline-item"><div class="year">1992</div><div class="event">Linux 0.95</div></div>
+                <div class="timeline-item"><div class="year">1994</div><div class="event">Linux 1.0</div></div>
+                <div class="timeline-item"><div class="year">1996</div><div class="event">Linux 2.0</div></div>
+                <div class="timeline-item"><div class="year">1999</div><div class="event">Linux 2.2</div></div>
+                <div class="timeline-item"><div class="year">2001</div><div class="event">Linux 2.4</div></div>
+                <div class="timeline-item"><div class="year">2003</div><div class="event">Linux 2.6</div></div>
+                <div class="timeline-item"><div class="year">2011</div><div class="event">Linux 3.0</div></div>
+                <div class="timeline-item"><div class="year">2015</div><div class="event">Linux 4.0</div></div>
+                <div class="timeline-item"><div class="year">2019</div><div class="event">Linux 5.0</div></div>
+                <div class="timeline-item"><div class="year">2022</div><div class="event">Linux 5.15 LTS</div></div>
+                <div class="timeline-item"><div class="year">2023</div><div class="event">Linux 6.1 LTS</div></div>
+                <div class="timeline-item"><div class="year">2024</div><div class="event">Linux 6.6 LTS</div></div>
+                <div class="timeline-item"><div class="year">2025</div><div class="event">Linux 6.12 LTS</div></div>
+                <div class="timeline-item" style="border-color:var(--accent3);"><div class="year" style="color:var(--accent3);">2026</div><div class="event">Serie Linux 6.x avanzada</div></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Historia SO (1956-1985) -->
+        <div class="slide">
+            <h2>Historia de los Sistemas Operativos</h2>
+            <p style="text-align:center; margin-bottom:1.5rem; color:var(--text-muted);">Los primeros pasos de la computación moderna</p>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1956 – GM-NAA I/O</h3>
+                    <ul>
+                        <li>Primer sistema operativo conocido</li>
+                        <li>Desarrollado para la IBM 704</li>
+                        <li>Automatizaba procesos repetitivos</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1962 – Desarrollo de UNIX</h3>
+                    <ul>
+                        <li>Bell Labs inicia investigaciones</li>
+                        <li>Sistemas operativos avanzados</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1969 – Nace UNIX</h3>
+                    <ul>
+                        <li>Creado por Ken Thompson y Dennis Ritchie</li>
+                        <li>Multiusuario y multitarea</li>
+                        <li>Sistema de archivos jerárquico</li>
+                        <li>Seguridad mediante permisos</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1971 – UNIX Versión 1</h3>
+                    <ul>
+                        <li>Primera versión oficial</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1975 – Microsoft BASIC</h3>
+                    <ul>
+                        <li>Microsoft publica BASIC</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1981 – MS-DOS</h3>
+                    <ul>
+                        <li>Sistema basado en comandos</li>
+                        <li>Dominó las PC durante los años 80</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1983 – Apple Lisa</h3>
+                    <ul>
+                        <li>Primer sistema comercial con interfaz gráfica avanzada</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1984 – Macintosh</h3>
+                    <ul>
+                        <li>Populariza ventanas, iconos y ratón</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1985 – Windows 1.0</h3>
+                    <ul>
+                        <li>Primera interfaz gráfica de Microsoft</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Historia SO (1987-2001) -->
+        <div class="slide">
+            <h2>Historia de los Sistemas Operativos (II)</h2>
+            <p style="text-align:center; margin-bottom:1.5rem; color:var(--text-muted);">La era de las distribuciones Linux y Windows moderno</p>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1987 – OS/2</h3>
+                    <ul><li>Desarrollado por IBM</li></ul>
+                </div>
+                <div class="card">
+                    <h3>1992 – Slackware</h3>
+                    <ul><li>Una de las primeras distribuciones Linux</li></ul>
+                </div>
+                <div class="card">
+                    <h3>1992 – MCC Interim Linux</h3>
+                    <ul><li>Primera distribución Linux pública</li></ul>
+                </div>
+                <div class="card">
+                    <h3>1993 – Debian</h3>
+                    <ul>
+                        <li>Proyecto comunitario</li>
+                        <li>Estabilidad y software libre</li>
+                        <li>Base para muchas distribuciones</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1993 – Red Hat Linux</h3>
+                    <ul><li>Se convertiría en la distribución empresarial más importante</li></ul>
+                </div>
+                <div class="card">
+                    <h3>1994 – SuSE Linux</h3>
+                    <ul><li>Creada en Alemania</li></ul>
+                </div>
+                <div class="card">
+                    <h3>1995 – Windows 95</h3>
+                    <ul>
+                        <li>Menú Inicio</li>
+                        <li>Barra de tareas</li>
+                        <li>Plug and Play</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>1996 – Windows NT 4.0</h3>
+                    <ul><li>Orientado a empresas y servidores</li></ul>
+                </div>
+                <div class="card">
+                    <h3>1998 – Windows 98</h3>
+                    <ul>
+                        <li>Soporte USB mejorado</li>
+                        <li>Plug and Play avanzado</li>
+                        <li>Soporte para DVD</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>2000 – Windows 2000</h3>
+                    <ul><li>Diseñado para ambientes empresariales</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2001 – Windows XP</h3>
+                    <ul><li>Uno de los sistemas operativos más exitosos</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2001 – Mac OS X</h3>
+                    <ul><li>Basado en UNIX</li></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: Historia SO (2002-2015) -->
+        <div class="slide">
+            <h2>Historia de los Sistemas Operativos (III)</h2>
+            <p style="text-align:center; margin-bottom:1.5rem; color:var(--text-muted);">Consolidación de Linux, móviles y la nube</p>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>2002 – RHEL</h3>
+                    <ul><li>Red Hat Enterprise Linux para el mercado empresarial</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2003 – Fedora</h3>
+                    <ul><li>Proyecto comunitario patrocinado por Red Hat</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2004 – Ubuntu 4.10</h3>
+                    <ul>
+                        <li>Lanzado por Canonical</li>
+                        <li>Fácil instalación, gratuito</li>
+                        <li>Amplia comunidad</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>2005 – openSUSE</h3>
+                    <ul><li>Versión comunitaria de SUSE</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2007 – Windows Vista</h3>
+                    <ul>
+                        <li>Interfaz Aero</li>
+                        <li>Mejoras de seguridad</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>2007 – iOS</h3>
+                    <ul><li>Aparece junto al primer iPhone</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2008 – Android</h3>
+                    <ul><li>Presentado por Google, basado en Linux</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2009 – Windows 7</h3>
+                    <ul><li>Reconocido por su estabilidad</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2011 – ChromeOS</h3>
+                    <ul><li>Llega al mercado</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2012 – Windows 8</h3>
+                    <ul><li>Introduce la interfaz Metro</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2014 – Linux Mint</h3>
+                    <ul><li>Se consolida como distribución popular para hogar</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2015 – Windows 10</h3>
+                    <ul><li>Microsoft adopta actualizaciones continuas</li></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Historia SO (2016-2026) -->
+        <div class="slide">
+            <h2>Historia de los Sistemas Operativos (IV)</h2>
+            <p style="text-align:center; margin-bottom:1.5rem; color:var(--text-muted);">De la popularización de Linux hasta la era de la IA</p>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>2016 – Manjaro</h3>
+                    <ul><li>Acerca la potencia de Arch Linux a usuarios menos experimentados</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2018 – Elementary OS</h3>
+                    <ul><li>Destaca por su diseño inspirado en macOS</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2019 – Linux domina la nube</h3>
+                    <ul><li>Principales plataformas de computación en la nube usan Linux</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2021-2022 – Windows 11</h3>
+                    <ul><li>Anunciado en 2021, lanzado oficialmente en 2022</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2023 – Debian 12 Bookworm</h3>
+                    <ul><li>Nueva versión estable de Debian</li></ul>
+                </div>
+                <div class="card">
+                    <h3>2024 – Ubuntu 24.04 LTS</h3>
+                    <ul>
+                        <li>Una de las versiones LTS más utilizadas</li>
+                        <li>También destacan: Fedora 40, Linux Mint 22, openSUSE Leap, Arch Linux</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color:var(--accent3); grid-column: span 2;">
+                    <h3>2025 – Consolidación de la IA en los SO</h3>
+                    <ul>
+                        <li>Inteligencia artificial integrada</li>
+                        <li>Automatización avanzada</li>
+                        <li>Computación en la nube nativa</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color:var(--accent); grid-column: span 2;">
+                    <h3>2026 – Situación Actual</h3>
+                    <ul>
+                        <li>Distribuciones Linux consolidadas: Ubuntu, Debian, Fedora, RHEL, Linux Mint, Arch, Manjaro, openSUSE, Elementary OS</li>
+                        <li>SO dominantes: Windows 11, Android, iOS, macOS, Linux</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Distribuciones Linux -->
+        <div class="slide">
+            <h2>Distribuciones Linux más conocidas</h2>
+            <p style="text-align:center; margin-bottom:1.5rem; color:var(--text-muted);">Cada una con su propia filosofía y comunidad</p>
+            <div class="os-grid">
+                <div class="os-item"><div class="icon">🐧</div><div class="name">Ubuntu</div><div class="desc">Fácil, popular, Canonical</div></div>
+                <div class="os-item"><div class="icon">🌀</div><div class="name">Debian</div><div class="desc">Estable, software libre</div></div>
+                <div class="os-item"><div class="icon">🔴</div><div class="name">Fedora</div><div class="desc">Innovación, Red Hat</div></div>
+                <div class="os-item"><div class="icon">🎩</div><div class="name">RHEL</div><div class="desc">Empresarial, soporte</div></div>
+                <div class="os-item"><div class="icon">🌿</div><div class="name">Linux Mint</div><div class="desc">Amigable para hogar</div></div>
+                <div class="os-item"><div class="icon">⛰️</div><div class="name">Arch Linux</div><div class="desc">Minimalista, rolling</div></div>
+                <div class="os-item"><div class="icon">🏔️</div><div class="name">Manjaro</div><div class="desc">Arch accesible</div></div>
+                <div class="os-item"><div class="icon">🦎</div><div class="name">openSUSE</div><div class="desc">Versátil, YaST</div></div>
+                <div class="os-item"><div class="icon">🍃</div><div class="name">Elementary OS</div><div class="desc">Diseño elegante</div></div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: SO Dominantes -->
+        <div class="slide">
+            <h2>Sistemas Operativos Dominantes</h2>
+            <p style="text-align:center; margin-bottom:2rem; color:var(--text-muted);">El panorama actual de la computación</p>
+            <div class="two-col" style="max-width:900px;">
+                <div>
+                    <div class="card" style="margin-bottom:1rem;">
+                        <h3>💻 Escritorio / Servidor</h3>
+                        <ul>
+                            <li>Windows 11</li>
+                            <li>macOS</li>
+                            <li>Linux (distribuciones)</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>☁️ Nube / Servidores</h3>
+                        <ul>
+                            <li>Linux (dominante)</li>
+                            <li>Windows Server</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="card" style="margin-bottom:1rem;">
+                        <h3>📱 Móviles</h3>
+                        <ul>
+                            <li>Android (basado en Linux)</li>
+                            <li>iOS</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h3>🌐 Web / Ligero</h3>
+                        <ul>
+                            <li>ChromeOS</li>
+                            <li>Distribuciones Linux livianas</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: Resumen Visual -->
+        <div class="slide">
+            <h2>Resumen Visual</h2>
+            <div style="max-width:900px; width:100%;">
+                <div class="kernel-visual" style="margin:2rem 0;">
+                    <div class="layer-box layer-app" style="min-width:200px;">
+                        <strong>APLICACIONES</strong><br>
+                        <span style="font-size:0.85rem;">Navegador, Office, Juegos</span>
+                    </div>
+                    <div class="arrow">↕</div>
+                    <div class="layer-box layer-kernel" style="min-width:200px;">
+                        <strong>SISTEMA OPERATIVO</strong><br>
+                        <span style="font-size:0.85rem;">Kernel + Utilidades + GUI</span>
+                    </div>
+                    <div class="arrow">↕</div>
+                    <div class="layer-box layer-hw" style="min-width:200px;">
+                        <strong>HARDWARE</strong><br>
+                        <span style="font-size:0.85rem;">CPU, RAM, Disco, GPU</span>
+                    </div>
+                </div>
+                <div class="highlight-box" style="margin-top:1rem;">
+                    <p>El <strong>Kernel</strong> es el corazón del SO. <strong>Linux</strong> es un kernel.<br>
+                    <strong>Ubuntu, Debian, Fedora</strong> son sistemas operativos completos.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: Cierre -->
+        <div class="slide">
+            <div style="text-align:center;">
+                <div style="font-size:4rem; margin-bottom:1rem;">🎓</div>
+                <h2>¡Listo para estudiar!</h2>
+                <p style="max-width:700px; margin:1.5rem auto; color:var(--text-muted);">
+                    Revisa las diapositivas cuantas veces necesites. Presta atención a la diferencia entre <strong>kernel</strong> y <strong>sistema operativo</strong>, y a la evolución histórica de los principales SO.
+                </p>
+                <div class="highlight-box" style="margin:2rem auto;">
+                    <p><strong>Consejo:</strong> Crea una línea de tiempo propia con los años y eventos que más recuerdes. ¡La práctica hace al maestro!</p>
+                </div>
+                <p style="color:var(--text-muted); font-size:0.9rem; margin-top:2rem;">
+                    Presentación interactiva · Informática · 2026
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="btn" id="btnPrev" onclick="changeSlide(-1)">◀ Anterior</button>
+        <button class="btn" id="btnNext" onclick="changeSlide(1)">Siguiente ▶</button>
+    </div>
+    <div class="keyboard-hint">Usa ← → o las flechas del teclado para navegar</div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressBar = document.getElementById('progressBar');
+        const slideCounter = document.getElementById('slideCounter');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressBar.style.width = progress + '%';
+            slideCounter.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+
+            btnPrev.disabled = currentSlide === 0;
+            btnNext.disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            const newSlide = currentSlide + direction;
+            if (newSlide >= 0 && newSlide < totalSlides) {
+                currentSlide = newSlide;
+                updateSlide();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+
+        function toggleCompetencias() {
+            document.getElementById('compPanel').classList.toggle('show');
+        }
+
+        document.addEventListener('click', (e) => {
+            const box = document.querySelector('.competencias-box');
+            if (!box.contains(e.target)) {
+                document.getElementById('compPanel').classList.remove('show');
+            }
+        });
+
+        updateSlide();
+    </script>
+</body>
+</html>
