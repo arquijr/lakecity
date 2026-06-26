@@ -1,0 +1,360 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.deck{width:100%}
+.slide{display:none;min-height:420px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:0}
+.slide.active{display:flex;flex-direction:column}
+.slide-hero{background:#1F4E79;color:#fff;padding:2.5rem 2rem 2rem}
+.slide-hero .kicker{font-size:12px;font-weight:500;letter-spacing:0.1em;color:#7BAFD4;text-transform:uppercase;margin-bottom:0.5rem}
+.slide-hero h1{font-size:28px;font-weight:500;line-height:1.25;margin-bottom:0.5rem}
+.slide-hero .sub{font-size:15px;color:#A8C8E8;line-height:1.5}
+.slide-body{flex:1;padding:1.75rem 2rem;background:var(--surface-2)}
+.slide-title{font-size:20px;font-weight:500;color:var(--text-primary);margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:0.5px solid var(--border)}
+.step-list{display:flex;flex-direction:column;gap:12px}
+.step{display:flex;gap:14px;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;background:#1F4E79;color:#fff;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-content{flex:1}
+.step-content strong{font-size:14px;font-weight:500;color:var(--text-primary);display:block;margin-bottom:2px}
+.step-content p{font-size:13px;color:var(--text-secondary);line-height:1.5}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.alert-card{border:0.5px solid var(--border);border-radius:10px;padding:1rem 1.25rem;background:var(--surface-2)}
+.alert-card.attention{border-left:3px solid #378ADD}
+.alert-card.action{border-left:3px solid #E24B4A}
+.alert-card h3{font-size:14px;font-weight:500;margin-bottom:6px}
+.alert-card.attention h3{color:#0C447C}
+.alert-card.action h3{color:#A32D2D}
+.alert-card p{font-size:13px;color:var(--text-secondary);line-height:1.5}
+.tag{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;margin-bottom:8px}
+.tag-blue{background:#E6F1FB;color:#0C447C}
+.tag-red{background:#FCEBEB;color:#A32D2D}
+.chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{border:0.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px;color:var(--text-secondary)}
+.chip i{font-size:14px;vertical-align:-2px;margin-right:4px}
+.limit-list{display:flex;flex-direction:column;gap:10px}
+.limit-item{display:flex;gap:12px;align-items:flex-start}
+.limit-icon{width:32px;height:32px;border-radius:8px;background:var(--bg-danger);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.limit-icon i{font-size:16px;color:var(--text-danger)}
+.limit-text strong{font-size:14px;font-weight:500;color:var(--text-primary);display:block}
+.limit-text span{font-size:13px;color:var(--text-secondary)}
+.how-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.how-card{background:var(--surface-1);border-radius:10px;padding:1rem}
+.how-card i{font-size:20px;color:#185FA5;display:block;margin-bottom:8px}
+.how-card strong{font-size:13px;font-weight:500;color:var(--text-primary);display:block;margin-bottom:4px}
+.how-card p{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.req-list{display:flex;flex-direction:column;gap:8px}
+.req-item{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--text-secondary)}
+.req-item i{font-size:16px;color:#185FA5;flex-shrink:0}
+.steps-install{display:flex;flex-direction:column;gap:8px;margin-top:0.5rem}
+.inst{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-secondary)}
+.inst-n{width:20px;height:20px;border-radius:50%;background:#E6F1FB;color:#0C447C;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.accel-box{display:flex;gap:16px}
+.accel-vis{width:90px;height:90px;border:0.5px solid var(--border);border-radius:10px;background:var(--surface-1);display:flex;align-items:center;justify-content:center;flex-shrink:0;flex-direction:column;gap:4px}
+.axis{font-size:11px;font-weight:500;color:var(--text-secondary)}
+.accel-desc{flex:1}
+.accel-desc p{font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:6px}
+.axis-row{display:flex;gap:6px;flex-wrap:wrap}
+.ax-tag{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.ax-x{background:#E6F1FB;color:#0C447C}
+.ax-y{background:#E1F5EE;color:#085041}
+.ax-z{background:#EEEDFE;color:#3C3489}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-top:0.5px solid var(--border);background:var(--surface-1)}
+.nav-dots{display:flex;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);cursor:pointer;border:none;padding:0}
+.dot.on{background:#1F4E79}
+.nav-btns{display:flex;gap:8px}
+.nav-btns button{font-size:13px;padding:6px 16px;cursor:pointer}
+.slide-label{font-size:12px;color:var(--text-muted)}
+.wave-row{display:flex;gap:10px;margin-bottom:12px}
+.wave-card{flex:1;border-radius:8px;padding:0.75rem;border:0.5px solid var(--border)}
+.wave-card.p-wave{background:#E6F1FB;border-color:#85B7EB}
+.wave-card.s-wave{background:#FCEBEB;border-color:#F09595}
+.wave-card h4{font-size:12px;font-weight:500;margin-bottom:4px}
+.wave-card.p-wave h4{color:#0C447C}
+.wave-card.s-wave h4{color:#A32D2D}
+.wave-card p{font-size:12px;line-height:1.5}
+.wave-card.p-wave p{color:#185FA5}
+.wave-card.s-wave p{color:#791F1F}
+.conclusion-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.con-card{background:var(--surface-1);border-radius:10px;padding:1rem;border-left:3px solid #1F4E79}
+.con-card strong{font-size:13px;font-weight:500;color:var(--text-primary);display:block;margin-bottom:4px}
+.con-card p{font-size:12px;color:var(--text-secondary);line-height:1.5}
+</style>
+
+<h2 class="sr-only">Presentacion sobre el sistema de alertas de terremotos de Google para Android</h2>
+
+<div class="deck">
+
+<div class="slide active" id="s0">
+  <div class="slide-hero" style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:420px">
+    <div class="kicker">Tecnologia y seguridad</div>
+    <h1>El sistema de alertas<br>de terremotos de Google</h1>
+    <div class="sub" style="margin-top:1rem;margin-bottom:1.5rem">Como millones de telefonos Android se convierten en la red de sismometros mas grande del mundo</div>
+    <div class="chip-list">
+      <span class="chip"><i class="ti ti-device-mobile" aria-hidden="true"></i>Android 9 o superior</span>
+      <span class="chip"><i class="ti ti-wave-sine" aria-hidden="true"></i>Magnitud 4.5+</span>
+      <span class="chip"><i class="ti ti-bolt" aria-hidden="true"></i>Alerta en milisegundos</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s1">
+  <div class="slide-hero" style="padding:1.25rem 2rem">
+    <div class="kicker">Concepto base</div>
+    <h1 style="font-size:20px">Que es y para que sirve</h1>
+  </div>
+  <div class="slide-body">
+    <div class="two-col" style="gap:20px">
+      <div>
+        <div class="slide-title" style="font-size:16px">La idea central</div>
+        <div class="step-list">
+          <div class="step">
+            <div class="step-num"><i class="ti ti-device-mobile" style="font-size:13px" aria-hidden="true"></i></div>
+            <div class="step-content"><strong>No necesita estaciones fijas</strong><p>Usa los sensores de millones de telefonos Android como sismometros portatiles y gratuitos.</p></div>
+          </div>
+          <div class="step">
+            <div class="step-num"><i class="ti ti-clock-bolt" style="font-size:13px" aria-hidden="true"></i></div>
+            <div class="step-content"><strong>No predice, detecta</strong><p>El sistema no sabe cuando ocurrira un sismo. Actua cuando el terremoto ya inicio, antes de que llegue la onda destructiva.</p></div>
+          </div>
+          <div class="step">
+            <div class="step-num"><i class="ti ti-shield" style="font-size:13px" aria-hidden="true"></i></div>
+            <div class="step-content"><strong>Segundos vitales</strong><p>Los datos digitales viajan a la velocidad de la luz, superando a las ondas sismicas que van entre 3 y 4.5 km/s.</p></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="slide-title" style="font-size:16px">Las dos ondas de un sismo</div>
+        <div class="wave-row" style="flex-direction:column">
+          <div class="wave-card p-wave">
+            <h4>Onda P — primaria</h4>
+            <p>Rapida, casi imperceptible para los humanos. Es la primera en llegar. El acelerometro la capta de inmediato.</p>
+          </div>
+          <div class="wave-card s-wave">
+            <h4>Onda S — secundaria</h4>
+            <p>Mas lenta pero mas poderosa. Es la que causa los danos. La alerta llega antes que esta onda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s2">
+  <div class="slide-hero" style="padding:1.25rem 2rem">
+    <div class="kicker">El sensor clave</div>
+    <h1 style="font-size:20px">El acelerometro</h1>
+  </div>
+  <div class="slide-body">
+    <div class="slide-title">Como funciona el sensor de tu telefono</div>
+    <div class="accel-box" style="margin-bottom:1rem">
+      <div class="accel-vis">
+        <i class="ti ti-axis-x" style="font-size:22px;color:#185FA5" aria-hidden="true"></i>
+        <span class="axis">X · Y · Z</span>
+      </div>
+      <div class="accel-desc">
+        <p>El acelerometro es un microchip (tecnologia MEMS) integrado en la placa base del telefono. Mide cambios de velocidad, gravedad y direccion del movimiento en tres dimensiones.</p>
+        <p>Ya lo usas a diario sin saberlo: rota la pantalla, cuenta tus pasos y estabiliza la camara.</p>
+        <div class="axis-row">
+          <span class="ax-tag ax-x">Eje X — izquierda/derecha</span>
+          <span class="ax-tag ax-y">Eje Y — arriba/abajo</span>
+          <span class="ax-tag ax-z">Eje Z — adelante/atras</span>
+        </div>
+      </div>
+    </div>
+    <div class="how-grid">
+      <div class="how-card">
+        <i class="ti ti-activity" aria-hidden="true"></i>
+        <strong>Siempre encendido</strong>
+        <p>Consume menos del 0.05% de bateria diaria. Es un sensor pasivo que ya esta activo para funciones normales del telefono.</p>
+      </div>
+      <div class="how-card">
+        <i class="ti ti-filter" aria-hidden="true"></i>
+        <strong>Filtra lo cotidiano</strong>
+        <p>Distingue entre caerse, ir en auto, correr o caminar y el patron especifico ondulatorio de una Onda P sismica.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s3">
+  <div class="slide-hero" style="padding:1.25rem 2rem">
+    <div class="kicker">El proceso completo</div>
+    <h1 style="font-size:20px">Como funciona paso a paso</h1>
+  </div>
+  <div class="slide-body">
+    <div class="slide-title">Del sensor a la alerta — en milisegundos</div>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content"><strong>Deteccion — el acelerometro registra la Onda P</strong><p>El telefono inmovil sobre una mesa siente la vibracion sismica primaria antes que cualquier humano.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content"><strong>Envio — paquete de datos anonimo a Google</strong><p>Si el patron coincide con un sismo, el telefono envia la hora exacta y ubicacion aproximada a los servidores de Google.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content"><strong>Validacion — confirmacion masiva (crowdsourcing)</strong><p>Si miles de telefonos en la misma zona reportan exactamente lo mismo al unisono, el algoritmo valida el terremoto y calcula epicentro y magnitud. Un solo telefono es descartado como falso positivo.</p></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content"><strong>Alerta — enviada a la velocidad de la luz</strong><p>Google notifica los dispositivos en el camino de la Onda S antes de que esta llegue. Solo se activa si la magnitud supera 4.5.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s4">
+  <div class="slide-hero" style="padding:1.25rem 2rem">
+    <div class="kicker">Tipos de notificacion</div>
+    <h1 style="font-size:20px">Dos niveles de alerta</h1>
+  </div>
+  <div class="slide-body">
+    <div class="slide-title">El sistema elige el nivel segun la intensidad estimada en tu zona</div>
+    <div class="two-col">
+      <div class="alert-card attention">
+        <span class="tag tag-blue">MMI III y IV — temblor leve</span>
+        <h3>Alerta de atencion</h3>
+        <p>Notificacion estandar en la barra de estado. Respeta el volumen actual del telefono y el modo No molestar. Sugiere estar atento y preparado.</p>
+      </div>
+      <div class="alert-card action">
+        <span class="tag tag-red">MMI V o superior — temblor fuerte</span>
+        <h3>Alerta de accion</h3>
+        <p>Pantalla completa con colores de advertencia. Activa un pitido a maximo volumen y anula cualquier modo de silencio. Muestra la instruccion: Agachate, cubrete y agarrate.</p>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:0.875rem 1rem;background:var(--surface-1);border-radius:8px;border:0.5px solid var(--border)">
+      <p style="font-size:13px;color:var(--text-secondary)"><i class="ti ti-info-circle" style="font-size:15px;vertical-align:-2px;margin-right:6px;color:#185FA5" aria-hidden="true"></i>Ambas alertas solo se activan para sismos de magnitud superior a 4.5. La escala usada internamente es la Escala de Intensidad Mercalli Modificada (MMI).</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s5">
+  <div class="slide-hero" style="padding:1.25rem 2rem">
+    <div class="kicker">Limitaciones</div>
+    <h1 style="font-size:20px">Quien no recibe las alertas</h1>
+  </div>
+  <div class="slide-body">
+    <div class="slide-title">No es universal — exclusiones importantes</div>
+    <div class="limit-list">
+      <div class="limit-item">
+        <div class="limit-icon"><i class="ti ti-device-mobile-off" aria-hidden="true"></i></div>
+        <div class="limit-text"><strong>Apple (iPhone/iOS)</strong><span>Apple no integra este sistema de forma nativa. Los iPhone solo reciben alertas gubernamentales por radiodifusion celular si el pais tiene la infraestructura publica conectada.</span></div>
+      </div>
+      <div class="limit-item">
+        <div class="limit-icon"><i class="ti ti-brand-android" aria-hidden="true"></i></div>
+        <div class="limit-text"><strong>Android sin servicios de Google</strong><span>Telefonos como los Huawei modernos (HarmonyOS o EMUI sin Google) no pueden recibir estas alertas porque el sistema corre a traves de los Servicios de Google Play.</span></div>
+      </div>
+      <div class="limit-item">
+        <div class="limit-icon"><i class="ti ti-clock" aria-hidden="true"></i></div>
+        <div class="limit-text"><strong>Android 8 o inferior</strong><span>Modelos con versiones antiguas del sistema operativo no son compatibles con esta tecnologia.</span></div>
+      </div>
+      <div class="limit-item">
+        <div class="limit-icon"><i class="ti ti-map-pin-off" aria-hidden="true"></i></div>
+        <div class="limit-text"><strong>Ubicacion o internet desactivados</strong><span>El sistema requiere obligatoriamente tener activada la ubicacion y una conexion a internet (datos moviles o Wi-Fi) para funcionar correctamente.</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s6">
+  <div class="slide-hero" style="padding:1.25rem 2rem">
+    <div class="kicker">Como activarlo</div>
+    <h1 style="font-size:20px">Activar en tu telefono Android</h1>
+  </div>
+  <div class="slide-body">
+    <div class="two-col">
+      <div>
+        <div class="slide-title" style="font-size:15px">Requisitos previos</div>
+        <div class="req-list">
+          <div class="req-item"><i class="ti ti-brand-android" aria-hidden="true"></i>Android 9 o superior</div>
+          <div class="req-item"><i class="ti ti-map-pin" aria-hidden="true"></i>Ubicacion (GPS) activada</div>
+          <div class="req-item"><i class="ti ti-wifi" aria-hidden="true"></i>Datos moviles o Wi-Fi activo</div>
+          <div class="req-item"><i class="ti ti-brand-google-play" aria-hidden="true"></i>Servicios de Google Play instalados</div>
+        </div>
+      </div>
+      <div>
+        <div class="slide-title" style="font-size:15px">Pasos para activar</div>
+        <div class="steps-install">
+          <div class="inst"><div class="inst-n">1</div><span>Abre <strong style="color:var(--text-primary)">Configuracion</strong> o <strong style="color:var(--text-primary)">Ajustes</strong> en tu telefono.</span></div>
+          <div class="inst"><div class="inst-n">2</div><span>Entra a <strong style="color:var(--text-primary)">Seguridad y emergencia</strong> (en algunos fabricantes aparece dentro de <em>Ubicacion</em>).</span></div>
+          <div class="inst"><div class="inst-n">3</div><span>Busca <strong style="color:var(--text-primary)">Alertas de sismos</strong> o <strong style="color:var(--text-primary)">Alertas de terremoto</strong>.</span></div>
+          <div class="inst"><div class="inst-n">4</div><span>Activa el interruptor principal.</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:0.875rem 1rem;background:#EAF3DE;border-radius:8px;border-left:3px solid #3B6D11">
+      <p style="font-size:13px;color:#27500A"><i class="ti ti-external-link" style="font-size:14px;vertical-align:-2px;margin-right:6px" aria-hidden="true"></i>Para verificar el estado del servicio en tu pais puedes visitar: <strong>crisisresponse.google</strong> o buscar "terremoto cerca de mi" en Google.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s7">
+  <div class="slide-hero" style="padding:1.25rem 2rem">
+    <div class="kicker">Conclusion</div>
+    <h1 style="font-size:20px">Lo que aprendimos</h1>
+  </div>
+  <div class="slide-body">
+    <div class="slide-title">Puntos clave del sistema</div>
+    <div class="conclusion-grid">
+      <div class="con-card">
+        <strong>El sensor es el acelerometro</strong>
+        <p>Cada telefono Android actua como un mini-sismometro gratuito, siempre encendido y con consumo de bateria casi nulo.</p>
+      </div>
+      <div class="con-card">
+        <strong>La fuerza es colectiva</strong>
+        <p>Miles de telefonos reportando el mismo patron al mismo tiempo validan el sismo. Un solo reporte es descartado.</p>
+      </div>
+      <div class="con-card">
+        <strong>La ventaja es la velocidad</strong>
+        <p>Los datos digitales superan a las ondas S sismicas, otorgando segundos vitales para ponerse a cubierto.</p>
+      </div>
+      <div class="con-card">
+        <strong>No es universal</strong>
+        <p>iPhone, Android antiguo o sin servicios de Google, y dispositivos sin ubicacion o internet quedan excluidos.</p>
+      </div>
+    </div>
+    <div style="margin-top:16px;text-align:center">
+      <button onclick="sendPrompt('Tengo preguntas sobre las alertas de terremoto de Google')" style="font-size:13px">Hacer una pregunta al respecto ↗</button>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="slide-label" id="slide-label">Diapositiva 1 de 8</div>
+  <div class="nav-dots" id="dots"></div>
+  <div class="nav-btns">
+    <button id="prev-btn" onclick="go(-1)">Anterior</button>
+    <button id="next-btn" onclick="go(1)">Siguiente</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const dotsC = document.getElementById('dots');
+const label = document.getElementById('slide-label');
+let cur = 0;
+
+slides.forEach((_, i) => {
+  const d = document.createElement('button');
+  d.className = 'dot' + (i === 0 ? ' on' : '');
+  d.onclick = () => jump(i);
+  dotsC.appendChild(d);
+});
+
+function jump(n) {
+  slides[cur].classList.remove('active');
+  dotsC.children[cur].classList.remove('on');
+  cur = n;
+  slides[cur].classList.add('active');
+  dotsC.children[cur].classList.add('on');
+  label.textContent = 'Diapositiva ' + (cur + 1) + ' de ' + slides.length;
+  document.getElementById('prev-btn').disabled = cur === 0;
+  document.getElementById('next-btn').disabled = cur === slides.length - 1;
+}
+
+function go(d) { if (cur + d >= 0 && cur + d < slides.length) jump(cur + d); }
+jump(0);
+</script>
