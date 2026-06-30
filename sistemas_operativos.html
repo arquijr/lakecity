@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistemas Operativos y el Kernel</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #060B17;
+    --bg-1: #0B1326;
+    --bg-2: #111B34;
+    --panel-0: #101B33;
+    --panel-1: #15233F;
+    --panel-2: #1A2D4F;
+    --cyan: #00E5FF;
+    --blue: #3BA4FF;
+    --green: #39FF88;
+    --purple: #8A5CFF;
+    --muted: #7E92B2;
+    --ink: #E7F6FF;
+    --line: rgba(126, 146, 178, 0.22);
+    --glow-cyan: 0 0 18px rgba(0, 229, 255, 0.35);
+    --glow-green: 0 0 18px rgba(57, 255, 136, 0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(59,164,255,0.10), transparent 45%),
+      radial-gradient(circle at 90% 20%, rgba(138,92,255,0.08), transparent 40%),
+      var(--bg-0);
+    color: var(--ink);
+    line-height: 1.65;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND GRID + SCANLINE ── */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: "";
+    position: fixed; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.5), transparent);
+    animation: scanline 7s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.5;
+  }
+  @keyframes scanline {
+    0% { top: -2px; }
+    100% { top: 100vh; }
+  }
+
+  ::selection { background: rgba(0,229,255,0.25); color: var(--ink); }
+
+  /* ── NAV — CONSOLE BAR ── */
+  nav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(6, 11, 23, 0.88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 24px rgba(0,229,255,0.08);
+    padding: 16px 24px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  }
+  nav .brand {
+    font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 14px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--cyan); margin-right: auto;
+    text-shadow: 0 0 14px rgba(0,229,255,0.55);
+    display: flex; align-items: center; gap: 8px;
+  }
+  nav .brand::before {
+    content: "";
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green), 0 0 20px var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  nav a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; text-decoration: none; color: var(--muted);
+    font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 8px 14px; border-radius: 6px;
+    border: 1px solid transparent;
+    background: rgba(21, 35, 63, 0.4);
+    transition: all .2s ease;
+  }
+  nav a:hover {
+    color: var(--cyan); border-color: rgba(0,229,255,0.4);
+    background: rgba(0,229,255,0.08);
+    box-shadow: var(--glow-cyan);
+  }
+
+  /* ── HERO ── */
+  header.hero {
+    max-width: 820px; margin: 0 auto; padding: 72px 24px 36px;
+    position: relative; z-index: 2;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--green); font-weight: 600; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .eyebrow::before { content: "▸"; color: var(--cyan); }
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-weight: 800;
+    font-size: clamp(28px, 5vw, 44px); line-height: 1.2;
+    margin-bottom: 14px;
+    background: linear-gradient(120deg, var(--ink) 30%, var(--cyan) 70%, var(--blue));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 30px rgba(0,229,255,0.15);
+    animation: fadein-up 0.8s ease both;
+  }
+  .hero p.lede {
+    color: var(--muted); font-size: 15px; max-width: 60ch;
+    animation: fadein-up 0.8s ease 0.15s both;
+  }
+  @keyframes fadein-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTIONS ── */
+  main { max-width: 820px; margin: 0 auto; padding: 0 24px 100px; position: relative; z-index: 2; }
+  section { padding-top: 64px; scroll-margin-top: 80px; animation: fadein-up 0.6s ease both; }
+  section + section { border-top: 1px solid var(--line); }
+
+  h2 {
+    font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 24px;
+    margin-bottom: 22px; color: var(--ink);
+    display: flex; align-items: center; gap: 12px;
+    letter-spacing: 0.02em;
+  }
+  h2::before {
+    content: "";
+    width: 4px; height: 24px;
+    background: linear-gradient(180deg, var(--cyan), var(--purple));
+    border-radius: 2px;
+    box-shadow: var(--glow-cyan);
+  }
+  h3 {
+    font-family: 'Orbitron', sans-serif; font-weight: 600; font-size: 15px;
+    margin: 30px 0 12px; color: var(--cyan);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  p { margin-bottom: 14px; color: var(--ink); font-size: 14.5px; }
+  p.intro { font-size: 16px; color: var(--ink); }
+
+  /* ── FEATURE LIST — MODULE CARDS ── */
+  ul.feature-list { list-style: none; margin: 14px 0 6px; display: flex; flex-direction: column; gap: 8px; }
+  ul.feature-list li {
+    padding: 14px 16px 14px 20px;
+    background: var(--panel-0);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--blue);
+    border-radius: 8px;
+    position: relative; font-size: 14px;
+    transition: all .2s ease;
+  }
+  ul.feature-list li:hover {
+    border-left-color: var(--cyan);
+    background: var(--panel-1);
+    box-shadow: var(--glow-cyan);
+    transform: translateX(3px);
+  }
+  ul.feature-list li strong { color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+  ul.plain { list-style: none; margin: 12px 0 10px 0; display: flex; flex-direction: column; gap: 6px; }
+  ul.plain li {
+    font-size: 14px; padding: 8px 0 8px 22px; position: relative;
+    color: var(--ink); border-bottom: 1px dashed var(--line);
+  }
+  ul.plain li::before {
+    content: "//"; position: absolute; left: 0; color: var(--green);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+
+  /* nested ul inside history content */
+  .content ul { list-style: none; margin-left: 0 !important; display: flex; flex-direction: column; gap: 4px; }
+  .content ul li {
+    font-size: 13.5px; color: var(--muted) !important; padding-left: 18px; position: relative;
+  }
+  .content ul li::before {
+    content: "▸"; position: absolute; left: 0; color: var(--blue);
+  }
+
+  /* ── CALLOUT — LUMINOUS BORDER BOX ── */
+  .callout {
+    background: linear-gradient(135deg, rgba(0,229,255,0.07), rgba(138,92,255,0.05));
+    border: 1px solid rgba(0,229,255,0.4);
+    padding: 16px 20px; border-radius: 10px; margin: 20px 0;
+    font-size: 14px; position: relative;
+    box-shadow: 0 0 24px rgba(0,229,255,0.12), inset 0 0 20px rgba(0,229,255,0.04);
+  }
+  .callout strong {
+    color: var(--cyan); font-family: 'Orbitron', sans-serif; font-weight: 700;
+    font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+  }
+
+  /* ── EXAMPLES GRID — CONTROL PANEL CARDS ── */
+  .examples-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+    gap: 12px; margin: 16px 0;
+  }
+  .examples-grid div {
+    background: var(--panel-0);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px; font-size: 14px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink);
+    transition: all .25s ease;
+    position: relative; overflow: hidden;
+  }
+  .examples-grid div::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(0,229,255,0.08), transparent);
+    transform: translateX(-100%);
+    transition: transform .5s ease;
+  }
+  .examples-grid div:hover {
+    border-color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+    transform: translateY(-3px);
+  }
+  .examples-grid div:hover::after { transform: translateX(100%); }
+  .examples-grid .tag {
+    display: block; font-size: 9.5px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--green); margin-bottom: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── KERNEL TIMELINE — SYSTEM LOG ── */
+  .kernel-timeline {
+    margin-top: 18px; border-left: 2px solid var(--blue);
+    padding-left: 22px; position: relative;
+    background: var(--panel-0);
+    border-radius: 0 10px 10px 0;
+    padding-top: 8px; padding-bottom: 8px;
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--cyan);
+  }
+  .kernel-item {
+    position: relative; padding: 9px 16px 9px 8px;
+    display: flex; gap: 16px; align-items: baseline;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    transition: background .2s ease;
+  }
+  .kernel-item:hover { background: rgba(0,229,255,0.06); }
+  .kernel-item::before {
+    content: ""; position: absolute; left: -27px; top: 15px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan), 0 0 14px var(--cyan);
+  }
+  .kernel-item .yr {
+    font-weight: 700; color: var(--green);
+    min-width: 50px;
+    text-shadow: 0 0 8px rgba(57,255,136,0.4);
+  }
+  .kernel-item span:last-child { color: var(--ink); }
+
+  /* ── HISTORY TIMELINE — SYSTEM RECORDS ── */
+  .history { margin-top: 12px; }
+  .history-year {
+    display: flex; gap: 20px; padding: 18px 16px;
+    border: 1px solid var(--line);
+    background: var(--panel-0);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: all .2s ease;
+  }
+  .history-year:hover {
+    border-color: rgba(0,229,255,0.35);
+    background: var(--panel-1);
+    box-shadow: var(--glow-cyan);
+    transform: translateX(2px);
+  }
+  .history-year .y {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px;
+    color: var(--cyan); min-width: 60px; flex-shrink: 0;
+    text-shadow: 0 0 10px rgba(0,229,255,0.4);
+  }
+  .history-year .content h4 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13.5px; font-weight: 600; margin-bottom: 6px; color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .history-year .content p { margin-bottom: 6px; font-size: 13.3px; color: var(--muted); }
+
+  /* decade dividers inside history */
+  .decade-divider {
+    margin: 34px 0 14px; font-family: 'Orbitron', sans-serif;
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: .16em; color: var(--purple); font-weight: 700;
+    display: flex; align-items: center; gap: 12px;
+    text-shadow: 0 0 12px rgba(138,92,255,0.4);
+  }
+  .decade-divider::before {
+    content: "◆"; color: var(--purple); font-size: 8px;
+  }
+  .decade-divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--purple), transparent); }
+
+  footer {
+    text-align: center; padding: 36px 24px; color: var(--muted); font-size: 11.5px;
+    border-top: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    position: relative; z-index: 2;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 600px) {
+    nav { gap: 8px 10px; padding: 12px 16px; }
+    nav a { padding: 6px 10px; font-size: 10px; }
+    .history-year { flex-direction: column; gap: 6px; padding: 14px; }
+    h2 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+
+<nav>
+  <div class="brand">SO &amp; Kernel</div>
+  <a href="#sistema-operativo">Sistema Operativo</a>
+  <a href="#kernel">Kernel</a>
+  <a href="#evolucion-kernel">Evolución del Kernel</a>
+  <a href="#historia">Historia</a>
+  <a href="#actualidad">2026</a>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">Fundamentos de Informática</div>
+  <h1>Sistemas Operativos y el Kernel</h1>
+  <p class="lede">Una guía organizada sobre qué es un sistema operativo, qué es el kernel que lo sostiene, la evolución del kernel Linux y la historia completa de los sistemas operativos hasta hoy.</p>
+</header>
+
+<main>
+
+  <section id="sistema-operativo">
+    <h2>¿Qué es el Sistema Operativo?</h2>
+    <p class="intro">Un sistema operativo (SO) es el software principal de cualquier dispositivo electrónico. Funciona como puente entre el usuario y la máquina, administrando el hardware (CPU, memoria, almacenamiento) y permitiendo que otras aplicaciones funcionen.</p>
+    <p>Aquí te detallo sus aspectos más importantes:</p>
+
+    <h3>Funciones Principales</h3>
+    <ul class="feature-list">
+      <li><strong>Gestión de recursos:</strong> Asigna memoria RAM, tiempo de procesador y espacio de almacenamiento a cada programa que utilizas.</li>
+      <li><strong>Interfaz de usuario:</strong> Proporciona un entorno visual (escritorio, ventanas) o de comandos para que puedas interactuar con el equipo.</li>
+      <li><strong>Administración de archivos:</strong> Organiza, guarda y recupera tu información.</li>
+      <li><strong>Control de dispositivos:</strong> Permite que los periféricos (teclado, mouse, impresora) se comuniquen con el sistema.</li>
+    </ul>
+  </section>
+
+  <section id="kernel">
+    <h2>¿Qué es el Kernel?</h2>
+    <p class="intro">El kernel es el núcleo de un sistema operativo.</p>
+
+    <h3>Funciones</h3>
+    <ul class="plain">
+      <li>Administrar memoria RAM.</li>
+      <li>Controlar la CPU.</li>
+      <li>Gestionar discos.</li>
+      <li>Administrar dispositivos.</li>
+      <li>Comunicar software y hardware.</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Importante:</strong> Linux NO es un sistema operativo completo. Linux es un kernel.
+    </div>
+
+    <h3>Ejemplos</h3>
+    <div class="examples-grid">
+      <div><span class="tag">Kernel</span>Linux</div>
+      <div><span class="tag">Sistema Operativo</span>Ubuntu</div>
+      <div><span class="tag">Sistema Operativo</span>Debian</div>
+      <div><span class="tag">Sistema Operativo</span>Fedora</div>
+    </div>
+  </section>
+
+  <section id="evolucion-kernel">
+    <h2>Evolución del Kernel Linux</h2>
+    <div class="kernel-timeline">
+      <div class="kernel-item"><span class="yr">1991</span><span>Linux 0.01</span></div>
+      <div class="kernel-item"><span class="yr">1992</span><span>Linux 0.95</span></div>
+      <div class="kernel-item"><span class="yr">1994</span><span>Linux 1.0</span></div>
+      <div class="kernel-item"><span class="yr">1996</span><span>Linux 2.0</span></div>
+      <div class="kernel-item"><span class="yr">1999</span><span>Linux 2.2</span></div>
+      <div class="kernel-item"><span class="yr">2001</span><span>Linux 2.4</span></div>
+      <div class="kernel-item"><span class="yr">2003</span><span>Linux 2.6</span></div>
+      <div class="kernel-item"><span class="yr">2011</span><span>Linux 3.0</span></div>
+      <div class="kernel-item"><span class="yr">2015</span><span>Linux 4.0</span></div>
+      <div class="kernel-item"><span class="yr">2019</span><span>Linux 5.0</span></div>
+      <div class="kernel-item"><span class="yr">2022</span><span>Linux 5.15 LTS</span></div>
+      <div class="kernel-item"><span class="yr">2023</span><span>Linux 6.1 LTS</span></div>
+      <div class="kernel-item"><span class="yr">2024</span><span>Linux 6.6 LTS</span></div>
+      <div class="kernel-item"><span class="yr">2025</span><span>Linux 6.12 LTS</span></div>
+      <div class="kernel-item"><span class="yr">2026</span><span>Serie Linux 6.x avanzada</span></div>
+    </div>
+  </section>
+
+  <section id="historia">
+    <h2>Historia</h2>
+
+    <div class="decade-divider">1950s – 1970s</div>
+    <div class="history">
+      <div class="history-year">
+        <div class="y">1956</div>
+        <div class="content">
+          <h4>GM-NAA I/O</h4>
+          <ul>
+            <li>Primer sistema operativo conocido.</li>
+            <li>Desarrollado para la IBM 704.</li>
+            <li>Automatizaba procesos repetitivos.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1962</div>
+        <div class="content">
+          <h4>Desarrollo Inicial de UNIX</h4>
+          <p>Bell Labs inicia investigaciones sobre sistemas operativos avanzados.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1969</div>
+        <div class="content">
+          <h4>Nace UNIX</h4>
+          <p>Creado por Ken Thompson y Dennis Ritchie.</p>
+          <p>Características:</p>
+          <ul>
+            <li>Multiusuario.</li>
+            <li>Multitarea.</li>
+            <li>Sistema de archivos jerárquico.</li>
+            <li>Seguridad mediante permisos.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1971</div>
+        <div class="content">
+          <h4>UNIX Versión 1</h4>
+          <p>Primera versión oficial.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1975</div>
+        <div class="content">
+          <h4>Microsoft BASIC</h4>
+          <p>Microsoft publica BASIC.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decade-divider">1980s</div>
+    <div class="history">
+      <div class="history-year">
+        <div class="y">1981</div>
+        <div class="content">
+          <h4>MS-DOS</h4>
+          <p>Características:</p>
+          <ul>
+            <li>Sistema basado en comandos.</li>
+            <li>Dominó las PC durante los años 80.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1983</div>
+        <div class="content">
+          <h4>Apple Lisa</h4>
+          <p>Primer sistema comercial con interfaz gráfica avanzada.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1984</div>
+        <div class="content">
+          <h4>Macintosh</h4>
+          <p>Populariza las ventanas, iconos y el ratón.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1985</div>
+        <div class="content">
+          <h4>Windows 1.0</h4>
+          <p>Primera interfaz gráfica de Microsoft.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1987</div>
+        <div class="content">
+          <h4>OS/2</h4>
+          <p>Sistema operativo desarrollado por IBM.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decade-divider">1990s</div>
+    <div class="history">
+      <div class="history-year">
+        <div class="y">1992</div>
+        <div class="content">
+          <h4>Slackware</h4>
+          <p>Slackware aparece como una de las primeras distribuciones Linux.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1992</div>
+        <div class="content">
+          <h4>MCC Interim Linux</h4>
+          <p>Una de las primeras distribuciones Linux disponibles públicamente.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1993</div>
+        <div class="content">
+          <h4>Debian</h4>
+          <p>Debian nace como proyecto comunitario.</p>
+          <p>Características:</p>
+          <ul>
+            <li>Estabilidad.</li>
+            <li>Software libre.</li>
+            <li>Base para muchas distribuciones futuras.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1993</div>
+        <div class="content">
+          <h4>Red Hat Linux</h4>
+          <p>Red Hat Linux es fundada.</p>
+          <p>Posteriormente se convertiría en una de las distribuciones empresariales más importantes.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1994</div>
+        <div class="content">
+          <h4>SuSE Linux</h4>
+          <p>SUSE Linux es creada en Alemania.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1995</div>
+        <div class="content">
+          <h4>Windows 95</h4>
+          <p>Características:</p>
+          <ul>
+            <li>Menú Inicio.</li>
+            <li>Barra de tareas.</li>
+            <li>Plug and Play.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1996</div>
+        <div class="content">
+          <h4>Windows NT 4.0</h4>
+          <p>Orientado a empresas y servidores.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">1998</div>
+        <div class="content">
+          <h4>Windows 98</h4>
+          <p>Características:</p>
+          <ul>
+            <li>Soporte USB mejorado.</li>
+            <li>Plug and Play avanzado.</li>
+            <li>Soporte para DVD.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="decade-divider">2000s</div>
+    <div class="history">
+      <div class="history-year">
+        <div class="y">2000</div>
+        <div class="content">
+          <h4>Windows 2000</h4>
+          <p>Diseñado para ambientes empresariales.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2001</div>
+        <div class="content">
+          <h4>Windows XP</h4>
+          <p>Uno de los sistemas operativos más exitosos.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2001</div>
+        <div class="content">
+          <h4>Mac OS X</h4>
+          <p>Mac OS X. Basado en UNIX.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2002</div>
+        <div class="content">
+          <h4>Red Hat Enterprise Linux (RHEL)</h4>
+          <p>Red Hat Enterprise Linux nace para el mercado empresarial.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2003</div>
+        <div class="content">
+          <h4>Fedora</h4>
+          <p>Fedora Linux surge como proyecto comunitario patrocinado por Red Hat.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2004</div>
+        <div class="content">
+          <h4>Ubuntu 4.10</h4>
+          <p>Ubuntu es lanzado por Canonical.</p>
+          <p>Características:</p>
+          <ul>
+            <li>Fácil instalación.</li>
+            <li>Gratuito.</li>
+            <li>Amplia comunidad.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2005</div>
+        <div class="content">
+          <h4>openSUSE</h4>
+          <p>openSUSE se convierte en la versión comunitaria de SUSE.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2007</div>
+        <div class="content">
+          <h4>Windows Vista</h4>
+          <p>Introduce:</p>
+          <ul>
+            <li>Interfaz Aero.</li>
+            <li>Mejoras de seguridad.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2007</div>
+        <div class="content">
+          <h4>iOS</h4>
+          <p>iOS aparece junto al primer iPhone.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2008</div>
+        <div class="content">
+          <h4>Android</h4>
+          <p>Android es presentado por Google. Basado en Linux.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2009</div>
+        <div class="content">
+          <h4>Windows 7</h4>
+          <p>Reconocido por su estabilidad.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decade-divider">2010s</div>
+    <div class="history">
+      <div class="history-year">
+        <div class="y">2011</div>
+        <div class="content">
+          <h4>ChromeOS</h4>
+          <p>ChromeOS llega al mercado.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2012</div>
+        <div class="content">
+          <h4>Windows 8</h4>
+          <p>Introduce la interfaz Metro.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2014</div>
+        <div class="content">
+          <h4>Linux Mint se consolida</h4>
+          <p>Linux Mint se convierte en una de las distribuciones Linux más populares para usuarios domésticos.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2015</div>
+        <div class="content">
+          <h4>Windows 10</h4>
+          <p>Microsoft adopta actualizaciones continuas.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2016</div>
+        <div class="content">
+          <h4>Manjaro gana popularidad</h4>
+          <p>Manjaro acerca la potencia de Arch Linux a usuarios menos experimentados.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2018</div>
+        <div class="content">
+          <h4>Elementary OS crece</h4>
+          <p>elementary OS destaca por su diseño inspirado en macOS.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2019</div>
+        <div class="content">
+          <h4>Linux domina la nube</h4>
+          <p>Las principales plataformas de computación en la nube utilizan distribuciones Linux.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="decade-divider">2020s</div>
+    <div class="history">
+      <div class="history-year">
+        <div class="y">2021</div>
+        <div class="content">
+          <h4>Windows 11 es anunciado</h4>
+          <p>Microsoft presenta Windows 11.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2022</div>
+        <div class="content">
+          <h4>Windows 11</h4>
+          <p>Lanzamiento oficial.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2023</div>
+        <div class="content">
+          <h4>Debian 12 Bookworm</h4>
+          <p>Nueva versión estable de Debian.</p>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2024</div>
+        <div class="content">
+          <h4>Ubuntu 24.04 LTS</h4>
+          <p>Una de las versiones LTS más utilizadas.</p>
+          <p>También destacan:</p>
+          <ul>
+            <li>Fedora 40.</li>
+            <li>Linux Mint 22.</li>
+            <li>openSUSE Leap.</li>
+            <li>Arch Linux.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="history-year">
+        <div class="y">2025</div>
+        <div class="content">
+          <h4>Consolidación de la IA en los Sistemas Operativos</h4>
+          <p>Los sistemas operativos incorporan:</p>
+          <ul>
+            <li>Inteligencia artificial.</li>
+            <li>Automatización.</li>
+            <li>Computación en la nube.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="actualidad">
+    <h2>2026 – Situación Actual</h2>
+
+    <h3>Distribuciones Linux más conocidas</h3>
+    <ul class="plain">
+      <li>Ubuntu.</li>
+      <li>Debian.</li>
+      <li>Fedora.</li>
+      <li>Red Hat Enterprise Linux.</li>
+      <li>Linux Mint.</li>
+      <li>Arch Linux.</li>
+      <li>Manjaro.</li>
+      <li>openSUSE.</li>
+      <li>Elementary OS.</li>
+    </ul>
+
+    <h3>Sistemas operativos dominantes</h3>
+    <ul class="plain">
+      <li>Windows 11.</li>
+      <li>Android.</li>
+      <li>iOS.</li>
+      <li>macOS.</li>
+      <li>Linux (mediante sus distribuciones).</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>Contenido organizado a partir del material original — Sistemas Operativos y el Kernel.</footer>
+
+</body>
+</html>
