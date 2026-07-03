@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio Interactivo: Conexión Remota RDP a Servidor Debian 13 - 12° Grado</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Syncopate:wght@700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #64ffda;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #eab308;
+            --bg: #0b0f19;
+            --card-bg: #020617;
+            --border: #1e293b;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            /* Protección CSS: Evita la selección de texto en la app */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body { 
+            font-family: 'Space Grotesk', sans-serif; 
+            background-color: var(--bg); 
+            color: #f1f5f9;
+            padding: 30px 20px; 
+            margin: 0; 
+            display: flex; 
+            gap: 25px; 
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content { flex: 3; display: flex; flex-direction: column; gap: 25px; }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        header h1 { font-family: 'Syncopate', sans-serif; color: var(--warning); font-size: 28px; margin-bottom: 5px; }
+
+        /* --- TIRA DE REGISTRO DEL ESTUDIANTE --- */
+        .student-strip {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .student-strip label { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #64748b; display: block; margin-bottom: 5px; }
+        .student-strip input { width: 100%; padding: 10px; background: #020617; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; color: white; outline: none; font-family: inherit; }
+        .student-strip input:focus { border-color: var(--accent); }
+        .info-static { font-size: 14px; font-weight: bold; margin-top: 8px; color: #e2e8f0; }
+        .btn-save { background: var(--success); color: #020617; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        .btn-save:hover { opacity: 0.9; }
+
+        /* --- SECCIONES / FASES --- */
+        .section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 35px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .section h2 { font-size: 22px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; }
+        .section p { font-size: 16px; color: #94a3b8; line-height: 1.6; margin-bottom: 15px; }
+
+        /* RECUADROS INTERNOS DE TEORÍA POR FASE */
+        .teoria-fase {
+            background: #0f172a;
+            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+        .teoria-fase b { color: white; display: block; margin-bottom: 4px; }
+
+        #fase2, #fase3, #cortafuegos1, #fase4, #fase5, #fase6, #cortafuegos2, #fase7, #fase8, #cortafuegos3, #bloqueoClave { display: none; }
+        #fase1 { border-left: 6px solid var(--accent); }
+        #fase2 { border-left: 6px solid var(--warning); }
+        #fase3 { border-left: 6px solid var(--danger); }
+        #cortafuegos1, #cortafuegos2, #cortafuegos3, #bloqueoClave { border-left: 6px solid #a855f7; background: #1e1b4b; }
+        #fase4 { border-left: 6px solid var(--success); }
+        #fase5 { border-left: 6px solid #3b82f6; }
+        #fase6 { border-left: 6px solid #ec4899; }
+        #fase7 { border-left: 6px solid #f97316; }
+        #fase8 { border-left: 6px solid #14b8a6; }
+
+        /* --- TERMINALES DE COMANDO --- */
+        .input-line { display: flex; gap: 10px; align-items: center; margin-top: 15px; }
+        .input-line span { color: var(--danger); font-family: 'Fira Code', monospace; font-weight: bold; }
+        .terminal-input { 
+            background: transparent; border: none; border-bottom: 2px solid var(--border); 
+            color: white; font-family: 'Fira Code', monospace; font-size: 16px; padding: 5px; flex: 1; outline: none; 
+            -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; /* Permite escribir en inputs */
+        }
+        .terminal-input:focus { border-color: var(--accent); }
+
+        .btn-confirm { 
+            background: #1e293b; color: white; border: 1px solid #334155; padding: 12px 20px; 
+            border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Fira Code', monospace; font-size: 14px; transition: 0.3s; width: 100%; margin-top: 15px;
+        }
+        .btn-confirm:hover { background: var(--accent); color: #020617; border-color: var(--accent); }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            flex: 1; 
+            min-width: 320px; 
+            background: var(--card-bg); 
+            padding: 25px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border);
+            height: fit-content; 
+            position: sticky; 
+            top: 30px; 
+            border-top: 5px solid var(--accent);
+        }
+        .sidebar h3 { font-size: 18px; color: #ffffff; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .data-display { font-size: 15px; line-height: 1.6; color: #cbd5e1; margin-bottom: 15px; }
+
+        .pistas-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .pista-slot {
+            background: #030712;
+            border: 1px dashed #1e293b;
+            color: #334155; 
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 0;
+            border-radius: 6px;
+            transition: all 0.4s ease;
+        }
+        .pista-slot.unlocked {
+            border-style: solid;
+            border-color: var(--warning);
+            color: var(--warning);
+            font-family: 'Syncopate', sans-serif;
+            font-size: 20px;
+            text-shadow: 0 0 10px rgba(234, 179, 8, 0.4);
+            background: #0f172a;
+        }
+
+        .points-box { font-size: 32px; text-align: center; color: var(--success); margin-top: 20px; font-weight: bold; border-top: 1px solid var(--border); padding-top: 15px; }
+        
+        #mensajeFinal { 
+            display: none; 
+            background: #dcfce7; 
+            color: #166534; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            text-align: center; 
+            font-weight: bold;
+            border: 2px solid #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        .teoria-container {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f172a;
+            border-radius: 10px;
+            border-top: 4px solid var(--accent);
+            font-size: 13px;
+            line-height: 1.5;
+            color: #cbd5e1;
+        }
+        .teoria-container h3 { color: white; margin-top: 0; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; text-align: center; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- BOTÓN FLOTANTE DE REINICIO (SOLO DOCENTE) --- */
+        @keyframes neonPulse {
+            0%, 100% { box-shadow: 0 0 8px #39ff14, 0 0 16px #39ff14, 0 0 24px rgba(57,255,20,0.5); }
+            50% { box-shadow: 0 0 14px #39ff14, 0 0 26px #39ff14, 0 0 40px rgba(57,255,20,0.7); }
+        }
+        .fab-reset {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, #6dff6d, #17c964 60%, #0b7a3a 100%);
+            border: 2px solid #39ff14;
+            color: #04140a;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: neonPulse 2.2s infinite ease-in-out;
+            transition: transform 0.2s ease;
+            user-select: none;
+        }
+        .fab-reset:hover {
+            transform: scale(1.1) rotate(-15deg);
+            background: radial-gradient(circle at 35% 30%, #8dff8d, #22e07a 60%, #0b7a3a 100%);
+        }
+        .fab-reset:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+<button class="fab-reset" id="btnResetFlotante" title="Reiniciar práctica (solo docente)" onclick="solicitarReinicioDocente()">
+    <i class="fa-solid fa-arrow-rotate-left"></i>
+</button>
+
+<div class="main-content">
+    <header>
+        <h1>Laboratorio de Conexión Remota RDP a Servidor Debian 13</h1>
+        <p style="color: #64748b;">Materia: Redes y Sistemas Operativos | Profesor: Arquimedes Mosquera | 12° Grado</p>
+    </header>
+
+    <div class="student-strip">
+        <div>
+            <label>Estudiante de Redes y Sistemas</label>
+            <input type="text" id="nombre" placeholder="Nombre completo">
+        </div>
+        <div>
+            <label>Grado y Sección</label>
+            <input type="text" id="grado" placeholder="Ej: 12°A">
+        </div>
+        <div>
+            <label>Asignatura</label>
+            <div class="info-static">Redes y Sistemas Operativos</div>
+        </div>
+        <div>
+            <label>Instructor Central</label>
+            <div class="info-static">Prof. Arquimedes Mosquera</div>
+        </div>
+        <div style="grid-column: span 2;">
+            <button class="btn-save" id="btnInicializar" onclick="guardarDatosEstudiante()">Inicializar Sistema de Validación</button>
+        </div>
+    </div>
+
+    <section class="section" id="fase1">
+        <h2><i class="fa-solid fa-desktop" style="color: var(--accent);"></i> FASE 1 — Fundamentos del Acceso Remoto (5 pts)</h2>
+        <div class="teoria-fase">
+            <b>Teoría — Objetivo del laboratorio:</b>
+            El acceso remoto permite establecer una conexión desde un equipo Windows hacia un servidor equipo remoto, acceder a su escritorio gráfico, ejecutar comandos y administrar carpetas, sin estar físicamente frente al servidor. Es una de las habilidades más utilizadas en la administración de sistemas: permite a un técnico o administrador de redes gestionar servidores a distancia, y es la base para comprender otras herramientas de acceso remoto como SSH, VNC o TeamViewer.
+        </div>
+        <p>Escribe la sigla en inglés (tres letras) del protocolo que permite controlar remotamente el escritorio gráfico completo de otro equipo, tal como si estuviera frente a él:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase1" class="terminal-input" autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar1" onclick="validarFase1()">Validar Concepto Base</button>
+    </section>
+
+    <section class="section" id="fase2">
+        <h2><i class="fa-solid fa-keyboard" style="color: var(--warning);"></i> FASE 2 — Parte I: Comando de Conexión en Windows (5 pts)</h2>
+        <div class="teoria-fase" style="border-left-color: var(--warning);">
+            <b>Teoría — Abrir el cliente de Escritorio Remoto:</b>
+            Se presiona Windows + R para abrir la ventana "Ejecutar", que permite lanzar programas escribiendo su nombre directamente. En el campo de texto se escribe el comando correspondiente y se presiona Enter; esto abre la aplicación oficial de Conexión a Escritorio Remoto de Windows, donde luego se ingresa la IP del servidor (192.168.10.104), el usuario y la contraseña.
+        </div>
+        <p>¿Qué comando se escribe en la ventana Ejecutar para abrir el cliente de Escritorio Remoto de Windows?:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase2" class="terminal-input" autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar2" onclick="validarFase2()">Enviar Comando</button>
+    </section>
+
+    <section class="section" id="fase3">
+        <h2><i class="fa-solid fa-server" style="color: var(--danger);"></i> FASE 3 — Datos de Conexión al Servidor (5 pts)</h2>
+        <div class="teoria-fase" style="border-left-color: var(--danger);">
+            <b>Teoría — Datos de conexión:</b>
+            Antes de iniciar la conexión se debe contar con la dirección IP del servidor, el sistema operativo remoto, el protocolo utilizado y las credenciales de acceso. En la ventana de Conexión a Escritorio Remoto, en el campo "Equipo", se escribe la dirección IP donde está escuchando el servicio RDP del servidor Debian: <b>ip del equipo remoto</b>, usuario <b>cep</b> y contraseña <b>code2026</b>.
+        </div>
+        <p>¿Cuál es la dirección IP exacta del equipo remoto que debe escribirse en el campo "Equipo" de la ventana mstsc?:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase3" class="terminal-input" autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar3" onclick="validarFase3()">Autenticar Dirección del Servidor</button>
+    </section>
+
+    <section class="section" id="cortafuegos1">
+        <h2><i class="fa-solid fa-key" style="color: #a855f7;"></i> CORTAFUEGOS: Verificación de contraseña</h2>
+        <p style="color: #cbd5e1;">Antes de continuar con la siguiente parte de la asignación, el sistema requiere validar una palabra clave. Esta contraseña no se entrega en este documento: deberás iniciar sesión en el equipo remoto mediante el Escritorio Remoto y localizarla tú mismo, explorando su sistema de carpetas. Cuando la encuentres, introduce exactamente la <b>Clave 1</b> para desbloquear el siguiente bloque.</p>
+        <div style="background: #020617; padding: 20px; border-radius: 8px; border: 1px solid #a855f7;">
+            <label style="font-size: 14px; color: #e9d5ff; font-weight: bold;">Introduzca la contraseña encontrada en el equipo remoto (no distingue mayúsculas de minúsculas):</label>
+            <div class="input-line"><span>$ security_key:~</span><input type="text" id="input_token1" class="terminal-input" placeholder="Escribe la contraseña..." autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidarToken1" style="background: #6b21a8; border-color: #a855f7;" onclick="verificarClave1()">Desbloquear Siguiente Bloque</button>
+    </section>
+
+    <section class="section" id="fase4">
+        <h2><i class="fa-solid fa-network-wired" style="color: var(--success);"></i> FASE 4 — El Puerto del Protocolo RDP (5 pts)</h2>
+        <div class="teoria-fase" style="border-left-color: var(--success);">
+            <b>Teoría — Protocolo y puerto de RDP:</b>
+            RDP (Remote Desktop Protocol) es el protocolo que utiliza Windows para transmitir la interfaz gráfica y recibir las entradas de teclado/mouse del cliente hacia el servidor remoto. Este protocolo tiene reservado por defecto un número de puerto TCP estándar, el mismo que debe estar abierto en el firewall del servidor Debian 13 para permitir la conexión entrante.
+        </div>
+        <p>¿Qué puerto TCP utiliza por defecto el protocolo RDP?:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase4" class="terminal-input" autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar4" onclick="validarFase4()">Consolidar Puerto RDP</button>
+    </section>
+
+    <section class="section" id="fase5">
+        <h2><i class="fa-solid fa-terminal" style="color: #3b82f6;"></i> FASE 5 — Identificación del Sistema (5 pts)</h2>
+        <div class="teoria-fase" style="border-left-color: #3b82f6;">
+            <b>Teoría — Información del sistema:</b>
+            Ya dentro del escritorio remoto de Debian 13, se abre una terminal Linux para identificar el sistema operativo y las características de hardware del servidor. Un comando muestra en pantalla, de forma gráfica y resumida, el logotipo de la distribución junto con datos como el sistema operativo, el kernel, la memoria RAM y el shell utilizado.
+        </div>
+        <p>¿Qué comando de Linux muestra el logotipo de la distribución junto con el resumen del sistema operativo, kernel, RAM y shell?:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase5" class="terminal-input" autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar5" onclick="validarFase5()">Ejecutar Comando</button>
+    </section>
+
+    <section class="section" id="fase6">
+        <h2><i class="fa-solid fa-user" style="color: #ec4899;"></i> FASE 6 — Ampliación 12°: Identidad del Usuario (5 pts)</h2>
+        <div class="teoria-fase" style="border-left-color: #ec4899;">
+            <b>Teoría — Actualización para 12° grado:</b>
+            Además de la conexión RDP, el estudiante de 12° debe ejecutar comandos adicionales de administración por terminal: hostname, whoami, pwd, ip addr, ls -la, df -h y free -h. Cada uno entrega información distinta del servidor: identidad de equipo, usuario activo, ruta de trabajo, configuración de red, contenido de carpetas, uso de disco y memoria.
+        </div>
+        <p>¿Qué comando de Linux muestra el nombre del usuario que inició sesión actualmente en la terminal?:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase6" class="terminal-input" autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar6" onclick="validarFase6()">Verificar Usuario Activo</button>
+    </section>
+
+    <section class="section" id="cortafuegos2">
+        <h2><i class="fa-solid fa-key" style="color: #a855f7;"></i> CORTAFUEGOS: Verificación de contraseña</h2>
+        <p style="color: #cbd5e1;">Nuevamente el sistema requiere validar una palabra clave antes de continuar. Esta contraseña tampoco se entrega en este documento: deberás explorar el equipo remoto a través del Escritorio Remoto y localizarla por tu cuenta. Cuando la encuentres, introduce exactamente la <b>Clave 2</b> para desbloquear el siguiente bloque.</p>
+        <div style="background: #020617; padding: 20px; border-radius: 8px; border: 1px solid #a855f7;">
+            <label style="font-size: 14px; color: #e9d5ff; font-weight: bold;">Introduzca la contraseña encontrada en el equipo remoto (no distingue mayúsculas de minúsculas):</label>
+            <div class="input-line"><span>$ security_key:~</span><input type="text" id="input_token2" class="terminal-input" placeholder="Escribe la contraseña..." autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidarToken2" style="background: #6b21a8; border-color: #a855f7;" onclick="verificarClave2()">Desbloquear Siguiente Bloque</button>
+    </section>
+
+    <section class="section" id="fase7">
+        <h2><i class="fa-solid fa-folder-tree" style="color: #f97316;"></i> FASE 7 — Creación de la Carpeta Personal (5 pts)</h2>
+        <div class="teoria-fase" style="border-left-color: #f97316;">
+            <b>Teoría — Carpeta personal del estudiante:</b>
+            En el equipo remoto existe un directorio compartido llamado Estudiantes, organizado en subcarpetas por grado y sección (12A y 12B). El estudiante debe ingresar a la subcarpeta que corresponde a su grado y sección, y dentro de ella crear una nueva carpeta identificada con su nombre, sin apodos ni abreviaturas.
+        </div>
+        <p>¿Cuál es el nombre del directorio compartido en el que debes ubicarte (dentro de tu subcarpeta 12A o 12B) antes de crear tu carpeta personal?:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase7" class="terminal-input" autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar7" onclick="validarFase7()">Validar Carpeta Personal</button>
+    </section>
+
+    <section class="section" id="fase8">
+        <h2><i class="fa-solid fa-shield-halved" style="color: #14b8a6;"></i> FASE 8 — Seguridad y Administración Remota (5 pts)</h2>
+        <div class="teoria-fase" style="border-left-color: #14b8a6;">
+            <b>Teoría — RDP vs SSH:</b>
+            RDP permite acceso remoto gráfico (se ve el escritorio completo), mientras que existe otro protocolo, ampliamente usado en la administración de servidores Linux, que brinda acceso remoto seguro y cifrado únicamente por línea de comandos (sin interfaz gráfica), siendo más liviano y muy utilizado por administradores de redes para tareas de configuración y seguridad.
+        </div>
+        <p>¿Qué protocolo de tres letras, a diferencia de RDP, ofrece acceso remoto seguro por línea de comandos y es el estándar en la administración de servidores Linux?:</p>
+        <div style="background: #0f172a; padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+            <div class="input-line"><span>$ acceso_remoto:~</span><input type="text" id="input_fase8" class="terminal-input" placeholder="Escribe la respuesta exacta..." autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidar8" onclick="validarFase8()">Cerrar Auditoría Final del Sistema</button>
+    </section>
+
+    <section class="section" id="cortafuegos3">
+        <h2><i class="fa-solid fa-key" style="color: #a855f7;"></i> CORTAFUEGOS: Verificación de contraseña</h2>
+        <p style="color: #cbd5e1;">Una última palabra clave debe ser validada antes de cerrar la auditoría. Tampoco se entrega en este documento: deberás explorar el equipo remoto por tu cuenta a través del Escritorio Remoto hasta localizarla. Cuando la encuentres, introduce exactamente la <b>Clave 3</b> para desbloquear el bloque final.</p>
+        <div style="background: #020617; padding: 20px; border-radius: 8px; border: 1px solid #a855f7;">
+            <label style="font-size: 14px; color: #e9d5ff; font-weight: bold;">Introduzca la contraseña encontrada en el equipo remoto (no distingue mayúsculas de minúsculas):</label>
+            <div class="input-line"><span>$ security_key:~</span><input type="text" id="input_token3" class="terminal-input" placeholder="Escribe la contraseña..." autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidarToken3" style="background: #6b21a8; border-color: #a855f7;" onclick="verificarClave3()">Desbloquear Bloque Final</button>
+    </section>
+
+    <section class="section" id="bloqueoClave">
+        <h2><i class="fa-solid fa-key" style="color: #a855f7;"></i> CORTAFUEGOS: Verificación de Código Criptográfico</h2>
+        <p style="color: #cbd5e1;">Como paso final de todo el laboratorio, el sistema requiere validar la palabra clave completa, formada por las letras desbloqueadas en las ocho fases resueltas a lo largo de la práctica.</p>
+        <div style="background: #020617; padding: 20px; border-radius: 8px; border: 1px solid #a855f7;">
+            <label style="font-size: 14px; color: #e9d5ff; font-weight: bold;">Introduzca de forma exacta la palabra clave que se muestra descifrada a la derecha:</label>
+            <div class="input-line"><span>$ security_key:~</span><input type="text" id="input_token" class="terminal-input" placeholder="Escribe la palabra clave..." autocomplete="off"></div>
+        </div>
+        <button class="btn-confirm" id="btnValidarToken" style="background: #6b21a8; border-color: #a855f7;" onclick="verificarPalabraClave()">Finalizar Auditoría del Laboratorio</button>
+    </section>
+</div>
+
+<div class="sidebar">
+    <h3>Panel de Control</h3>
+    <div id="displayData" class="data-display"><span style="color: #64748b; font-style: italic;">Esperando inicialización de credenciales...</span></div>
+    
+    <hr style="margin: 15px 0; border: 0; border-top: 1px solid var(--border);">
+    
+    <div class="data-display">
+        <b style="color: var(--accent);">Materia:</b> Redes y Sistemas Operativos<br>
+        <b>Profesor:</b> Arq. Mosquera<br>
+        <b>Estatus Servidor:</b> <span id="statusRed" style="color: var(--danger);">Desconectado ❌</span><br>
+        <b>Errores de Respuesta:</b> <span id="contadorErrores" style="color: var(--danger); font-weight: bold;">0</span>
+    </div>
+
+    <h3 style="margin-top: 15px; font-size: 14px;">Memoria de Sesión Oculta</h3>
+    <div class="pistas-grid">
+        <div class="pista-slot" id="slot1"><i class="fa-solid fa-lock"></i></div>
+        <div class="pista-slot" id="slot2"><i class="fa-solid fa-lock"></i></div>
+        <div class="pista-slot" id="slot3"><i class="fa-solid fa-lock"></i></div>
+        <div class="pista-slot" id="slot4"><i class="fa-solid fa-lock"></i></div>
+        <div class="pista-slot" id="slot5"><i class="fa-solid fa-lock"></i></div>
+        <div class="pista-slot" id="slot6"><i class="fa-solid fa-lock"></i></div>
+        <div class="pista-slot" id="slot7"><i class="fa-solid fa-lock"></i></div>
+        <div class="pista-slot" id="slot8"><i class="fa-solid fa-lock"></i></div>
+    </div>
+    
+    <div class="points-box"><span id="puntosTotales">0</span> / 40 pts</div>
+
+    <div id="mensajeFinal">
+        🎉 ¡FELICITACIONES! 🎉<br>
+        Has completado el laboratorio de conexión remota con éxito.<br>
+        <span style="font-size: 12px; display: block; margin-top: 5px; color: #166534; font-family: monospace;">ACCESO COMPLETO: TERMINAL</span>
+    </div>
+
+    <div id="teoriaFinal" class="teoria-container">
+        <h3>Resumen Técnico del Laboratorio</h3>
+        <p><b>1. Acceso Remoto:</b> RDP permite controlar el escritorio gráfico de un servidor Debian 13 desde un cliente Windows (mstsc), usando el puerto TCP 3389.</p><br>
+        <p><b>2. Administración por Terminal:</b> Comandos como whoami, pwd, hostname, ip addr, ls -la, df -h y free -h permiten identificar usuario, ruta, red, archivos, disco y memoria del servidor.</p><br>
+        <p><b>3. Seguridad:</b> A diferencia de RDP (gráfico), SSH ofrece acceso remoto cifrado por línea de comandos, siendo el estándar de administración segura en servidores Linux.</p>
+    </div>
+</div>
+
+<script>
+    // --- SECCIÓN: PROTECCIÓN CONTRA COPIAR / PEGAR ---
+    document.addEventListener('contextmenu', e => e.preventDefault()); // Bloquea clic derecho
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+            e.preventDefault(); // Bloquea Ctrl+C
+        }
+    });
+    
+    // Adjuntar bloqueador de pegar a todos los inputs
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('paste', e => e.preventDefault()); // Bloquea pegar
+    });
+
+    // --- VARIABLES DEL SISTEMA ---
+    let puntos = [5, 5, 5, 5, 5, 5, 5, 5];
+    let totalErrores = 0;
+    let faseActualAlcanzada = 1; // Control de visibilidad persistente
+
+    // --- SECCIÓN: PERSISTENCIA EN LOCALSTORAGE (ANTI-REINICIAR) ---
+    window.addEventListener('load', () => {
+        if (localStorage.getItem('escape_room_saved') === 'true') {
+            // Recuperar textos de estudiantes
+            document.getElementById('nombre').value = localStorage.getItem('est_nombre') || "";
+            document.getElementById('grado').value = localStorage.getItem('est_grado') || "";
+            
+            if (localStorage.getItem('est_guardado') === 'true') {
+                const nombre = document.getElementById('nombre').value;
+                const grado = document.getElementById('grado').value;
+                document.getElementById('displayData').innerHTML = `<b>Estudiante:</b><br>${nombre}<br><br><b>Grado:</b><br>${grado}`;
+                document.getElementById('nombre').disabled = true;
+                document.getElementById('grado').disabled = true;
+                document.getElementById('btnInicializar').disabled = true;
+            }
+
+            // Recuperar errores y puntos
+            totalErrores = parseInt(localStorage.getItem('total_errores')) || 0;
+            document.getElementById('contadorErrores').innerText = totalErrores;
+            puntos = JSON.parse(localStorage.getItem('matriz_puntos')) || [5, 5, 5, 5, 5, 5, 5, 5];
+            faseActualAlcanzada = parseInt(localStorage.getItem('fase_alcanzada')) || 1;
+
+            // Recuperar las respuestas escritas de fases bloqueadas y sus letras
+            for (let i = 1; i <= 8; i++) {
+                const inputElement = document.getElementById(`input_fase${i}`);
+                if (inputElement) {
+                    inputElement.value = localStorage.getItem(`val_input_fase${i}`) || "";
+                }
+                
+                const slotContenedor = localStorage.getItem(`slot_html_${i}`);
+                if (slotContenedor) {
+                    const slot = document.getElementById(`slot${i}`);
+                    slot.innerText = slotContenedor;
+                    slot.classList.add('unlocked');
+                }
+            }
+            
+            // Caso especial tokens de cortafuegos (Clave 1, Clave 2, Clave 3 y clave final)
+            document.getElementById('input_token').value = localStorage.getItem('val_input_token') || "";
+            document.getElementById('input_token1').value = localStorage.getItem('val_input_token1') || "";
+            document.getElementById('input_token2').value = localStorage.getItem('val_input_token2') || "";
+            document.getElementById('input_token3').value = localStorage.getItem('val_input_token3') || "";
+
+            // Re-renderizar visibilidad de elementos según la fase alcanzada
+            actualizarEstadoVisualFases();
+        }
+    });
+
+    function guardarProgresoEnDisco() {
+        localStorage.setItem('escape_room_saved', 'true');
+        localStorage.setItem('est_nombre', document.getElementById('nombre').value);
+        localStorage.setItem('est_grado', document.getElementById('grado').value);
+        localStorage.setItem('est_guardado', document.getElementById('nombre').disabled ? 'true' : 'false');
+        localStorage.setItem('total_errores', totalErrores);
+        localStorage.setItem('matriz_puntos', JSON.stringify(puntos));
+        localStorage.setItem('fase_alcanzada', faseActualAlcanzada);
+
+        for (let i = 1; i <= 8; i++) {
+            const inputElement = document.getElementById(`input_fase${i}`);
+            if (inputElement) {
+                localStorage.setItem(`val_input_fase${i}`, inputElement.value);
+            }
+            const slot = document.getElementById(`slot${i}`);
+            if (slot && slot.classList.contains('unlocked')) {
+                localStorage.setItem(`slot_html_${i}`, slot.innerText);
+            }
+        }
+        localStorage.setItem('val_input_token', document.getElementById('input_token').value);
+        localStorage.setItem('val_input_token1', document.getElementById('input_token1').value);
+        localStorage.setItem('val_input_token2', document.getElementById('input_token2').value);
+        localStorage.setItem('val_input_token3', document.getElementById('input_token3').value);
+    }
+
+    function actualizarEstadoVisualFases() {
+        // Fase 1 siempre visible inicial
+        document.getElementById('fase1').style.display = "block";
+
+        if (faseActualAlcanzada >= 2) {
+            bloquearSeccionVisual('fase1', 'btnValidar1', 'input_fase1');
+            document.getElementById('fase2').style.display = "block";
+            document.getElementById('statusRed').innerText = "Verificando... ⚡";
+            document.getElementById('statusRed').style.color = "var(--warning)";
+        }
+        if (faseActualAlcanzada >= 3) {
+            bloquearSeccionVisual('fase2', 'btnValidar2', 'input_fase2');
+            document.getElementById('fase3').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 4) { // Superó Fase 3, entra al Cortafuegos Clave 1
+            bloquearSeccionVisual('fase3', 'btnValidar3', 'input_fase3');
+            document.getElementById('cortafuegos1').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 5) { // Superó el Cortafuegos Clave 1
+            bloquearSeccionVisual('cortafuegos1', 'btnValidarToken1', 'input_token1');
+            document.getElementById('fase4').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 6) {
+            bloquearSeccionVisual('fase4', 'btnValidar4', 'input_fase4');
+            document.getElementById('fase5').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 7) {
+            bloquearSeccionVisual('fase5', 'btnValidar5', 'input_fase5');
+            document.getElementById('fase6').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 8) { // Superó Fase 6, entra al Cortafuegos Clave 2
+            bloquearSeccionVisual('fase6', 'btnValidar6', 'input_fase6');
+            document.getElementById('cortafuegos2').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 9) { // Superó el Cortafuegos Clave 2
+            bloquearSeccionVisual('cortafuegos2', 'btnValidarToken2', 'input_token2');
+            document.getElementById('fase7').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 10) {
+            bloquearSeccionVisual('fase7', 'btnValidar7', 'input_fase7');
+            document.getElementById('fase8').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 11) { // Superó Fase 8, entra al Cortafuegos Clave 3
+            bloquearSeccionVisual('fase8', 'btnValidar8', 'input_fase8');
+            document.getElementById('cortafuegos3').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 12) { // Superó el Cortafuegos Clave 3, entra al Cortafuegos final
+            bloquearSeccionVisual('cortafuegos3', 'btnValidarToken3', 'input_token3');
+            document.getElementById('bloqueoClave').style.display = "block";
+        }
+        if (faseActualAlcanzada >= 13) { // Fin del laboratorio
+            bloquearSeccionVisual('bloqueoClave', 'btnValidarToken', 'input_token');
+            document.getElementById('statusRed').innerText = "Activo ✅";
+            document.getElementById('statusRed').style.color = "var(--success)";
+            document.getElementById('mensajeFinal').style.display = "block";
+            document.getElementById('teoriaFinal').style.display = "block";
+        }
+
+        // Renderizar puntajes acumulados según fases resueltas
+        // (los 3 cortafuegos de contraseña no suman puntos propios, solo desbloquean el flujo)
+        const mapaCompletadas = {1:0, 2:1, 3:2, 4:3, 5:3, 6:4, 7:5, 8:6, 9:6, 10:7, 11:8, 12:8, 13:8};
+        let completadas = mapaCompletadas.hasOwnProperty(faseActualAlcanzada) ? mapaCompletadas[faseActualAlcanzada] : 8;
+
+        actualizarPuntajeVisual(completadas);
+    }
+
+    function bloquearSeccionVisual(seccionId, botonId, inputId) {
+        const seccion = document.getElementById(seccionId);
+        const boton = document.getElementById(botonId);
+        const input = document.getElementById(inputId);
+        if (seccion) seccion.style.opacity = "0.5";
+        if (boton) boton.disabled = true;
+        if (input) input.disabled = true;
+    }
+
+    // --- CONTROL DE ERRORES Y PUNTOS ---
+    function registrarError(faseIndex) {
+        totalErrores++;
+        document.getElementById('contadorErrores').innerText = totalErrores;
+        if (puntos[faseIndex] > 0) {
+            puntos[faseIndex]--;
+        }
+        guardarProgresoEnDisco();
+    }
+
+    function actualizarPuntajeVisual(faseCompletada) {
+        let total = 0;
+        for(let i = 0; i < faseCompletada; i++) {
+            total += puntos[i];
+        }
+        document.getElementById('puntosTotales').innerText = total;
+    }
+
+    function guardarDatosEstudiante() {
+        const nombre = document.getElementById('nombre').value.trim();
+        const grado = document.getElementById('grado').value.trim();
+        if(nombre && grado) {
+            document.getElementById('displayData').innerHTML = `<b>Estudiante:</b><br>${nombre}<br><br><b>Grado:</b><br>${grado}`;
+            document.getElementById('puntosTotales').innerText = "0";
+            document.getElementById('nombre').disabled = true;
+            document.getElementById('grado').disabled = true;
+            document.getElementById('btnInicializar').disabled = true;
+            guardarProgresoEnDisco();
+            alert("🔒 Credenciales inyectadas con éxito. Servidor listo para auditoría.");
+        } else { 
+            alert("❌ Denegado: Ingrese su nombre y grado para inicializar."); 
+        }
+    }
+
+    // --- LÓGICA DE VALIDACIÓN DE FASES ---
+    function validarFase1() {
+        const nombre = document.getElementById('nombre').value.trim();
+        const entrada = document.getElementById('input_fase1').value.trim().toLowerCase();
+
+        if (!nombre) {
+            alert("❌ Primero guarde los datos del estudiante en la parte superior.");
+            return;
+        }
+
+        if (entrada === "rdp" || entrada === "remote desktop protocol") {
+            document.getElementById('statusRed').innerText = "Verificando... ⚡";
+            document.getElementById('statusRed').style.color = "var(--warning)";
+            
+            document.getElementById('slot1').innerText = "T";
+            document.getElementById('slot1').classList.add('unlocked');
+
+            document.getElementById('fase2').style.display = "block";
+            bloquearSeccionVisual('fase1', 'btnValidar1', 'input_fase1');
+            
+            faseActualAlcanzada = 2;
+            actualizarPuntajeVisual(1);
+            guardarProgresoEnDisco();
+            alert("✅ ¡Correcto! RDP (Remote Desktop Protocol).");
+            document.getElementById('fase2').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(0);
+            alert("❌ CLAVE INCORRECTA. Penalización: -1 punto.");
+        }
+    }
+
+    function validarFase2() {
+        const entrada = document.getElementById('input_fase2').value.trim().toUpperCase();
+
+        if (entrada === "MSTSC") {
+            document.getElementById('slot2').innerText = "E";
+            document.getElementById('slot2').classList.add('unlocked');
+
+            document.getElementById('fase3').style.display = "block";
+            bloquearSeccionVisual('fase2', 'btnValidar2', 'input_fase2');
+
+            faseActualAlcanzada = 3;
+            actualizarPuntajeVisual(2);
+            guardarProgresoEnDisco();
+            alert("✅ ¡Correcto! mstsc (Microsoft Terminal Services Client).");
+            document.getElementById('fase3').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(1);
+            alert("❌ CLAVE INCORRECTA. Penalización: -1 punto.");
+        }
+    }
+
+    function validarFase3() {
+        const entrada = document.getElementById('input_fase3').value.trim().toLowerCase().replace(/\s+/g, "");
+
+        if (entrada === "192.168.10.104") {
+            document.getElementById('slot3').innerText = "R";
+            document.getElementById('slot3').classList.add('unlocked');
+
+            document.getElementById('cortafuegos1').style.display = "block";
+            bloquearSeccionVisual('fase3', 'btnValidar3', 'input_fase3');
+
+            faseActualAlcanzada = 4;
+            actualizarPuntajeVisual(3);
+            guardarProgresoEnDisco();
+            alert("✅ ¡Correcto! IP del servidor: 192.168.10.104");
+            document.getElementById('cortafuegos1').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(2);
+            alert("❌ CLAVE INCORRECTA. Penalización: -1 punto.");
+        }
+    }
+
+    function verificarClave1() {
+        const entrada = document.getElementById('input_token1').value.trim().toLowerCase().replace(/\s+/g, ' ');
+
+        if (entrada === "debian") {
+            alert("🔓 Contraseña correcta. Cortafuegos superado.");
+            bloquearSeccionVisual('cortafuegos1', 'btnValidarToken1', 'input_token1');
+            document.getElementById('fase4').style.display = "block";
+
+            faseActualAlcanzada = 5;
+            guardarProgresoEnDisco();
+            document.getElementById('fase4').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            totalErrores++;
+            document.getElementById('contadorErrores').innerText = totalErrores;
+            guardarProgresoEnDisco();
+            alert("❌ Contraseña incorrecta. Vuelve a intentarlo.");
+        }
+    }
+
+    function validarFase4() {
+        const entrada = document.getElementById('input_fase4').value.trim().toUpperCase();
+
+        if (entrada === "3389") {
+            document.getElementById('slot4').innerText = "M";
+            document.getElementById('slot4').classList.add('unlocked');
+
+            document.getElementById('fase5').style.display = "block";
+            bloquearSeccionVisual('fase4', 'btnValidar4', 'input_fase4');
+
+            faseActualAlcanzada = 6;
+            actualizarPuntajeVisual(4);
+            guardarProgresoEnDisco();
+            alert("✅ ¡Correcto! Puerto TCP 3389 (RDP).");
+            document.getElementById('fase5').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(3);
+            alert("❌ CLAVE INCORRECTA. Penalización: -1 punto.");
+        }
+    }
+
+    function verificarClave3() {
+        const entrada = document.getElementById('input_token3').value.trim().toLowerCase().replace(/\s+/g, ' ');
+
+        if (entrada === "13") {
+            alert("🔓 Contraseña correcta. Cortafuegos superado.");
+            bloquearSeccionVisual('cortafuegos3', 'btnValidarToken3', 'input_token3');
+            document.getElementById('bloqueoClave').style.display = "block";
+
+            faseActualAlcanzada = 12;
+            guardarProgresoEnDisco();
+            document.getElementById('bloqueoClave').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            totalErrores++;
+            document.getElementById('contadorErrores').innerText = totalErrores;
+            guardarProgresoEnDisco();
+            alert("❌ Contraseña incorrecta. Vuelve a intentarlo.");
+        }
+    }
+
+    function verificarPalabraClave() {
+        const token = document.getElementById('input_token').value.trim().toUpperCase();
+        if (token === "TERMINAL") {
+            document.getElementById('statusRed').innerText = "Activo ✅";
+            document.getElementById('statusRed').style.color = "var(--success)";
+
+            bloquearSeccionVisual('bloqueoClave', 'btnValidarToken', 'input_token');
+
+            faseActualAlcanzada = 13;
+            let totalFinal = puntos.reduce((acc, curr) => acc + curr, 0);
+            document.getElementById('puntosTotales').innerText = totalFinal;
+
+            guardarProgresoEnDisco();
+
+            document.getElementById('mensajeFinal').style.display = "block";
+            document.getElementById('teoriaFinal').style.display = "block";
+            document.getElementById('mensajeFinal').scrollIntoView({ behavior: 'smooth' });
+            alert("🏆 ¡Laboratorio superado con éxito!");
+        } else {
+            totalErrores++;
+            document.getElementById('contadorErrores').innerText = totalErrores;
+            guardarProgresoEnDisco();
+            alert("❌ Palabra clave errónea. Escribe exactamente la palabra que se formó con las 8 letras desbloqueadas (TERMINAL).");
+        }
+    }
+
+    function validarFase5() {
+        const entrada = document.getElementById('input_fase5').value.trim();
+
+        if (entrada.toLowerCase() === "screenfetch") {
+            document.getElementById('slot5').innerText = "I";
+            document.getElementById('slot5').classList.add('unlocked');
+
+            document.getElementById('fase6').style.display = "block";
+            bloquearSeccionVisual('fase5', 'btnValidar5', 'input_fase5');
+
+            faseActualAlcanzada = 7;
+            actualizarPuntajeVisual(5);
+            guardarProgresoEnDisco();
+            alert("✅ ¡Correcto! screenfetch muestra la información del sistema.");
+            document.getElementById('fase6').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(4);
+            alert("❌ INCORRECTO. Penalización: -1 punto.");
+        }
+    }
+
+    function validarFase6() {
+        const entrada = document.getElementById('input_fase6').value.trim().toLowerCase();
+
+        if (entrada === "whoami") {
+            document.getElementById('slot6').innerText = "N";
+            document.getElementById('slot6').classList.add('unlocked');
+
+            document.getElementById('cortafuegos2').style.display = "block";
+            bloquearSeccionVisual('fase6', 'btnValidar6', 'input_fase6');
+
+            faseActualAlcanzada = 8;
+            actualizarPuntajeVisual(6);
+            guardarProgresoEnDisco();
+            alert("✅ ¡Correcto! whoami muestra el usuario activo.");
+            document.getElementById('cortafuegos2').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(5);
+            alert("❌ INCORRECTO. Penalización: -1 punto.");
+        }
+    }
+
+    function verificarClave2() {
+        const entrada = document.getElementById('input_token2').value.trim().toLowerCase().replace(/\s+/g, ' ');
+
+        if (entrada === "trixie") {
+            alert("🔓 Contraseña correcta. Cortafuegos superado.");
+            bloquearSeccionVisual('cortafuegos2', 'btnValidarToken2', 'input_token2');
+            document.getElementById('fase7').style.display = "block";
+
+            faseActualAlcanzada = 9;
+            guardarProgresoEnDisco();
+            document.getElementById('fase7').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            totalErrores++;
+            document.getElementById('contadorErrores').innerText = totalErrores;
+            guardarProgresoEnDisco();
+            alert("❌ Contraseña incorrecta. Vuelve a intentarlo.");
+        }
+    }
+
+    function validarFase7() {
+        const entrada = document.getElementById('input_fase7').value.trim().toLowerCase();
+
+        if (entrada === "estudiantes") {
+            document.getElementById('slot7').innerText = "A";
+            document.getElementById('slot7').classList.add('unlocked');
+
+            document.getElementById('fase8').style.display = "block";
+            bloquearSeccionVisual('fase7', 'btnValidar7', 'input_fase7');
+
+            faseActualAlcanzada = 10;
+            actualizarPuntajeVisual(7);
+            guardarProgresoEnDisco();
+            alert("✅ ¡Correcto! Estudiantes es el directorio compartido donde va tu carpeta personal.");
+            document.getElementById('fase8').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(6);
+            alert("❌ INCORRECTO. Penalización: -1 punto.");
+        }
+    }
+
+    function validarFase8() {
+        const entrada = document.getElementById('input_fase8').value.trim().toLowerCase();
+
+        if (entrada === "ssh") {
+            document.getElementById('slot8').innerText = "L";
+            document.getElementById('slot8').classList.add('unlocked');
+
+            document.getElementById('cortafuegos3').style.display = "block";
+            bloquearSeccionVisual('fase8', 'btnValidar8', 'input_fase8');
+
+            faseActualAlcanzada = 11;
+            actualizarPuntajeVisual(8);
+            guardarProgresoEnDisco();
+
+            alert("✅ ¡Correcto! SSH permite administración remota segura por línea de comandos.");
+            document.getElementById('cortafuegos3').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError(7);
+            alert("❌ CLAVE INCORRECTA. Pista: Revisa el recuadro teórico superior. Penalización: -1 punto.");
+        }
+    }
+    // --- BOTÓN FLOTANTE: REINICIO PROTEGIDO (SOLO DOCENTE) ---
+    function solicitarReinicioDocente() {
+        const PASSWORD_DOCENTE = "code2026";
+        const intento = prompt("🔐 Acceso restringido al docente.\nIngrese la contraseña para reiniciar la práctica:");
+
+        if (intento === null) return; // El docente canceló el cuadro de diálogo
+
+        if (intento === PASSWORD_DOCENTE) {
+            const confirmar = confirm("⚠️ Esta acción borrará TODO el progreso guardado (respuestas, puntaje, errores y datos del estudiante) y recargará la práctica desde cero. ¿Desea continuar?");
+            if (confirmar) {
+                localStorage.clear();
+                alert("✅ Práctica reiniciada correctamente. La página se recargará ahora.");
+                location.reload();
+            }
+        } else {
+            alert("❌ Contraseña incorrecta. No tiene autorización para reiniciar la práctica.");
+        }
+    }
+</script>
+
+</body>
+</html>
