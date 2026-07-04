@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trabajo Práctico: Evolución de Windows - Colegio Episcopal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --gold: #c9a84c;
+            --bg: #0a0e14;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --green: #00ff88;
+            --red: #ff4466;
+            --stream-origenes: #0284c7;
+            --stream-win9x: #14b8a6;
+            --stream-winnt: #a855f7;
+            --stream-servers: #ef4444;
+        }
+ 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+        body {
+            background: var(--bg);
+            color: #e0e0e0;
+            font-family: 'Share Tech Mono', monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+ 
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(0,212,255,0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── MEJORA TRANSVERSAL: Scrollbars Internos Personalizados ── */
+        .tree-scroll-container::-webkit-scrollbar,
+        .theory-scroll-container::-webkit-scrollbar,
+        .log::-webkit-scrollbar {
+            width: 5px;
+        }
+        .tree-scroll-container::-webkit-scrollbar-track,
+        .theory-scroll-container::-webkit-scrollbar-track,
+        .log::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 10px;
+        }
+        .tree-scroll-container::-webkit-scrollbar-thumb,
+        .theory-scroll-container::-webkit-scrollbar-thumb,
+        .log::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+            box-shadow: 0 0 8px var(--primary);
+        }
+ 
+        .header {
+            text-align: center;
+            padding: 25px 30px;
+            border-bottom: 1px solid rgba(201,168,76,0.4);
+            background: linear-gradient(180deg, rgba(201,168,76,0.08) 0%, transparent 100%);
+            position: relative;
+            z-index: 1;
+        }
+ 
+        .header h2 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            font-weight: 900;
+        }
+ 
+        .header h3 {
+            font-family: 'Orbitron', monospace;
+            color: var(--primary);
+            font-weight: 400;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        /* Tarjeta Neón Superior */
+        .neon-badge {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            background: rgba(10, 14, 20, 0.9);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.35), inset 0 0 10px rgba(0, 212, 255, 0.2);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-family: 'Orbitron', monospace;
+            text-align: right;
+            z-index: 100;
+        }
+
+        .neon-tag {
+            font-size: 0.75rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.8);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .neon-info {
+            font-size: 0.65rem;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            font-family: 'Share Tech Mono', monospace;
+            margin-top: 2px;
+        }
+ 
+        .form-auth {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+ 
+        .form-auth label {
+            color: var(--gold);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+ 
+        input {
+            background: rgba(0,212,255,0.06);
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 4px;
+            color: white;
+            padding: 8px 12px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+ 
+        input:focus { border-color: var(--primary); }
+        input:disabled { opacity: 0.5; }
+ 
+        #salon { width: 70px; }
+ 
+        .btn {
+            background: linear-gradient(135deg, var(--gold), #a07830);
+            color: #0a0e14;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 4px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+ 
+        .btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--primary), #0088aa);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,212,255,0.3);
+        }
+ 
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+ 
+        #timer-bar {
+            height: 3px;
+            background: linear-gradient(90deg, var(--green), var(--primary), var(--gold));
+            transition: width 1s linear, background 1s;
+            width: 100%;
+        }
+ 
+        #timer-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75rem;
+            color: var(--primary);
+            text-align: right;
+            padding: 3px 20px 0;
+            letter-spacing: 2px;
+        }
+ 
+        .main {
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            gap: 16px;
+            padding: 16px 20px;
+            max-width: 1600px;
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(201,168,76,0.2);
+            padding: 18px;
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+            margin-bottom: 16px;
+            position: relative;
+        }
+ 
+        .card h3 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(201,168,76,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+ 
+        .card p {
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+ 
+        .card p b { color: #ddd; }
+ 
+        canvas {
+            border: 2px solid rgba(0,212,255,0.4);
+            background: #020609;
+            box-shadow: 0 0 30px rgba(0,212,255,0.1), inset 0 0 30px rgba(0,0,0,0.5);
+            border-radius: 6px;
+            display: block;
+            margin: 0 auto;
+        }
+ 
+        .canvas-wrap { text-align: center; }
+ 
+        .arrow-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 44px);
+            grid-template-rows: repeat(2, 44px);
+            gap: 4px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+ 
+        .arrow-pad .btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            font-size: 1rem;
+            border-radius: 6px;
+        }
+ 
+        .score-box {
+            font-family: 'Orbitron', monospace;
+            font-size: 2.2rem;
+            color: var(--primary);
+            text-align: center;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(0,212,255,0.5);
+            margin: 8px 0;
+        }
+ 
+        .score-label {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #777;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+ 
+        .progress-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0 4px;
+        }
+ 
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--green));
+            border-radius: 3px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+ 
+        .progress-text {
+            font-size: 0.72rem;
+            color: #777;
+            text-align: right;
+        }
+ 
+        .log {
+            overflow-y: auto;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            background: rgba(0,0,0,0.4);
+            padding: 10px;
+            border-radius: 5px;
+            color: #00cc66;
+            height: 140px;
+            border: 1px solid rgba(0,255,136,0.1);
+        }
+ 
+        .log .entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .log .entry.error { color: var(--red); }
+        .log .entry.warn  { color: var(--gold); }
+        .log .entry.ok    { color: var(--green); }
+        .log .entry.info  { color: var(--primary); }
+
+        /* ── SECCIÓN 1: TIMELINE DE ARBOL GENEALOGICO Y ACORDEÓN ── */
+        .tree-scroll-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .stream-section {
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.01);
+            transition: border-color 0.3s;
+        }
+
+        .stream-section:hover {
+            border-color: rgba(201,168,76,0.15);
+        }
+
+        .stream-title-header {
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: #fff;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.3s;
+        }
+
+        .stream-title-header::after {
+            content: '▲';
+            font-size: 0.55rem;
+            color: var(--gold);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stream-section.collapsed .stream-title-header::after {
+            transform: rotate(180deg);
+        }
+
+        .stream-section.origenes .stream-title-header { background: rgba(2, 132, 199, 0.15); border-bottom: 1px solid rgba(2, 132, 199, 0.3); }
+        .stream-section.win9x .stream-title-header { background: rgba(20, 184, 166, 0.15); border-bottom: 1px solid rgba(20, 184, 166, 0.3); }
+        .stream-section.winnt .stream-title-header { background: rgba(168, 85, 247, 0.15); border-bottom: 1px solid rgba(168, 85, 247, 0.3); }
+        .stream-section.servers .stream-title-header { background: rgba(239, 68, 68, 0.15); border-bottom: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px 12px 12px 24px;
+            position: relative;
+            max-height: 1000px;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s, padding 0.4s;
+            opacity: 1;
+        }
+
+        .stream-section.collapsed .node-list {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            pointer-events: none;
+        }
+
+        .node-list::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+        }
+
+        .stream-section.origenes .node-list::before { background: linear-gradient(180deg, var(--stream-origenes) 60%, rgba(255,255,255,0.05) 100%); }
+        .stream-section.win9x .node-list::before { background: var(--stream-win9x); }
+        .stream-section.winnt .node-list::before { background: var(--stream-winnt); }
+        .stream-section.servers .node-list::before { background: var(--stream-servers); }
+
+        .mini-node-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-left: 4px solid #fff;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0; 
+            transition: transform 0.25s ease, background 0.25s, border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .mini-node-card::before {
+            content: '';
+            position: absolute;
+            left: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            transition: background 0.25s;
+        }
+
+        .mini-node-card::after {
+            content: '';
+            position: absolute;
+            left: -18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+            z-index: 3;
+            transition: background 0.25s, box-shadow 0.25s;
+        }
+
+        .stream-section.origenes .mini-node-card::after { background: var(--stream-origenes); box-shadow: 0 0 6px var(--stream-origenes); }
+        .stream-section.win9x .mini-node-card::after { background: var(--stream-win9x); box-shadow: 0 0 6px var(--stream-win9x); }
+        .stream-section.winnt .mini-node-card::after { background: var(--stream-winnt); box-shadow: 0 0 6px var(--stream-winnt); }
+        .stream-section.servers .mini-node-card::after { background: var(--stream-servers); box-shadow: 0 0 6px var(--stream-servers); }
+
+        .mini-node-card:hover {
+            background: rgba(255,255,255,0.06);
+            transform: translateX(4px);
+        }
+
+        .stream-section.origenes .mini-node-card:hover { border-color: var(--stream-origenes); box-shadow: 0 0 12px rgba(2, 132, 199, 0.4); }
+        .stream-section.win9x .mini-node-card:hover { border-color: var(--stream-win9x); box-shadow: 0 0 12px rgba(20, 184, 166, 0.4); }
+        .stream-section.winnt .mini-node-card:hover { border-color: var(--stream-winnt); box-shadow: 0 0 12px rgba(168, 85, 247, 0.4); }
+        .stream-section.servers .mini-node-card:hover { border-color: var(--stream-servers); box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
+
+        .mini-node-card.selected-active {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+            background: rgba(0, 212, 255, 0.08) !important;
+        }
+
+        .mini-node-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        .mini-node-year {
+            font-size: 0.7rem;
+            color: var(--gold);
+        }
+
+        .y-branch-indicator {
+            position: relative;
+            height: 30px;
+            margin-left: -14px;
+            margin-top: -6px;
+        }
+        .y-branch-indicator::before {
+            content: 'BIFURCACIÓN DE NÚCLEO DOS ➔ 9X / NT';
+            position: absolute;
+            left: 24px;
+            top: 6px;
+            font-size: 0.55rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .y-branch-indicator::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            width: 8px;
+            height: 16px;
+            border-left: 2px dashed var(--stream-origenes);
+            border-bottom: 2px dashed var(--stream-origenes);
+            border-bottom-left-radius: 6px;
+        }
+
+        /* ── SECCIÓN 2: PESTAÑAS, BUSCADOR Y GUÍA DE ESTUDIO ── */
+        .tabs-container {
+            display: flex;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 20px;
+            padding: 3px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(201, 168, 76, 0.15);
+        }
+
+        .tab-pill {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.68rem;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+
+        .tab-pill.active {
+            background: linear-gradient(135deg, var(--gold), #a07830);
+            color: #0a0e14;
+            box-shadow: 0 2px 8px rgba(201, 168, 76, 0.3);
+        }
+
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+        }
+
+        .search-prompt {
+            color: var(--primary);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            margin-right: 6px;
+            user-select: none;
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        .theory-scroll-container {
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .theory-item {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            opacity: 0; 
+            transition: border-color 0.3s;
+        }
+
+        #topic-1 { border-left: 3px solid #0284c7; }
+        #topic-2 { border-left: 3px solid #14b8a6; }
+        #topic-3 { border-left: 3px solid #a855f7; }
+        #topic-4 { border-left: 3px solid #ef4444; }
+        #topic-5 { border-left: 3px solid #c9a84c; }
+
+        .theory-summary {
+            padding: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.7rem;
+            color: var(--gold);
+            cursor: pointer;
+            font-weight: bold;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            outline: none;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .theory-summary:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .theory-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .theory-summary::after {
+            content: '▼';
+            font-size: 0.6rem;
+            color: var(--primary);
+            transition: transform 0.2s;
+        }
+
+        .theory-item[open] .theory-summary::after {
+            transform: rotate(180deg);
+        }
+
+        .theory-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #475569;
+            margin-right: 6px;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .theory-dot.read {
+            background: var(--gold);
+            box-shadow: 0 0 8px var(--gold);
+        }
+
+        .theory-content {
+            padding: 12px;
+            border-top: 1px solid rgba(201, 168, 76, 0.1);
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: #b0b7c3;
+        }
+
+        .theory-content h5 {
+            font-family: 'Orbitron', monospace;
+            color: var(--primary);
+            font-size: 0.72rem;
+            margin: 8px 0 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .theory-content p {
+            margin-bottom: 6px;
+            text-align: justify;
+        }
+
+        .theory-content ul {
+            margin-left: 14px;
+            margin-bottom: 8px;
+        }
+
+        .theory-content li {
+            margin-bottom: 3px;
+        }
+
+        .theory-highlight {
+            color: #fff;
+            background: rgba(0, 212, 255, 0.12);
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* ── SECCIÓN 3: ESTADO EN EL LABERINTO (GRID DE CHIPS Y TOOLTIPS) ── */
+        .quiz-bank-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            max-height: none;
+            padding: 4px;
+            transition: all 0.3s;
+        }
+
+        .quiz-chip {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, border-color 0.3s, box-shadow 0.3s;
+            user-select: none;
+        }
+
+        .quiz-chip:hover {
+            transform: scale(1.18);
+            z-index: 10;
+        }
+
+        @keyframes pulse-cyan {
+            0% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.5); }
+            70% { box-shadow: 0 0 0 5px rgba(0, 212, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
+        }
+
+        .quiz-chip.unsolved {
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            background: rgba(0, 212, 255, 0.02);
+            color: var(--primary);
+            animation: pulse-cyan 2s infinite;
+        }
+
+        .quiz-chip.solved {
+            background: var(--green);
+            color: #0a0e14;
+            border-color: var(--green);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .quiz-chip.failed {
+            background: var(--red);
+            color: #0a0e14;
+            border-color: var(--red);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 68, 102, 0.5);
+        }
+
+        .quiz-tooltip {
+            position: fixed;
+            background: rgba(13, 18, 25, 0.95);
+            border: 1px solid var(--gold);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            color: #fff;
+            pointer-events: none;
+            z-index: 3000;
+            display: none;
+            max-width: 260px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            font-family: 'Share Tech Mono', monospace;
+            line-height: 1.4;
+        }
+
+        /* Entrada de Animación General (Fade + TranslateY) */
+        @keyframes staggerFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: staggerFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* DRAWER PANEL DE DETALLES */
+        .drawer-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1400;
+            backdrop-filter: blur(2px);
+        }
+
+        .drawer-overlay.active {
+            display: block;
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            left: -360px;
+            width: 340px;
+            height: 100%;
+            background: #0d1219;
+            border-right: 2px solid var(--gold);
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.8);
+            z-index: 1500;
+            transition: left 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            color: #f1f5f9;
+        }
+
+        .drawer.open {
+            left: 0;
+        }
+
+        .drawer-header {
+            padding: 18px;
+            border-bottom: 1px solid rgba(201, 168, 76, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(201, 168, 76, 0.05);
+        }
+
+        .drawer-header h3 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 1rem;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+
+        .drawer-close {
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-weight: bold;
+        }
+
+        .drawer-close:hover {
+            color: var(--red);
+        }
+
+        .drawer-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .drawer-avatar {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(201, 168, 76, 0.1));
+            border: 1px dashed rgba(201, 168, 76, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            color: var(--primary);
+            position: relative;
+        }
+
+        .drawer-avatar::after {
+            content: 'REGISTRO HISTÓRICO';
+            position: absolute;
+            bottom: 6px;
+            font-size: 0.55rem;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .drawer-section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.72rem;
+            color: var(--gold);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .drawer-field {
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            line-height: 1.4;
+            color: #b0b7c3;
+        }
+
+        .drawer-field strong {
+            color: var(--primary);
+            font-weight: normal;
+        }
+ 
+        /* MODAL */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+ 
+        #modal-overlay.active { display: flex; }
+ 
+        #modal-box {
+            background: #0d1219;
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(201,168,76,0.2);
+            animation: modalIn 0.2s ease;
+        }
+ 
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(-20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+ 
+        #modal-box h4 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+        }
+ 
+        #modal-pregunta {
+            color: #ddd;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 18px;
+            padding: 14px;
+            background: rgba(255,255,255,0.03);
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+        }
+ 
+        #modal-respuesta {
+            width: 100%;
+            margin-bottom: 14px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+        }
+ 
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+ 
+        .btn-cancel {
+            background: rgba(255,255,255,0.06);
+            color: #888;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 9px 18px;
+            border-radius: 4px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.65rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+ 
+        #ia-status {
+            font-size: 0.75rem;
+            color: var(--gold);
+            min-height: 18px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+ 
+        /* Victoria */
+        #win-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+ 
+        #win-screen.active { display: flex; }
+ 
+        #win-screen h1 {
+            font-family: 'Orbitron', monospace;
+            color: var(--gold);
+            font-size: 2rem;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(201,168,76,0.6);
+        }
+ 
+        #win-screen p {
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin: 6px 0;
+        }
+ 
+        .star { font-size: 3rem; animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.15); } }
+ 
+        @media (max-width: 1024px) {
+            .main { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .neon-badge {
+                position: static;
+                margin: 10px auto;
+                text-align: center;
+                width: fit-content;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .drawer {
+                width: 100%;
+                left: -100%;
+            }
+            .drawer.open {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+ 
+<div class="header">
+    <div class="neon-badge">
+        <div class="neon-tag">TRABAJO EN CLASE</div>
+        <div class="neon-info">Profesor: Arquimedes Mosquera</div>
+        <div class="neon-info">Materia: Informática</div>
+    </div>
+
+    <h2>COLEGIO EPISCOPAL DE PANAMÁ</h2>
+    <h3>TRABAJO PRÁCTICO • HISTORIA Y EVOLUCIÓN DE WINDOWS</h3>
+    
+    <div class="form-auth">
+        <label>NOMBRE:</label>
+        <input id="nombre" type="text" placeholder="Tu nombre completo">
+        <label>SALÓN:</label>
+        <input id="salon" type="text" placeholder="12A">
+        <button class="btn" onclick="guardarDatos()">EMPEZAR RETO</button>
+    </div>
+</div>
+ 
+<div style="padding: 0 20px; position:relative; z-index:1;">
+    <div id="timer-bar"></div>
+    <div id="timer-text">90:00</div>
+</div>
+ 
+<div class="main">
+    <!-- COLUMNA IZQUIERDA -->
+    <div>
+        <div class="card">
+            <h3>🔧 // MECÁNICA</h3>
+            <p>1. Muévete por el laberinto usando las <b>flechas del teclado</b>.</p>
+            <p>2. Al colisionar con un nodo <b>"?"</b>, responde la pregunta sobre Windows.</p>
+            <p>3. Resuelve las 20 preguntas aleatorias distribuidas en el mapa.</p>
+            <p>4. El objetivo es alcanzar la salida (marcada en verde) con la mayor puntuación.</p>
+            <br>
+            <p style="color: rgba(201,168,76,0.6); font-size:0.75rem;">▸ Haz clic en cualquier sistema del árbol para ver su información en un panel interactivo deslizante.</p>
+        </div>
+
+        <!-- ÁRBOL GENEALÓGICO DE WINDOWS -->
+        <div class="card">
+            <h3>🌳 // ÁRBOL GENEALÓGICO DE WINDOWS</h3>
+            <div class="tree-scroll-container">
+                <!-- Stream 1: Orígenes -->
+                <div class="stream-section origenes" id="stream-origenes">
+                    <div class="stream-title-header" onclick="toggleStream('stream-origenes')">
+                        <span>💾 16-bit & DOS</span>
+                    </div>
+                    <div class="node-list" id="tree-origenes"></div>
+                </div>
+                <!-- Stream 2: Familia 9x -->
+                <div class="stream-section win9x" id="stream-win9x">
+                    <div class="stream-title-header" onclick="toggleStream('stream-win9x')">
+                        <span>🪟 Familia 9x</span>
+                    </div>
+                    <div class="node-list" id="tree-win9x"></div>
+                </div>
+                <!-- Stream 3: Familia NT -->
+                <div class="stream-section winnt" id="stream-winnt">
+                    <div class="stream-title-header" onclick="toggleStream('stream-winnt')">
+                        <span>🖥️ Familia NT</span>
+                    </div>
+                    <div class="node-list" id="tree-winnt"></div>
+                </div>
+                <!-- Stream 4: Servidores -->
+                <div class="stream-section servers" id="stream-servers">
+                    <div class="stream-title-header" onclick="toggleStream('stream-servers')">
+                        <span>🗄️ Servidores</span>
+                    </div>
+                    <div class="node-list" id="tree-servers"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- COLUMNA CENTRAL: LABERINTO -->
+    <div class="canvas-wrap">
+        <canvas id="maze" width="550" height="550"></canvas>
+        <div class="arrow-pad">
+            <div></div>
+            <button class="btn" onclick="move(0,-1)">↑</button>
+            <div></div>
+            <button class="btn" onclick="move(-1,0)">←</button>
+            <button class="btn" onclick="move(0,1)">↓</button>
+            <button class="btn" onclick="move(1,0)">→</button>
+        </div>
+    </div>
+ 
+    <!-- COLUMNA DERECHA -->
+    <div>
+        <div class="card">
+            <h3>📊 // ESTATUS</h3>
+            <div class="score-box"><span id="score">0</span></div>
+            <div class="score-label">PUNTOS</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="prog-fill"></div>
+            </div>
+            <div class="progress-text">Preguntas: <span id="clues">0/20</span></div>
+        </div>
+
+        <div class="card">
+            <h3>📟 // CONSOLA</h3>
+            <div id="log" class="log">
+                <div class="entry info">> Sistema listo. Registra tus datos para comenzar el trabajo práctico de informática.</div>
+            </div>
+        </div>
+
+        <!-- BANCO DE PREGUNTAS Y GUÍA DE ESTUDIO COMPLETA -->
+        <div class="card">
+            <h3>📚 // BANCO DE PREGUNTAS EVALUATIVO</h3>
+            
+            <!-- Switcher tipo Pill-Button -->
+            <div class="tabs-container">
+                <button class="tab-pill active" id="tab-btn-theory" onclick="switchRightTab('theory')">Teoría</button>
+                <button class="tab-pill" id="tab-btn-questions" onclick="switchRightTab('questions')">Preguntas</button>
+            </div>
+
+            <!-- Buscador Consola Terminal -->
+            <div class="search-wrap" id="theory-search-wrap">
+                <span class="search-prompt">SYS:\></span>
+                <input type="text" class="search-input" id="theory-search" placeholder="Buscar concepto o sistema..." onkeyup="filterTheory()">
+            </div>
+
+            <!-- Compendio Teórico de Estudio -->
+            <div class="theory-scroll-container" id="theory-scroll-container">
+                
+                <!-- Tema 1 -->
+                <details class="theory-item" id="topic-1" onclick="markTopicAsRead('topic-1')">
+                    <summary class="theory-summary">
+                        <span><span class="theory-dot" id="dot-topic-1"></span> 1. Era MS-DOS y Orígenes (16-bit)</span>
+                    </summary>
+                    <div class="theory-content">
+                        <h5>MS-DOS</h5>
+                        <p><strong>Definición:</strong> Sistema operativo de disco lanzado en <strong>1981</strong> con interfaz de línea de comandos física (CLI).</p>
+                        <p><strong>Kernel:</strong> Utiliza un núcleo <span class="theory-highlight">Monolítico</span> de 16 bits donde los servicios esenciales comparten el mismo espacio de memoria, optimizando recursos limitados.</p>
+                        <p><strong>Características:</strong> Monotarea estricto, gestión física de ficheros en disquetes o particiones pequeñas bajo formato FAT12/FAT16.</p>
+                        
+                        <h5>Windows 1.0</h5>
+                        <p><strong>Concepto:</strong> Lanzado en <strong>1985</strong> como una interfaz o shell gráfico operado por ratón corriendo encima del núcleo de MS-DOS.</p>
+                        
+                        <h5>Windows 2.0</h5>
+                        <p><strong>Concepto:</strong> Versión de 1987 que introdujo ventanas superpuestas. Esto causó una famosa demanda judicial de <span class="theory-highlight">Apple</span> por presunto plagio de su interfaz visual.</p>
+                        
+                        <h5>Windows 3.0 / 3.1</h5>
+                        <p><strong>Concepto:</strong> Lanzado en <strong>1990</strong>, introdujo el <span class="theory-highlight">Administrador de Programas</span> (Program Manager), soporte de memoria virtual y una paleta de 16 colores para optimizar pantallas VGA.</p>
+                    </div>
+                </details>
+
+                <!-- Tema 2 -->
+                <details class="theory-item" id="topic-2" onclick="markTopicAsRead('topic-2')">
+                    <summary class="theory-summary">
+                        <span><span class="theory-dot" id="dot-topic-2"></span> 2. La Era Consumo de 9x (Híbrida)</span>
+                    </summary>
+                    <div class="theory-content">
+                        <h5>Windows 95</h5>
+                        <p><strong>Definición:</strong> Plataforma híbrida de 16/32 bits lanzada en <strong>1995</strong> que diseñó el canon moderno del escritorio de PC personal.</p>
+                        <p><strong>Características:</strong> Introdujo el icónico <span class="theory-highlight">Menú Inicio</span>, la barra de tareas, arquitectura multitarea de hilos y el sistema de hardware Plug & Play.</p>
+                        
+                        <h5>Windows 98</h5>
+                        <p><strong>Características:</strong> Evolución robusta que incorporó de manera nativa el sistema de archivos de 32 bits <span class="theory-highlight">FAT32</span>, permitiendo direccionar particiones y unidades lógicas mucho mayores con menor desperdicio de clústeres en disco.</p>
+                        
+                        <h5>Windows Me (Millennium)</h5>
+                        <p><strong>Concepto:</strong> Lanzado en el año 2000. Su aporte fundamental fue la inclusión nativa de la herramienta <span class="theory-highlight">Restaurador de Sistema</span> (System Restore), permitiendo volver a puntos de guardado tras fallas de controladores.</p>
+                    </div>
+                </details>
+
+                <!-- Tema 3 -->
+                <details class="theory-item" id="topic-3" onclick="markTopicAsRead('topic-3')">
+                    <summary class="theory-summary">
+                        <span><span class="theory-dot" id="dot-topic-3"></span> 3. Arquitectura Windows NT</span>
+                    </summary>
+                    <div class="theory-content">
+                        <h5>El Núcleo NT y su Creador</h5>
+                        <p><strong>Definición:</strong> Arquitectura robusta de 32 bits multiproceso sin base MS-DOS concebida de cero.</p>
+                        <p><strong>Arquitecto Principal:</strong> El legendario ingeniero <span class="theory-highlight">Dave Cutler</span> diseñó este motor con un aislamiento completo de memoria.</p>
+                        
+                        <h5>El Sistema de Archivos NTFS</h5>
+                        <p><strong>Definición:</strong> <span class="theory-highlight">NTFS</span> (New Technology File System), introducido con Windows NT 3.1, trajo consigo ventajas como control de acceso, bitácora de transiciones, permisos de cifrado y tolerancia a fallos por hardware.</p>
+                        
+                        <h5>Windows XP</h5>
+                        <p><strong>Concepto:</strong> Lanzado en <strong>2001</strong>. Logró la fusión definitiva de los núcleos hogareño y profesional bajo la estable arquitectura de NT, vistiendo la interfaz <span class="theory-highlight">Luna</span> de colores azulados.</p>
+                    </div>
+                </details>
+
+                <!-- Tema 4 -->
+                <details class="theory-item" id="topic-4" onclick="markTopicAsRead('topic-4')">
+                    <summary class="theory-summary">
+                        <span><span class="theory-dot" id="dot-topic-4"></span> 4. Seguridad y Modernización</span>
+                    </summary>
+                    <div class="theory-content">
+                        <h5>Windows Vista</h5>
+                        <p><strong>Seguridad:</strong> Introdujo <span class="theory-highlight">UAC</span> (User Account Control), una tecnología que solicita confirmación expresa ante acciones administrativas, previniendo alteraciones silenciosas por malware.</p>
+                        
+                        <h5>Windows 7</h5>
+                        <p><strong>Rendimiento:</strong> Logró la optimización y soporte nativo de discos de estado sólido (<span class="theory-highlight">SSD</span>) mediante el comando TRIM, previniendo la degradación de velocidad con el tiempo.</p>
+                        
+                        <h5>Windows 8</h5>
+                        <p><strong>Evolución Visual:</strong> Introdujo la interfaz <span class="theory-highlight">Metro</span> (Modern UI), compuesta por mosaicos interactivos diseñados para pantallas táctiles.</p>
+                        
+                        <h5>Windows 10</h5>
+                        <p><strong>Distribución:</strong> Cambió al modelo <span class="theory-highlight">Windows as a Service</span> (WaaS), distribuyendo actualizaciones y correcciones continuas en la nube de forma ágil.</p>
+                        
+                        <h5>Windows 11</h5>
+                        <p><strong>Requisitos de Seguridad:</strong> Exige de manera obligatoria hardware compatible con el chip criptográfico <span class="theory-highlight">TPM 2.0</span> y Secure Boot.</p>
+                        <p><strong>IA Integrada:</strong> Incorpora nativamente el asistente de Inteligencia Artificial <span class="theory-highlight">Copilot</span> en el explorador de escritorio.</p>
+                    </div>
+                </details>
+
+                <!-- Tema 5 -->
+                <details class="theory-item" id="topic-5" onclick="markTopicAsRead('topic-5')">
+                    <summary class="theory-summary">
+                        <span><span class="theory-dot" id="dot-topic-5"></span> 5. Plataformas Server y Protocolos</span>
+                    </summary>
+                    <div class="theory-content">
+                        <h5>Active Directory</h5>
+                        <p><strong>Definición:</strong> Estructura jerárquica de base de datos para la gestión unificada de identidades en red de servidores corporativos.</p>
+                        <p><strong>Lanzamiento:</strong> Debutó en el año 2000 con el sistema operativo <span class="theory-highlight">Windows 2000</span> Server.</p>
+                        
+                        <h5>Virtualización (Hyper-V)</h5>
+                        <p><strong>Concepto:</strong> Tecnología de hipervisor nativo introducida de forma robusta con Windows Server 2008 para consolidar múltiples servidores virtuales sobre una sola base de hardware físico.</p>
+                        
+                        <h5>Contenedores (Docker)</h5>
+                        <p><strong>Concepto:</strong> Windows Server 2016 integró de forma nativa la suite de contenedores <span class="theory-highlight">Docker</span> para empaquetar aplicaciones aisladas de forma ligera.</p>
+                        
+                        <h5>Escritorio Remoto (RDP)</h5>
+                        <p><strong>Definición:</strong> Protocolo de escritorio remoto que opera en el puerto <strong>3389</strong>. Su base tecnológica (<span class="theory-highlight">RDP</span>) fue integrada desde 1996 en versiones NT para proveer accesibilidad remota a terminales de administración.</p>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Rejilla de Chips de Preguntas -->
+            <div class="quiz-bank-container" id="quiz-bank-list" style="display: none;">
+                <!-- Se puebla mediante Javascript -->
+            </div>
+        </div>
+    </div>
+</div>
+ 
+<div id="modal-overlay">
+    <div id="modal-box">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem; font-family: 'Orbitron', monospace; font-weight: bold;">
+            <span id="modal-timer-text" style="color: var(--primary);">TIEMPO: 60s</span>
+            <span id="modal-attempts-text" style="color: var(--gold);">INTENTOS: 0/2</span>
+        </div>
+        <h4>// PUNTO DE CONTROL · RESPONDE PARA CONTINUAR</h4>
+        <div id="modal-pregunta"></div>
+        <div id="ia-status"></div>
+        <input id="modal-respuesta" type="text" placeholder="Escribe tu respuesta técnica..." autocomplete="off">
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="cerrarModal()">CANCELAR</button>
+            <button class="btn" id="btn-enviar" onclick="submitModal()">VALIDAR →</button>
+        </div>
+    </div>
+</div>
+
+<!-- CAPAS DEL PANEL LATERAL DETALLADO -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="tree-detail-drawer">
+    <div class="drawer-header">
+        <h3 id="drawer-title">Sistema</h3>
+        <span class="drawer-close" onclick="closeDrawer()">&times;</span>
+    </div>
+    <div class="drawer-content" id="drawer-body">
+        <!-- Poblado dinámicamente -->
+    </div>
+</div>
+ 
+<div id="win-screen">
+    <div class="star">🏆</div>
+    <h1>¡TRABAJO COMPLETADO!</h1>
+    <p id="win-nombre"></p>
+    <p id="win-score"></p>
+    <p id="win-nota" style="font-size:1.4rem; color: var(--green); font-family:'Orbitron',monospace;"></p>
+    <p id="win-tiempo"></p>
+    <br>
+    <p style="color:#555; font-size:0.8rem;">Los resultados han sido almacenados en el servidor educativo.</p>
+</div>
+
+<!-- CONTENEDOR GLOBAL DE TOOLTIPS ABSOLUTOS -->
+<div id="quiz-tooltip" class="quiz-tooltip"></div>
+ 
+<script>
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwUpoc8HPNSbyc_9CGwUlAtvc1PUxNmVwZULrZL5vHAB7xNCzn4oIcUma51ag5iIUrI/exec";
+
+// ══ WINDOWS DATASET COMPLETO ══════════════════════════════════════════════════════════
+const windowsData = [
+  {
+    id: "msdos", name: "MS-DOS", year: "1981", family: "origenes", parent: null,
+    kernel: "Monolítico (16-bit)", filesystem: "FAT12 / FAT16",
+    min_ram: "8 KB a 64 KB", min_cpu: "Intel 8086 / 8088", min_disk: "Disquete 360 KB",
+    desc: "Cimiento original de la computación personal de IBM y Microsoft. Operaba estrictamente bajo consola de línea de comandos física."
+  },
+  {
+    id: "win1", name: "Windows 1.0", year: "1985", family: "origenes", parent: "msdos",
+    kernel: "MS-DOS (16-bit)", filesystem: "FAT12 / FAT16",
+    min_ram: "256 KB", min_cpu: "Intel 8088", min_disk: "Dos disquetes",
+    desc: "Primera interfaz gráfica de Microsoft concebida como un gestor o shell visual sobre el núcleo de MS-DOS."
+  },
+  {
+    id: "win2", name: "Windows 2.0", year: "1987", family: "origenes", parent: "win1",
+    kernel: "MS-DOS (16-bit)", filesystem: "FAT16",
+    min_ram: "512 KB", min_cpu: "Intel 80286", min_disk: "Disco duro opcional",
+    desc: "Introdujo las ventanas flotantes libres y superpuestas que generaron la histórica batalla legal con Apple de propiedad intelectual."
+  },
+  {
+    id: "win3", name: "Windows 3.0", year: "1990", family: "origenes", parent: "win2",
+    kernel: "Modo Protegido 386", filesystem: "FAT16",
+    min_ram: "1 MB", min_cpu: "Intel 80386", min_disk: "8 MB",
+    desc: "Primer gran éxito comercial masivo. Introdujo el Administrador de Programas y soporte de memoria virtual."
+  },
+  {
+    id: "win31", name: "Windows 3.1", year: "1992", family: "origenes", parent: "win3",
+    kernel: "Modo Mejorado 386", filesystem: "FAT16",
+    min_ram: "2 MB", min_cpu: "Intel 80386 DX", min_disk: "15 MB",
+    desc: "Estableció el estándar corporativo a inicios de los 90. Introdujo tipografías TrueType y soporte de red."
+  },
+  {
+    id: "win95", name: "Windows 95", year: "1995", family: "win9x", parent: "win31",
+    kernel: "Híbrido 16/32-bit (MS-DOS 7.0)", filesystem: "VFAT / FAT16",
+    min_ram: "4 MB", min_cpu: "Intel 80386 DX", min_disk: "55 MB",
+    desc: "Revolución de escritorio. Introdujo el Menú Inicio, barra de tareas, arquitectura Plug & Play y soporte multimedia."
+  },
+  {
+    id: "win98", name: "Windows 98", year: "1998", family: "win9x", parent: "win95",
+    kernel: "Híbrido 16/32-bit", filesystem: "FAT32 nativo",
+    min_ram: "16 MB", min_cpu: "Intel 486 DX2", min_disk: "200 MB",
+    desc: "Soporte nativo USB, integración web profunda con Internet Explorer, acelerador AGP y mejoras de rendimiento de archivos."
+  },
+  {
+    id: "winme", name: "Windows Me", year: "2000", family: "win9x", parent: "win98",
+    kernel: "Híbrido 16/32-bit", filesystem: "FAT32",
+    min_ram: "32 MB", min_cpu: "Pentium 150 MHz", min_disk: "450 MB",
+    desc: "Orientado al hogar. Añadió Restauración de Sistema de forma nativa, pero criticado por su inestabilidad."
+  },
+  {
+    id: "nt31", name: "Windows NT 3.1", year: "1993", family: "winnt", parent: null,
+    kernel: "NT puro (32-bit, multiproceso)", filesystem: "NTFS 1.0",
+    min_ram: "16 MB", min_cpu: "Intel 80386 / MIPS", min_disk: "75 MB",
+    desc: "Primer sistema operativo de robustez industrial concebido desde cero por Dave Cutler para servidores."
+  },
+  {
+    id: "nt40", name: "Windows NT 4.0", year: "1996", family: "winnt", parent: "nt31",
+    kernel: "NT 4.0", filesystem: "NTFS 1.2",
+    min_ram: "16 MB", min_cpu: "Intel Pentium", min_disk: "110 MB",
+    desc: "Unió la robustez interna del motor NT con el amigable diseño de interfaz gráfica heredado de Windows 95."
+  },
+  {
+    id: "win2000", name: "Windows 2000", year: "2000", family: "winnt", parent: "nt40",
+    kernel: "NT 5.0", filesystem: "NTFS 3.0",
+    min_ram: "32 MB", min_cpu: "Pentium 133 MHz", min_disk: "650 MB",
+    desc: "Añadió soporte nativo para Active Directory, encriptación EFS de archivos corporativos y mayor facilidad de instalación MSI."
+  },
+  {
+    id: "winxp", name: "Windows XP", year: "2001", family: "winnt", parent: "win2000",
+    kernel: "NT 5.1", filesystem: "NTFS 3.1",
+    min_ram: "64 MB", min_cpu: "Pentium II 233 MHz", min_disk: "1.5 GB",
+    desc: "Fusión histórica definitiva. Llevó la robustez del motor NT al mercado de consumo de masas eliminando MS-DOS."
+  },
+  {
+    id: "winvista", name: "Windows Vista", year: "2007", family: "winnt", parent: "winxp",
+    kernel: "NT 6.0", filesystem: "NTFS",
+    min_ram: "512 MB", min_cpu: "1 GHz", min_disk: "15 GB",
+    desc: "Revolución de ciberseguridad con control de cuentas UAC, interfaz Aero Glass y encriptación de disco BitLocker."
+  },
+  {
+    id: "win7", name: "Windows 7", year: "2009", family: "winnt", parent: "winvista",
+    kernel: "NT 6.1", filesystem: "NTFS",
+    min_ram: "1 GB (32-bit) / 2 GB (64-bit)", min_cpu: "1 GHz x86/x64", min_disk: "16 GB",
+    desc: "Aclamado por optimización de rendimiento en discos de estado sólido (SSD) y una barra de tareas adaptativa."
+  },
+  {
+    id: "win8", name: "Windows 8.1", year: "2013", family: "winnt", parent: "win7",
+    kernel: "NT 6.3", filesystem: "NTFS / ReFS",
+    min_ram: "1 GB", min_cpu: "1 GHz SSE2", min_disk: "16 GB",
+    desc: "Diseño híbrido orientado a pantallas táctiles (Metro UI), arranque rápido UEFI y la tienda Windows Store."
+  },
+  {
+    id: "win10", name: "Windows 10", year: "2015", family: "winnt", parent: "win8",
+    kernel: "NT 10.0", filesystem: "NTFS",
+    min_ram: "1 GB (32-bit) / 2 GB (64-bit)", min_cpu: "1 GHz", min_disk: "20 GB",
+    desc: "Modelo 'Windows as a Service'. Añadió escritorios virtuales, Microsoft Edge y actualizaciones continuas en la nube."
+  },
+  {
+    id: "win11", name: "Windows 11", year: "2021", family: "winnt", parent: "win10",
+    kernel: "NT 10.0 (Soporte exclusivo 64-bit)", filesystem: "NTFS / ReFS",
+    min_ram: "4 GB", min_cpu: "Intel 8va Gen / Ryzen 2000", min_disk: "64 GB",
+    desc: "Exige de forma estricta chip TPM 2.0 y Arranque Seguro. Incorpora herramientas Copilot integradas por IA."
+  },
+  {
+    id: "server4", name: "Windows NT Server 4.0", year: "1996", family: "servers", parent: "nt31",
+    kernel: "NT Server 4.0", filesystem: "NTFS 1.2",
+    min_ram: "16 MB", min_cpu: "Intel Pentium", min_disk: "124 MB",
+    desc: "Primer sistema operativo de servidor de Microsoft con impacto crítico frente a arquitecturas UNIX."
+  },
+  {
+    id: "server2k3", name: "Windows Server 2003", year: "2003", family: "servers", parent: "server4",
+    kernel: "NT 5.2", filesystem: "NTFS 3.1",
+    min_ram: "512 MB", min_cpu: "1 GHz x86/x64", min_disk: "10 GB",
+    desc: "Introdujo IIS 6.0, virtualización de hipervisor Hyper-V y soporte profundo para servicios web."
+  },
+  {
+    id: "server2k16", name: "Windows Server 2016", year: "2016", family: "servers", parent: "server2k3",
+    kernel: "NT 10.0", filesystem: "NTFS / ReFS",
+    min_ram: "512 MB", min_cpu: "1.4 GHz 64-bit", min_disk: "32 GB",
+    desc: "Alineado con arquitecturas híbridas, contenedores Docker nativos y Nano Server ultraligero."
+  },
+  {
+    id: "server2k25", name: "Windows Server 2025", year: "2025", family: "servers", parent: "server2k16",
+    kernel: "NT 10.0", filesystem: "NTFS / ReFS",
+    min_ram: "2 GB", min_cpu: "1.4 GHz Multi-core 64-bit", min_disk: "32 GB",
+    desc: "Seguridad por hardware Secured-core, optimización de velocidad de compresión de red SMB y almacenamiento NVMe."
+  }
+];
+
+// ══ BANCO DE PREGUNTAS SOBRE WINDOWS ══════════════════════════════════════════════════
+const BANCO_COMPLETO = [
+    { q: "¿Cuál es el núcleo original de 16 bits sobre el que corría Windows 1.0?", keys: ["MS-DOS", "MS DOS", "DOS"] },
+    { q: "¿En qué año se lanzó la primera versión comercial de Windows (1.0)?", keys: ["1985"] },
+    { q: "¿Qué compañía entabló una demanda judicial contra Microsoft por el uso de ventanas superpuestas en Windows 2.0?", keys: ["APPLE"] },
+    { q: "¿Qué versión de Windows lanzada en 1990 introdujo por primera vez el Administrador de Programas y la paleta de 16 colores?", keys: ["WINDOWS 3.0", "WIN 3.0", "WINDOWS 3"] },
+    { q: "¿Qué sistema operativo híbrido de 16/32 bits lanzado en 1995 introdujo el Menú Inicio y la barra de tareas?", keys: ["WINDOWS 95", "WIN 95", "WIN95"] },
+    { q: "¿Qué sistema de archivos nativo de 32 bits introdujo de manera completa Windows 98 para mejorar la eficiencia del disco?", keys: ["FAT32"] },
+    { q: "¿Qué herramienta nativa de recuperación para guardar el estado del sistema ante fallos se introdujo en Windows Me?", keys: ["RESTAURADOR DE SISTEMA", "SYSTEM RESTORE", "RESTAURACION DE SISTEMA"] },
+    { q: "¿Quién fue el legendario arquitecto de software detrás del diseño del núcleo original de Windows NT?", keys: ["DAVE CUTLER", "CUTLER", "DAVID CUTLER"] },
+    { q: "¿Qué robusto sistema de archivos con permisos de seguridad avanzados se introdujo de la mano de Windows NT 3.1?", keys: ["NTFS"] },
+    { q: "¿Qué versión unificó la línea doméstica con la empresarial NT en 2001, luciendo el tema gráfico Luna?", keys: ["WINDOWS XP", "WIN XP", "WINXP"] },
+    { q: "¿Qué característica de seguridad con solicitudes de confirmación de permisos se introdujo para mitigar malware en Windows Vista?", keys: ["UAC", "CONTROL DE CUENTAS DE USUARIO"] },
+    { q: "¿Qué tipo de unidades rápidas de estado sólido fueron profundamente optimizadas en Windows 7 de forma nativa?", keys: ["SSD", "ESTADO SOLIDO"] },
+    { q: "¿Cómo se llamó la interfaz gráfica adaptada a pantallas táctiles compuesta por azulejos interactivos introducida en Windows 8?", keys: ["METRO", "MODERN UI", "METRO UI"] },
+    { q: "¿Cómo se describe el modelo de actualización continua y soporte en la nube bajo el cual se distribuye Windows 10?", keys: ["WINDOWS AS A SERVICE", "WAAS", "SERVICIO"] },
+    { q: "¿Qué chip de seguridad físico en placa base en su versión 2.0 es requerido obligatoriamente por Windows 11?", keys: ["TPM 2.0", "TPM"] },
+    { q: "¿En qué sistema operativo de servidor de Microsoft se introdujo por primera vez el servicio de directorios 'Active Directory'?", keys: ["WINDOWS 2000", "WINDOWS 2000 SERVER", "WIN 2000 SERVER"] },
+    { q: "¿Qué tecnología de virtualización integrada por hipervisor nativo se incluyó a partir de Windows Server 2008?", keys: ["HYPER-V", "HYPER V"] },
+    { q: "¿Qué suite de contenedores ligeros fue integrada por primera vez de forma nativa en Windows Server 2016?", keys: ["DOCKER"] },
+    { q: "¿Cómo se llama el módulo asistente de inteligencia artificial integrado nativamente en la interfaz de Windows 11?", keys: ["COPILOT"] },
+    { q: "¿Qué protocolo de conexión remota propietario de Microsoft vio su base integrada desde 1996?", keys: ["RDP", "REMOTE DESKTOP", "ESCRITORIO REMOTO"] }
+];
+
+const TOTAL_A_RESPONDER = 20;
+
+// ESTATUS DE JUEGO
+const canvas = document.getElementById("maze");
+const ctx = canvas.getContext("2d");
+const SIZE = 15;
+let cells = [], clues = [], player = {x:0, y:0};
+let score = 0, found = 0;
+let modalAbierto = false;
+let clueActual = null;
+let timerInterval = null;
+let segundosRestantes = 90 * 60;
+let tiempoInicio = null;
+
+// ESTATUS TEMPORAL DE PREGUNTA INDIVIDUAL
+let intentosActuales = 0;
+let preguntaSegundosRestantes = 60;
+let preguntaTimerInterval = null;
+
+// GESTIÓN DEL NODO ACTIVO DEL ÁRBOL
+let currentActiveNodeId = null;
+
+// GESTIÓN DE LECTURA DE TEMAS TEÓRICOS en memoria
+const readTopics = new Set();
+
+// NOTAS COLEGIO EPISCOPAL (Basado en respuestas correctas / Score)
+const TABLA_NOTAS = {
+    20:"5.0", 19:"4.8", 18:"4.6", 17:"4.4", 16:"4.2",
+    15:"4.0", 14:"3.8", 13:"3.6", 12:"3.4", 11:"3.2",
+    10:"3.0", 9:"2.8", 8:"2.6", 7:"2.4", 6:"2.2",
+    5:"2.0", 4:"1.8", 3:"1.6", 2:"1.4", 1:"1.2", 0:"1.0"
+};
+
+function log(msg, tipo = "ok") {
+    const d = document.getElementById("log");
+    const ts = new Date().toLocaleTimeString("es-PA", {hour12:false});
+    d.innerHTML = `<div class="entry ${tipo}">> [${ts}] ${msg}</div>` + d.innerHTML;
+}
+
+// ── CONTROL DE COLAPSO (ACORDEÓN) DE LOS STREAMS ──
+function toggleStream(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        section.classList.toggle('collapsed');
+    }
+}
+
+// ── RENDERIZAR ARBOL GENEALÓGICO INTERACTIVO (CON TIMELINE REAL Y ANIMACIONES ESCALONADAS) ──
+function renderizarArbol() {
+    const origenes = document.getElementById('tree-origenes');
+    const win9x = document.getElementById('tree-win9x');
+    const winnt = document.getElementById('tree-winnt');
+    const servers = document.getElementById('tree-servers');
+
+    origenes.innerHTML = ''; win9x.innerHTML = ''; winnt.innerHTML = ''; servers.innerHTML = '';
+
+    let staggerIndex = 0;
+
+    windowsData.forEach(item => {
+        const card = document.createElement('div');
+        card.id = `node-${item.id}`;
+        card.className = 'mini-node-card animate-in';
+        card.style.borderLeft = `3px solid var(--stream-${item.family})`;
+        card.style.animationDelay = `${staggerIndex * 0.05}s`;
+        staggerIndex++;
+
+        card.innerHTML = `
+            <span class="mini-node-name">${item.name}</span>
+            <span class="mini-node-year">${item.year}</span>
+        `;
+        card.onclick = () => {
+            selectOSNode(item.id);
+        };
+
+        if (item.family === 'origenes') origenes.appendChild(card);
+        else if (item.family === 'win9x') win9x.appendChild(card);
+        else if (item.family === 'winnt') winnt.appendChild(card);
+        else if (item.family === 'servers') servers.appendChild(card);
+    });
+
+    // Inyectar bifurcador en Y tras el último elemento del origen DOS de 16 bits
+    const yBranch = document.createElement('div');
+    yBranch.className = 'y-branch-indicator animate-in';
+    yBranch.style.animationDelay = `${staggerIndex * 0.05}s`;
+    origenes.appendChild(yBranch);
+}
+
+// ── CONTROL DE SELECCIÓN DE LAS PESTAÑAS DERECHAS (STUDY TABS) ──
+function switchRightTab(tab) {
+    const theoryScroll = document.getElementById('theory-scroll-container');
+    const searchWrap = document.getElementById('theory-search-wrap');
+    const questionsContainer = document.getElementById('quiz-bank-list');
+    
+    const tabTheory = document.getElementById('tab-btn-theory');
+    const tabQuestions = document.getElementById('tab-btn-questions');
+
+    tabTheory.classList.remove('active');
+    tabQuestions.classList.remove('active');
+
+    if (tab === 'theory') {
+        theoryScroll.style.display = 'block';
+        searchWrap.style.display = 'flex';
+        questionsContainer.style.display = 'none';
+        tabTheory.classList.add('active');
+    } else {
+        theoryScroll.style.display = 'none';
+        searchWrap.style.display = 'none';
+        questionsContainer.style.display = 'grid'; // Formato de rejilla moderna
+        tabQuestions.classList.add('active');
+    }
+}
+
+// ── FILTRADO EN TIEMPO REAL CON ESTILO CONSOLA ──
+function filterTheory() {
+    const query = normalizar(document.getElementById('theory-search').value);
+    const items = document.querySelectorAll('.theory-item');
+    items.forEach(item => {
+        const text = normalizar(item.innerText);
+        if (text.includes(query)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+// ── CONTROL DE LECTURA DE TEMAS EN MEMORIA DE JS ──
+function markTopicAsRead(topicId) {
+    if (!readTopics.has(topicId)) {
+        readTopics.add(topicId);
+        const dot = document.getElementById(`dot-${topicId}`);
+        if (dot) {
+            dot.classList.add('read');
+        }
+    }
+}
+
+// Animación de retardo (stagger) para los temas de estudio iniciales
+function inicializarAnimacionTeoria() {
+    document.querySelectorAll('.theory-item').forEach((item, index) => {
+        item.classList.add('animate-in');
+        item.style.animationDelay = `${index * 0.08}s`;
+    });
+}
+
+// ── CONTROL DE EVENTOS Y ANIMACIÓN DEL PANEL DESLIZABLE (DRAWER) ──
+function selectOSNode(id) {
+    document.querySelectorAll('.mini-node-card').forEach(card => {
+        card.classList.remove('selected-active');
+    });
+    
+    const activeCard = document.getElementById(`node-${id}`);
+    if (activeCard) {
+        activeCard.classList.add('selected-active');
+    }
+
+    const item = windowsData.find(x => x.id === id);
+    if (!item) return;
+
+    const drawer = document.getElementById('tree-detail-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const isOpen = drawer.classList.contains('open');
+
+    if (isOpen && currentActiveNodeId !== id) {
+        drawer.classList.remove('open');
+        setTimeout(() => {
+            populateDrawer(item);
+            drawer.classList.add('open');
+        }, 300);
+    } else {
+        populateDrawer(item);
+        drawer.classList.add('open');
+        overlay.classList.add('active');
+    }
+    
+    currentActiveNodeId = id;
+    log(`Inspección: ${item.name} (${item.year})`, "info");
+}
+
+function populateDrawer(item) {
+    const titleEl = document.getElementById('drawer-title');
+    const bodyEl = document.getElementById('drawer-body');
+    
+    const parentItem = item.parent ? windowsData.find(x => x.id === item.parent) : null;
+    const parentText = parentItem ? parentItem.name : "Sistema Fundacional / Precursor Base";
+
+    let glyph = "💻";
+    if (item.family === 'origenes') glyph = "💾";
+    else if (item.family === 'win9x') glyph = "💿";
+    else if (item.family === 'winnt') glyph = "⚙️";
+    else if (item.family === 'servers') glyph = "🌐";
+
+    titleEl.innerText = item.name;
+    bodyEl.innerHTML = `
+        <div class="drawer-avatar">${glyph}</div>
+        
+        <div>
+            <div class="drawer-section-title">Registro Histórico</div>
+            <div class="drawer-field"><strong>Lanzamiento:</strong> ${item.year}</div>
+            <div class="drawer-field"><strong>Familia Linaje:</strong> ${item.family.toUpperCase()}</div>
+        </div>
+
+        <div>
+            <div class="drawer-section-title">Predecesor Directo</div>
+            <div class="drawer-field"><strong>Sucesor de:</strong> ${parentText}</div>
+        </div>
+
+        <div>
+            <div class="drawer-section-title">Arquitectura de Sistema</div>
+            <div class="drawer-field"><strong>Kernel Base:</strong> ${item.kernel}</div>
+            <div class="drawer-field"><strong>Estructura de Archivos:</strong> ${item.filesystem}</div>
+        </div>
+
+        <div>
+            <div class="drawer-section-title">Resumen Histórico</div>
+            <p style="font-size:0.8rem; line-height:1.5; color:#b0b7c3; text-align: justify;">${item.desc}</p>
+        </div>
+
+        <div>
+            <div class="drawer-section-title">Requisitos Mínimos</div>
+            <div class="drawer-field"><strong>Procesador:</strong> ${item.min_cpu}</div>
+            <div class="drawer-field"><strong>Memoria RAM:</strong> ${item.min_ram}</div>
+            <div class="drawer-field"><strong>Disco Duro:</strong> ${item.min_disk}</div>
+        </div>
+    `;
+}
+
+function closeDrawer() {
+    document.getElementById('tree-detail-drawer').classList.remove('open');
+    document.getElementById('drawer-overlay').classList.remove('active');
+    document.querySelectorAll('.mini-node-card').forEach(card => {
+        card.classList.remove('selected-active');
+    });
+    currentActiveNodeId = null;
+}
+
+// ── RENDERIZAR CHIPS NUMÉRICOS CON POP DE ESCALA Y TOOLTIPS ASOCIADOS ──
+function renderizarBancoPreguntas() {
+    const container = document.getElementById('quiz-bank-list');
+    container.innerHTML = '';
+    clues.forEach((clue, idx) => {
+        const chip = document.createElement('div');
+        chip.id = `q-chip-${idx}`;
+        
+        let statusClass = "unsolved";
+        if (clue.d) {
+            statusClass = clue.correctAnswer ? "solved" : "failed";
+        }
+        
+        chip.className = `quiz-chip ${statusClass}`;
+        chip.innerText = idx + 1;
+        
+        chip.onmouseenter = (e) => showTooltip(e, idx);
+        chip.onmousemove = (e) => updateTooltipPos(e);
+        chip.onmouseleave = () => hideTooltip();
+        
+        container.appendChild(chip);
+    });
+}
+
+function actualizarEstadoPreguntaEnBanco(clue, exitosa) {
+    clue.correctAnswer = exitosa; 
+    const idx = clues.indexOf(clue);
+    if (idx !== -1) {
+        const chip = document.getElementById(`q-chip-${idx}`);
+        if (chip) {
+            chip.className = `quiz-chip ${exitosa ? 'solved' : 'failed'}`;
+            chip.style.transform = "scale(1.25)";
+            setTimeout(() => {
+                chip.style.transform = "";
+            }, 250);
+        }
+    }
+}
+
+// Controladores dinámicos del Tooltip
+function showTooltip(e, idx) {
+    const tooltip = document.getElementById('quiz-tooltip');
+    const clue = clues[idx];
+    if (!clue) return;
+    
+    const statusText = clue.d ? (clue.correctAnswer ? "✓ Resuelta" : "✖ Fallada") : "⏰ Pendiente";
+    tooltip.innerHTML = `<strong>Foco #${idx + 1} (${statusText}):</strong><br>${clue.q}`;
+    tooltip.style.display = 'block';
+    updateTooltipPos(e);
+}
+
+function updateTooltipPos(e) {
+    const tooltip = document.getElementById('quiz-tooltip');
+    tooltip.style.left = (e.clientX + 15) + 'px';
+    tooltip.style.top = (e.clientY + 15) + 'px';
+}
+
+function hideTooltip() {
+    document.getElementById('quiz-tooltip').style.display = 'none';
+}
+
+function iniciarTimer() {
+    tiempoInicio = Date.now();
+    timerInterval = setInterval(() => {
+        segundosRestantes--;
+        const m = Math.floor(segundosRestantes / 60);
+        const s = String(segundosRestantes % 60).padStart(2, "0");
+        document.getElementById("timer-text").innerText = `${m}:${s}`;
+        const pct = (segundosRestantes / (90 * 60)) * 100;
+        const bar = document.getElementById("timer-bar");
+        bar.style.width = pct + "%";
+        if (segundosRestantes <= 0) {
+            clearInterval(timerInterval);
+            alert("Tiempo para el trabajo en clases finalizado.");
+        }
+    }, 1000);
+}
+
+function guardarDatos() {
+    const n = document.getElementById("nombre").value.trim();
+    const s = document.getElementById("salon").value.trim();
+    if (!n || !s) { alert("Ingresa tus datos."); return; }
+    document.getElementById("nombre").disabled = true;
+    document.getElementById("salon").disabled = true;
+    log("Trabajo práctico iniciado. Usa las flechas para explorar el laberinto.", "info");
+    iniciarTimer();
+}
+
+function enviarSheets(nombre, salon, pregunta, respuesta) {
+    const url = `${URL_SCRIPT}?nombre=${encodeURIComponent(nombre)}&salon=${encodeURIComponent(salon)}&pregunta=${encodeURIComponent(pregunta)}&respuesta=${encodeURIComponent(respuesta)}`;
+    fetch(url).catch(err => console.warn("Registro en Sheets omitido:", err));
+}
+
+function normalizar(texto) {
+    return texto.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
+function validarRespuesta(clue, respuesta) {
+    const rNorm = normalizar(respuesta);
+    return clue.keys.some(kw => rNorm.includes(normalizar(kw)));
+}
+
+// ── MANEJO DE EXPIRACIÓN DE TIEMPO (1 MINUTO) ──
+function manejarExpiracionTiempo() {
+    if (preguntaTimerInterval) clearInterval(preguntaTimerInterval);
+    log(`⏱ Tiempo agotado (1 min) en la pregunta: "${clueActual.q.substring(0, 30)}..."`, "error");
+    
+    clueActual.d = true; 
+    found++;
+    
+    if (score > 0) {
+        score--;
+    }
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("clues").innerText = `${found}/${TOTAL_A_RESPONDER}`;
+    document.getElementById("prog-fill").style.width = (found / TOTAL_A_RESPONDER * 100) + "%";
+    
+    actualizarEstadoPreguntaEnBanco(clueActual, false);
+    enviarSheets(document.getElementById("nombre").value, document.getElementById("salon").value, clueActual.q, "TIEMPO EXPIRED");
+    
+    player.x = clueActual._nx;
+    player.y = clueActual._ny;
+    draw();
+    cerrarModal();
+    if (player.x === SIZE - 1 && player.y === SIZE - 1) verificarVictoria();
+}
+
+function abrirModal(clue) {
+    clueActual = clue;
+    modalAbierto = true;
+    intentosActuales = 0;
+    preguntaSegundosRestantes = 60;
+    
+    document.getElementById("modal-pregunta").innerText = clue.q;
+    document.getElementById("modal-respuesta").value = "";
+    document.getElementById("modal-respuesta").disabled = false;
+    document.getElementById("btn-enviar").disabled = false;
+    document.getElementById("ia-status").innerText = "";
+    document.getElementById("modal-attempts-text").innerText = "INTENTOS: 0/2";
+    document.getElementById("modal-timer-text").innerText = "TIEMPO: 60s";
+    document.getElementById("modal-timer-text").style.color = "var(--primary)";
+    document.getElementById("modal-overlay").classList.add("active");
+    
+    if (preguntaTimerInterval) clearInterval(preguntaTimerInterval);
+    preguntaTimerInterval = setInterval(() => {
+        preguntaSegundosRestantes--;
+        document.getElementById("modal-timer-text").innerText = `TIEMPO: ${preguntaSegundosRestantes}s`;
+        if (preguntaSegundosRestantes <= 20) {
+            document.getElementById("modal-timer-text").style.color = "var(--red)";
+        }
+        if (preguntaSegundosRestantes <= 0) {
+            manejarExpiracionTiempo();
+        }
+    }, 1000);
+
+    setTimeout(() => document.getElementById("modal-respuesta").focus(), 100);
+}
+
+function cerrarModal() {
+    if (preguntaTimerInterval) clearInterval(preguntaTimerInterval);
+    document.getElementById("modal-overlay").classList.remove("active");
+    modalAbierto = false;
+}
+
+function submitModal() {
+    const r = document.getElementById("modal-respuesta").value.trim();
+    if (!r) return;
+    
+    if (validarRespuesta(clueActual, r)) {
+        if (preguntaTimerInterval) clearInterval(preguntaTimerInterval);
+        clueActual.d = true;
+        score++;
+        found++;
+        
+        document.getElementById("score").innerText = score;
+        document.getElementById("clues").innerText = `${found}/${TOTAL_A_RESPONDER}`;
+        document.getElementById("prog-fill").style.width = (found / TOTAL_A_RESPONDER * 100) + "%";
+        log(`✔ Correcto: "${clueActual.q.substring(0, 30)}..."`, "ok");
+        
+        actualizarEstadoPreguntaEnBanco(clueActual, true);
+        enviarSheets(document.getElementById("nombre").value, document.getElementById("salon").value, clueActual.q, r);
+        
+        player.x = clueActual._nx;
+        player.y = clueActual._ny;
+        draw();
+        cerrarModal();
+        if (player.x === SIZE - 1 && player.y === SIZE - 1) verificarVictoria();
+    } else {
+        intentosActuales++;
+        document.getElementById("modal-attempts-text").innerText = `INTENTOS: ${intentosActuales}/2`;
+        
+        if (intentosActuales === 1) {
+            document.getElementById("ia-status").innerText = "✖ Incorrecto. Te queda un segundo intento.";
+            document.getElementById("ia-status").style.color = "var(--gold)";
+            document.getElementById("modal-respuesta").value = "";
+            document.getElementById("modal-respuesta").focus();
+        } else {
+            if (preguntaTimerInterval) clearInterval(preguntaTimerInterval);
+            log(`✖ Pregunta fallida (Intentos agotados): "${clueActual.q.substring(0, 30)}..."`, "error");
+            
+            clueActual.d = true;
+            found++;
+            
+            if (score > 0) {
+                score--;
+            }
+            
+            document.getElementById("score").innerText = score;
+            document.getElementById("clues").innerText = `${found}/${TOTAL_A_RESPONDER}`;
+            document.getElementById("prog-fill").style.width = (found / TOTAL_A_RESPONDER * 100) + "%";
+            
+            actualizarEstadoPreguntaEnBanco(clueActual, false);
+            enviarSheets(document.getElementById("nombre").value, document.getElementById("salon").value, clueActual.q, `FALLADO: ${r}`);
+            
+            player.x = clueActual._nx;
+            player.y = clueActual._ny;
+            draw();
+            cerrarModal();
+            if (player.x === SIZE - 1 && player.y === SIZE - 1) verificarVictoria();
+        }
+    }
+}
+
+function verificarVictoria() {
+    const nota = TABLA_NOTAS[score] || "1.0";
+    if (found === TOTAL_A_RESPONDER) {
+        finalizarExamen(nota);
+    } else {
+        if (confirm(`Salida alcanzada. Completadas: ${found}/${TOTAL_A_RESPONDER}. ¿Finalizar con nota de ${nota}?`)) {
+            finalizarExamen(nota);
+        }
+    }
+}
+
+function finalizarExamen(nota) {
+    clearInterval(timerInterval);
+    if (preguntaTimerInterval) clearInterval(preguntaTimerInterval);
+    
+    const elapsed = Math.floor((Date.now() - tiempoInicio) / 1000);
+    const mm = Math.floor(elapsed / 60);
+    const ss = String(elapsed % 60).padStart(2, "0");
+    document.getElementById("win-nombre").innerText = document.getElementById("nombre").value;
+    document.getElementById("win-score").innerText = `Correctas: ${score} | Evaluadas: ${found}/${TOTAL_A_RESPONDER}`;
+    document.getElementById("win-nota").innerText = `NOTA FINAL: ${nota}`;
+    document.getElementById("win-tiempo").innerText = `Tiempo utilizado: ${mm}:${ss}`;
+    document.getElementById("win-screen").classList.add("active");
+}
+
+function init() {
+    cells = Array.from({length: SIZE}, () =>
+        Array.from({length: SIZE}, () => ({v: false, w: [true, true, true, true]}))
+    );
+    const stack = [[0, 0]];
+    cells[0][0].v = true;
+    const dirs = [[0,-1,0,2],[1,0,1,3],[0,1,2,0],[-1,0,3,1]];
+    while (stack.length) {
+        const [x, y] = stack.at(-1);
+        const nb = dirs.filter(d => x+d[0] >= 0 && y+d[1] >= 0 && x+d[0] < SIZE && y+d[1] < SIZE && !cells[y+d[1]][x+d[0]].v);
+        if (nb.length) {
+            const d = nb[Math.floor(Math.random() * nb.length)];
+            cells[y][x].w[d[2]] = false;
+            cells[y+d[1]][x+d[0]].w[d[3]] = false;
+            cells[y+d[1]][x+d[0]].v = true;
+            stack.push([x+d[0], y+d[1]]);
+        } else { stack.pop(); }
+    }
+
+    const seleccion = [...BANCO_COMPLETO].sort(() => Math.random() - 0.5).slice(0, TOTAL_A_RESPONDER);
+    let pos = [];
+    for (let y = 0; y < SIZE; y++)
+        for (let x = 0; x < SIZE; x++)
+            if (!(x === 0 && y === 0) && !(x === SIZE-1 && y === SIZE-1)) pos.push({x, y});
+    pos.sort(() => Math.random() - 0.5);
+
+    clues = pos.slice(0, TOTAL_A_RESPONDER).map((p, i) => ({...p, q: seleccion[i].q, keys: seleccion[i].keys, d: false}));
+    
+    renderizarArbol();
+    renderizarBancoPreguntas();
+    inicializarAnimacionTeoria();
+    draw();
+}
+
+function draw() {
+    const w = canvas.width / SIZE;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(0,255,136,0.12)";
+    ctx.fillRect((SIZE-1)*w, (SIZE-1)*w, w, w);
+    ctx.strokeStyle = "rgba(0,212,255,0.35)";
+    ctx.lineWidth = 1.5;
+    for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+            if (cells[y][x].w[0]) { ctx.beginPath(); ctx.moveTo(x*w, y*w); ctx.lineTo((x+1)*w, y*w); ctx.stroke(); }
+            if (cells[y][x].w[1]) { ctx.beginPath(); ctx.moveTo((x+1)*w, y*w); ctx.lineTo((x+1)*w, (y+1)*w); ctx.stroke(); }
+            if (cells[y][x].w[2]) { ctx.beginPath(); ctx.moveTo(x*w, (y+1)*w); ctx.lineTo((x+1)*w, (y+1)*w); ctx.stroke(); }
+            if (cells[y][x].w[3]) { ctx.beginPath(); ctx.moveTo(x*w, y*w); ctx.lineTo(x*w, (y+1)*w); ctx.stroke(); }
+        }
+    }
+    clues.forEach(c => {
+        if (!c.d) {
+            ctx.fillStyle = "#00d4ff";
+            ctx.font = `bold ${w*0.55}px Orbitron`;
+            ctx.fillText("?", c.x*w + w*0.28, c.y*w + w*0.7);
+        }
+    });
+    ctx.fillStyle = "#ffdd44";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#ffdd44";
+    ctx.beginPath();
+    ctx.arc(player.x*w + w/2, player.y*w + w/2, w*0.32, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+}
+
+async function move(dx, dy) {
+    if (!document.getElementById("nombre").disabled || modalAbierto) return;
+    const nx = player.x + dx, ny = player.y + dy;
+    const wIdx = dy < 0 ? 0 : dx > 0 ? 1 : dy > 0 ? 2 : 3;
+    if (nx < 0 || ny < 0 || nx >= SIZE || ny >= SIZE || cells[player.y][player.x].w[wIdx]) return;
+    const c = clues.find(c => c.x === nx && c.y === ny && !c.d);
+    if (c) { c._nx = nx; c._ny = ny; abrirModal(c); return; }
+    player.x = nx; player.y = ny;
+    draw();
+    if (nx === SIZE-1 && ny === SIZE-1) verificarVictoria();
+}
+
+window.addEventListener("keydown", e => {
+    // Si el usuario está escribiendo en el buscador de la teoría, no mover el laberinto
+    if (document.activeElement === document.getElementById("theory-search")) {
+        return;
+    }
+    if (modalAbierto) {
+        if (e.key === "Enter") submitModal();
+        return;
+    }
+    if (e.key.includes("Arrow")) { e.preventDefault(); move(e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0, e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0); }
+});
+
+init();
+</script>
+</body>
+</html>
