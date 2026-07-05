@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Historia de la Informática y la Robótica — Línea de Tiempo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #eef1fa;
+    --bg-grad: linear-gradient(160deg, #eef1fa 0%, #e7ecfb 45%, #eef7fa 100%);
+    --surface: #ffffff;
+    --surface-2: #f6f8fe;
+    --primary: #4f46e5;
+    --primary-600: #4338ca;
+    --primary-100: #e5e3fb;
+    --teal: #06b6d4;
+    --amber: #f59e0b;
+    --green: #16a34a;
+    --green-bg: #e8f8ee;
+    --red: #dc2626;
+    --red-bg: #fdecec;
+    --ink: #1f2430;
+    --muted: #6b7280;
+    --line-soft: #e2e6f3;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --shadow-sm: 0 2px 8px rgba(30,41,59,0.08);
+    --shadow-md: 0 8px 24px rgba(30,41,59,0.12);
+    --shadow-lg: 0 20px 50px rgba(30,41,59,0.22);
+    --font-head: 'Poppins', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', 'Segoe UI', sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: var(--bg-grad);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .app{ max-width: 1400px; margin:0 auto; padding: 22px 24px 90px; }
+
+  /* ===================== HEADER ===================== */
+  .app-header{
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 24px 28px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  }
+  .app-header h1{
+    font-family: var(--font-head);
+    font-size: clamp(22px, 3vw, 30px);
+    margin:0 0 4px;
+    color: var(--ink);
+    font-weight:800;
+  }
+  .app-header h1 .dot{ color: var(--primary); }
+  .app-header p{ margin:0; color: var(--muted); font-size:14px; max-width: 560px; }
+
+  .toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  .btn{
+    font-family: var(--font-body);
+    font-weight:600;
+    font-size: 14px;
+    border:none;
+    border-radius: 12px;
+    padding: 11px 20px;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:8px;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .btn:active{ transform: translateY(1px) scale(.98); }
+  .btn-primary{ background: var(--primary); color:#fff; }
+  .btn-primary:hover{ background: var(--primary-600); box-shadow: 0 6px 18px rgba(79,70,229,.35); }
+  .btn-ghost{ background: var(--surface-2); color: var(--ink); border:1px solid var(--line-soft); }
+  .btn-ghost:hover{ background:#eef0fb; }
+  .btn-outline-danger{ background:#fff; color:var(--red); border:1.5px solid var(--red); box-shadow:none; }
+  .btn-outline-danger:hover{ background: var(--red-bg); }
+  .btn-sm{ padding:7px 12px; font-size:12.5px; border-radius:9px; }
+
+  .score-pill{
+    display:none;
+    align-items:center; gap:8px;
+    background: var(--primary-100); color:var(--primary-600);
+    padding: 9px 16px; border-radius: 999px; font-weight:700; font-size: 14px;
+  }
+  .score-pill.show{ display:inline-flex; }
+  .score-pill.points-pill{ background: linear-gradient(90deg, var(--amber), var(--teal)); color:#fff; }
+
+  /* ===================== STATS PANEL ===================== */
+  .stats-panel{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .stat-card{
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: 16px 14px;
+    text-align:center;
+    border: 2px solid transparent;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .stat-card .stat-card-value{
+    font-family: var(--font-head); font-weight:800; font-size: clamp(20px, 2.4vw, 26px);
+    color: var(--ink);
+  }
+  .stat-card .stat-card-label{
+    font-size: 11.5px; color: var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-top:4px;
+  }
+  .stat-card.errors .stat-card-value{ color: var(--red); }
+  .stat-card.errors.has-errors{ border-color: var(--red); background: var(--red-bg); }
+  .stat-card.correct-stat .stat-card-value{ color: var(--green); }
+  .stat-card.points-stat .stat-card-value{ color: var(--primary-600); }
+  .stat-card.total-stat .stat-card-value{ color: var(--teal); }
+
+  @media (max-width: 720px){
+    .stats-panel{ grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ===================== SECTION LABELS ===================== */
+  .section-label{
+    display:flex; align-items:center; gap:10px;
+    margin: 30px 4px 14px;
+  }
+  .section-label .chip{
+    background: var(--primary); color:#fff; font-size:11px; font-weight:700;
+    letter-spacing:.5px; padding:4px 10px; border-radius:999px; text-transform:uppercase;
+  }
+  .section-label h2{ margin:0; font-family: var(--font-head); font-size:16px; color: var(--ink); }
+  .section-label .rule{ flex:1; height:1px; background: var(--line-soft); }
+
+  /* ===================== TRAY ===================== */
+  .tray-wrap{
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 18px 18px 22px;
+  }
+  .tray-scroll{
+    overflow-x:auto;
+    padding-bottom: 6px;
+  }
+  .tray-row{
+    display:flex; gap:16px; min-height: 210px; align-items:flex-start;
+    padding: 4px;
+  }
+  .tray-empty{
+    color: var(--muted); font-size:14px; padding: 60px 20px; text-align:center; width:100%;
+  }
+
+  /* ===================== CARDS ===================== */
+  .event-card{
+    width: 210px;
+    flex: 0 0 210px;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 2px solid transparent;
+    padding: 14px;
+    cursor: grab;
+    touch-action: none;
+    user-select:none;
+    transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+    position: relative;
+    animation: pop-in .22s ease;
+  }
+  .event-card:hover{ box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .event-card.dragging-source{ opacity: .35; }
+  .event-card.correct{ border-color: var(--green); background: var(--green-bg); }
+  .event-card.incorrect{ border-color: var(--red); background: var(--red-bg); }
+  .event-card.locked-card{ cursor: not-allowed; opacity: .88; }
+  .event-card.locked-card:hover{ transform:none; box-shadow: var(--shadow-sm); }
+
+  @keyframes pop-in{
+    from{ opacity:0; transform: scale(.85); }
+    to{ opacity:1; transform: scale(1); }
+  }
+
+  .card-top{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .avatar{
+    width:42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:15px; flex:0 0 42px;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.4);
+    background-size: cover; background-position:center;
+  }
+  .card-id{ min-width:0; }
+  .card-name{ font-weight:700; font-size:13.5px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card-role{ font-size:11px; color: var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .card-title{
+    font-family: var(--font-head); font-weight:700; font-size:13.5px;
+    color: var(--primary-600); margin: 2px 0 6px; line-height:1.3;
+  }
+  .card-desc{ font-size:12px; color:#4b5266; line-height:1.4; margin-bottom:10px; min-height: 32px; }
+
+  .card-meta{ display:flex; flex-direction:column; gap:5px; border-top:1px dashed var(--line-soft); padding-top:8px; }
+  .card-meta-row{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:#3c4257; }
+  .card-meta-row svg{ flex:0 0 14px; width:14px; height:14px; color: var(--teal); }
+  .card-meta-row.date-row svg{ color: var(--amber); }
+
+  .card-result-icon{
+    position:absolute; top:-10px; right:-10px;
+    width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: var(--shadow-sm);
+    font-size:14px; color:#fff;
+  }
+  .card-result-icon.ok{ background: var(--green); }
+  .card-result-icon.bad{ background: var(--red); }
+
+  .card-penalty-badge{
+    position:absolute; bottom:-9px; left:12px;
+    background: var(--red); color:#fff;
+    font-size:10.5px; font-weight:700;
+    padding: 2px 8px; border-radius:999px;
+    box-shadow: var(--shadow-sm);
+    letter-spacing:.2px;
+    white-space:nowrap;
+  }
+  .card-penalty-badge.provisional{
+    background: var(--amber);
+  }
+
+  .del-tag{
+    position:absolute; top:6px; right:6px;
+    width:20px;height:20px; border-radius:50%;
+    background:#fff; border:1px solid var(--line-soft);
+    display:flex;align-items:center;justify-content:center;
+    color: var(--red); font-size:12px; cursor:pointer;
+  }
+
+  /* ghost element while dragging */
+  .ghost-card{
+    position: fixed;
+    z-index: 4000;
+    pointer-events:none;
+    transform: scale(1.05) rotate(-2deg);
+    box-shadow: var(--shadow-lg) !important;
+    transition: transform .12s ease;
+  }
+
+  /* ===================== TIMELINE ===================== */
+  .timeline-wrap{
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 10px 10px 26px;
+    overflow: hidden;
+  }
+  .timeline-scroll{
+    overflow-x: auto;
+    padding: 10px 60px 6px;
+  }
+  .timeline-grid{
+    display:grid;
+    grid-auto-flow: column;
+    position:relative;
+    padding-top: 4px;
+  }
+
+  .tl-line{
+    grid-row: 3;
+    grid-column: 1 / -1;
+    align-self:center;
+    height:8px;
+    border-radius:6px;
+    background: linear-gradient(90deg, var(--primary), var(--teal));
+    position:relative;
+    z-index:1;
+    box-shadow: 0 2px 10px rgba(79,70,229,.35);
+    margin: 0 -46px;
+  }
+  .tl-line::before{
+    content:"";
+    position:absolute; left:-10px; top:50%; transform: translate(-50%,-50%);
+    width:22px; height:22px; border-radius:50%;
+    background: var(--primary);
+    box-shadow: 0 0 0 5px var(--primary-100);
+  }
+  .tl-line::after{
+    content:"";
+    position:absolute; right:-2px; top:50%; transform: translateY(-50%);
+    width:0;height:0;
+    border-top:13px solid transparent; border-bottom:13px solid transparent;
+    border-left: 20px solid var(--teal);
+    filter: drop-shadow(0 2px 4px rgba(6,182,212,.5));
+  }
+  .tl-start-label, .tl-end-label{
+    position:absolute; top: calc(50% + 18px); font-size:11px; font-weight:700;
+    letter-spacing:1px; color: var(--primary-600); text-transform:uppercase;
+  }
+  .tl-start-label{ left:-46px; }
+  .tl-end-label{ right:-56px; color: var(--teal); }
+
+  .slot-zone{
+    display:flex; justify-content:center; position:relative; z-index:2;
+  }
+  .zone-above{ grid-row:1; align-items:flex-end; padding-bottom:6px; }
+  .zone-below{ grid-row:6; align-items:flex-start; padding-top:6px; }
+
+  .connector{
+    grid-column: auto;
+    width:2px; margin:0 auto;
+    background: repeating-linear-gradient(to bottom, var(--line-soft) 0 6px, transparent 6px 11px);
+  }
+  .connector.filled{ background: var(--primary); box-shadow: 0 0 6px rgba(79,70,229,.4); }
+  .connector-above{ grid-row:2; align-self:stretch; }
+  .connector-below{ grid-row:5; align-self:stretch; }
+
+  .tick-col{
+    grid-row:3; display:flex; align-items:center; justify-content:center; z-index:3;
+  }
+  .tick-mark{
+    width:16px; height:16px; border-radius:50%;
+    background: var(--surface);
+    border: 4px solid var(--primary);
+    box-shadow: 0 0 0 4px #fff, var(--shadow-sm);
+  }
+  .tick-mark.has-card{ background: var(--primary); }
+
+  .date-col{ grid-row:4; display:flex; justify-content:center; padding-top:6px; }
+  .date-box{
+    background: var(--surface-2);
+    border: 1.5px dashed var(--line-soft);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight:700;
+    color: var(--muted);
+    display:flex; align-items:center; gap:6px;
+    min-width: 108px;
+    justify-content:center;
+    white-space:nowrap;
+  }
+  .date-box svg{ width:13px; height:13px; color: var(--amber); flex:0 0 auto; }
+  .date-box.filled{
+    border-style: solid;
+    border-color: var(--amber);
+    color: var(--ink);
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .placeholder-box{
+    width: 190px; min-height: 96px;
+    border: 2px dashed var(--line-soft);
+    border-radius: var(--radius-md);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: 4px;
+    color: var(--muted);
+    font-size:11.5px;
+    text-align:center;
+    padding: 10px;
+    transition: border-color .15s ease, background .15s ease, transform .12s ease;
+  }
+  .placeholder-box svg{ width:20px; height:20px; color: var(--line-soft); }
+  .placeholder-box.drop-target-active{
+    border-color: var(--primary);
+    background: var(--primary-100);
+    transform: scale(1.04);
+  }
+  .placeholder-box.drop-target-active svg{ color: var(--primary); }
+  .placeholder-box.result-missing{ border-color: var(--red); background: var(--red-bg); color: var(--red); }
+  .placeholder-box.locked-slot{
+    border-style: solid; border-color: var(--red); background: var(--red-bg); color: var(--red);
+    cursor: not-allowed; opacity: .85;
+  }
+  .placeholder-box.locked-slot svg{ color: var(--red); }
+
+  .slot-card-host{ position:relative; }
+
+  /* ===================== FEEDBACK BANNER ===================== */
+  .feedback-banner{
+    position: fixed; left:50%; bottom: 26px; transform: translateX(-50%) translateY(140%);
+    background: var(--ink); color:#fff;
+    padding: 16px 24px; border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    display:flex; align-items:center; gap:16px;
+    z-index: 5000;
+    transition: transform .35s cubic-bezier(.2,.9,.3,1.2);
+    max-width: 92vw;
+  }
+  .feedback-banner.show{ transform: translateX(-50%) translateY(0); }
+  .feedback-banner .fb-score{ font-family: var(--font-head); font-weight:800; font-size:22px; }
+  .feedback-banner .fb-text{ font-size:13px; color:#d7dae6; max-width:320px; }
+  .feedback-banner .fb-actions{ display:flex; gap:8px; }
+
+  /* ===================== MODAL ===================== */
+  .overlay{
+    position:fixed; inset:0; background: rgba(20,24,38,.55);
+    display:none; align-items:center; justify-content:center; z-index:6000;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:#fff; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+    width: 100%; max-width: 720px; max-height: 88vh; overflow-y:auto;
+    padding: 26px 28px 28px;
+    animation: modal-in .2s ease;
+  }
+  @keyframes modal-in{ from{ opacity:0; transform: translateY(14px) scale(.98);} to{opacity:1; transform:none;} }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .modal-head h3{ margin:0; font-family: var(--font-head); font-size:19px; }
+  .modal-close{ background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted); }
+
+  .form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+  .form-grid .full{ grid-column: 1 / -1; }
+  .field label{ display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; text-transform:uppercase; letter-spacing:.3px; }
+  .field input, .field textarea{
+    width:100%; border:1.5px solid var(--line-soft); border-radius:10px;
+    padding: 10px 12px; font-family: var(--font-body); font-size:14px; color:var(--ink);
+    outline:none; transition: border-color .15s ease, box-shadow .15s ease;
+    background: var(--surface-2);
+  }
+  .field input:focus, .field textarea:focus{ border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-100); background:#fff; }
+  .field textarea{ resize: vertical; min-height: 62px; }
+
+  .modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top: 20px; }
+
+  .existing-list{ margin-top: 26px; }
+  .existing-list h4{ font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+  .existing-row{
+    display:flex; align-items:center; gap:12px;
+    padding: 10px 12px; border-radius: 12px; background: var(--surface-2);
+    margin-bottom:8px;
+  }
+  .existing-row .avatar{ width:32px;height:32px; font-size:12px; flex:0 0 32px; }
+  .existing-row .er-main{ flex:1; min-width:0; }
+  .existing-row .er-title{ font-weight:700; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .existing-row .er-sub{ font-size:11.5px; color:var(--muted); }
+
+  /* ===================== HELP NOTE ===================== */
+  .help-note{
+    display:flex; gap:10px; align-items:flex-start;
+    background: var(--primary-100); color: var(--primary-600);
+    border-radius: var(--radius-md); padding: 12px 16px; font-size:12.5px; margin-top:14px;
+  }
+  .help-note svg{ flex:0 0 18px; width:18px; height:18px; margin-top:1px; }
+
+  @media (max-width: 720px){
+    .app{ padding: 14px 12px 90px; }
+    .form-grid{ grid-template-columns: 1fr; }
+    .event-card{ width:172px; flex-basis:172px; }
+    .placeholder-box{ width:150px; }
+  }
+
+  /* ===================== LOCKED STATE ===================== */
+  .locked-area{
+    opacity: .5;
+    filter: grayscale(.35);
+    pointer-events: none;
+    user-select: none;
+  }
+  /* ===================== GATE / PASSWORD / CONGRATS MODALS ===================== */
+  .gate-modal{ max-width: 460px; text-align:center; }
+  .gate-modal .gate-icon{
+    width:56px; height:56px; border-radius:50%;
+    background: var(--primary-100); color:var(--primary);
+    display:flex; align-items:center; justify-content:center;
+    margin: 0 auto 14px; font-size:26px;
+  }
+  .gate-modal h3{ font-family: var(--font-head); margin: 0 0 6px; font-size:20px; }
+  .gate-modal p.gate-sub{ color:var(--muted); font-size:13.5px; margin:0 0 20px; }
+  .gate-modal .field{ text-align:left; margin-bottom:14px; }
+  .gate-modal .modal-actions{ justify-content:center; margin-top: 10px; }
+
+  .password-error{
+    color: var(--red); font-size:12.5px; font-weight:600; margin-top:8px; min-height:16px;
+  }
+
+  .congrats-modal{ max-width:460px; text-align:center; }
+  .congrats-modal .congrats-emoji{ font-size:48px; margin-bottom:6px; }
+  .congrats-modal h3{ font-family: var(--font-head); font-size:22px; margin:0 0 6px; color:var(--primary-600); }
+  .congrats-modal p.congrats-name{ color:var(--muted); font-size:13.5px; margin:0 0 18px; }
+  .congrats-stats{ display:flex; gap:12px; justify-content:center; margin-bottom: 18px; flex-wrap:wrap; }
+  .congrats-stat{
+    background: var(--surface-2); border-radius: var(--radius-md);
+    padding: 14px 18px; min-width:110px;
+  }
+  .congrats-stat .stat-value{ font-family: var(--font-head); font-weight:800; font-size:22px; color: var(--primary-600); }
+  .congrats-stat .stat-label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
+  .congrats-note{ font-size:12.5px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="app-header">
+    <div>
+      <h1>Historia de la Informática<span class="dot">.</span> y la Robótica</h1>
+      <p>Arrastra cada hito hasta el punto correcto de la línea de tiempo. En cuanto sueltas una tarjeta, el sistema <strong>verifica automáticamente</strong> si esa ubicación quedó correcta. Esta práctica vale <strong>40 puntos</strong> y <strong>solo se puede realizar una vez</strong>: si una ubicación queda mal, se descuenta el valor de esa tarjeta de inmediato (con 20 tarjetas, <strong>2 puntos</strong> cada una), pero tienes una <strong>segunda oportunidad</strong> para corregirla y recuperarlo; si esa misma ubicación vuelve a fallar, se <strong>bloquea</strong> como intento fallido (los puntos se pierden para siempre y ya no se puede volver a tocar; la tarjeta regresa a la bandeja para ubicarla en otro lugar), y puedes seguir con el resto de tarjetas con normalidad. La práctica termina cuando todas las ubicaciones quedan resueltas. La nota final (sobre 5.0) se calcula según tu puntaje.</p>
+    </div>
+    <div class="toolbar">
+      <span class="score-pill points-pill" id="studentPill" style="background:var(--primary-100); color:var(--primary-600);">👤 —</span>
+      <span class="score-pill" id="scorePill">🏆 0 / 0</span>
+      <span class="score-pill points-pill" id="pointsPill">📊 40/40 pts · Nota 5.0</span>
+      <button class="btn btn-ghost" id="openAddModal">➕ Agregar evento</button>
+      <button class="btn btn-outline-danger" id="resetLockBtn">🔒 Reiniciar práctica</button>
+    </div>
+  </div>
+
+  <div class="stats-panel" id="statsPanel">
+    <div class="stat-card errors" id="statErrorsCard">
+      <div class="stat-card-value" id="statErrors">–</div>
+      <div class="stat-card-label">Errores actuales</div>
+    </div>
+    <div class="stat-card correct-stat" id="statCorrectCard">
+      <div class="stat-card-value" id="statCorrect">–</div>
+      <div class="stat-card-label">Aciertos</div>
+    </div>
+    <div class="stat-card points-stat" id="statPointsCard">
+      <div class="stat-card-value" id="statPoints">40/40</div>
+      <div class="stat-card-label">Puntos actuales</div>
+    </div>
+    <div class="stat-card total-stat">
+      <div class="stat-card-value">40 pts</div>
+      <div class="stat-card-label">Valor total de la práctica</div>
+    </div>
+  </div>
+
+  <div class="section-label">
+    <span class="chip">Paso 1</span>
+    <h2>Eventos disponibles — arrástralos a la línea de tiempo</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="tray-wrap" id="trayWrap">
+    <div class="tray-scroll">
+      <div class="tray-row" id="trayRow"></div>
+    </div>
+  </div>
+
+  <div class="section-label">
+    <span class="chip">Paso 2</span>
+    <h2>Línea de tiempo</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="timeline-wrap" id="timelineWrap">
+    <div class="timeline-scroll">
+      <div class="timeline-grid" id="timelineGrid"></div>
+    </div>
+  </div>
+
+  <div class="help-note">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5m0 3h.01M12 22a10 10 0 100-20 10 10 0 000 20z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <span>Consejo: las tarjetas se colocan alternando arriba y abajo de la línea para que todas sean visibles. <strong>La verificación es automática:</strong> apenas sueltas una tarjeta, el sistema te dice si quedó bien o mal. <strong>Sistema de calificación (40 pts):</strong> cada tarjeta vale su parte proporcional de los 40 puntos (con 20 tarjetas, 2 puntos cada una); si una ubicación queda mal, se descuenta su valor de inmediato en "Puntos actuales"; tienes una segunda oportunidad para corregir esa misma ubicación (con cualquier tarjeta) y, si acierta, recuperas los puntos. Si esa ubicación vuelve a fallar, queda <strong>bloqueada</strong> como "intento fallido": la tarjeta regresa a la bandeja para que la ubiques en otro lugar, ya no se puede volver a mover nada ahí y los puntos se pierden para siempre, pero puedes seguir trabajando con normalidad en las demás tarjetas. La práctica termina cuando todas las ubicaciones quedan resueltas (correctas o bloqueadas). Cada punto perdido equivale a 0.1 en la nota final (40 pts = 5.0, 30 pts = 4.0, 20 pts = 3.0, 0 pts = 1.0).</span>
+  </div>
+
+</div>
+
+<!-- Feedback banner -->
+<div class="feedback-banner" id="feedbackBanner">
+  <div class="fb-score" id="fbScore">✅</div>
+  <div class="fb-text" id="fbText">Texto de retroalimentación</div>
+</div>
+
+<!-- Gate: registro de nombre y grado -->
+<div class="overlay show" id="gateOverlay">
+  <div class="modal gate-modal">
+    <div class="gate-icon">🧑‍🎓</div>
+    <h3>Antes de comenzar</h3>
+    <p class="gate-sub">Escribe tu nombre y grado. Esta práctica vale 40 puntos y <strong>solo puede realizarse una vez</strong>.</p>
+    <form id="gateForm">
+      <div class="field">
+        <label>Nombre completo</label>
+        <input type="text" id="g_name" placeholder="Ej. María Rodríguez" required>
+      </div>
+      <div class="field">
+        <label>Grado</label>
+        <input type="text" id="g_grade" placeholder="Ej. 10mo B" required>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary">Guardar y comenzar la práctica</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Password modal: reinicio protegido -->
+<div class="overlay" id="passOverlay">
+  <div class="modal gate-modal">
+    <div class="modal-head">
+      <h3>Reiniciar práctica</h3>
+      <button class="modal-close" id="closePassModal">✕</button>
+    </div>
+    <p class="gate-sub">Esta acción borra los resultados actuales y permite que otro estudiante (o el mismo) inicie de nuevo. Ingresa el código de reinicio.</p>
+    <div class="field">
+      <label>Código de reinicio</label>
+      <input type="password" id="resetPasswordInput" placeholder="••••••••">
+    </div>
+    <div class="password-error" id="passwordError"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="cancelPassModal">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="confirmPassBtn">Confirmar reinicio</button>
+    </div>
+  </div>
+</div>
+
+<!-- Congrats modal: resultados finales -->
+<div class="overlay" id="congratsOverlay">
+  <div class="modal congrats-modal">
+    <div class="congrats-emoji">🎉</div>
+    <h3>¡Felicidades, práctica completada!</h3>
+    <p class="congrats-name" id="congratsName">Estudiante · Grado</p>
+    <div class="congrats-stats">
+      <div class="congrats-stat">
+        <div class="stat-value" id="congratsCorrect">0/0</div>
+        <div class="stat-label">Aciertos</div>
+      </div>
+      <div class="congrats-stat">
+        <div class="stat-value" id="congratsPoints">0/40</div>
+        <div class="stat-label">Puntaje</div>
+      </div>
+      <div class="congrats-stat">
+        <div class="stat-value" id="congratsGrade">1.1</div>
+        <div class="stat-label">Nota</div>
+      </div>
+    </div>
+    <p class="congrats-note">La práctica ya quedó registrada y no puede repetirse. Tu profesor puede reiniciarla con el código de acceso si es necesario.</p>
+    <div class="modal-actions" style="justify-content:center;">
+      <button type="button" class="btn btn-primary" id="closeCongratsBtn">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/manage event modal -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Agregar / gestionar eventos</h3>
+      <button class="modal-close" id="closeModal">✕</button>
+    </div>
+
+    <form id="eventForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Título del evento</label>
+          <input type="text" id="f_title" placeholder="Ej. Lanzamiento del microprocesador 4004" required>
+        </div>
+        <div class="field">
+          <label>Nombre de la persona</label>
+          <input type="text" id="f_name" placeholder="Ej. Alan Turing" required>
+        </div>
+        <div class="field">
+          <label>Cargo o rol (opcional)</label>
+          <input type="text" id="f_role" placeholder="Ej. Matemático británico">
+        </div>
+        <div class="field">
+          <label>Lugar</label>
+          <input type="text" id="f_place" placeholder="Ej. Reino Unido" required>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="f_date" required>
+        </div>
+        <div class="field full">
+          <label>Descripción breve</label>
+          <textarea id="f_desc" placeholder="Describe brevemente el suceso..." required></textarea>
+        </div>
+        <div class="field full">
+          <label>Fotografía (opcional)</label>
+          <input type="file" id="f_photo" accept="image/*">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="cancelForm">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar evento</button>
+      </div>
+    </form>
+
+    <div class="existing-list">
+      <h4>Eventos actuales (<span id="countEvents">0</span>)</h4>
+      <div id="existingList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ICONS
+============================================================ */
+const ICON_CALENDAR = `<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const ICON_PIN = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.58 7-12.5A7 7 0 105 9.5C5 14.42 12 22 12 22z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg>`;
+const ICON_PLUS = `<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const ICON_LOCK = `<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 10V7a5 5 0 0110 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+
+/* ============================================================
+   STATE
+============================================================ */
+let events = [
+  { id:'e1', name:'Civilizaciones antiguas', role:'China, Egipto y Mesopotamia', avatar:null, title:'Invención del ábaco', desc:'Primer instrumento de cálculo de la humanidad; mediante cuentas deslizantes permitía sumar, restar y multiplicar.', place:'China / Egipto / Mesopotamia', date:'-001100-01-01', dateLabel:'c. siglo XII a.C.' },
+  { id:'e2', name:'Herón de Alejandría', role:'Ingeniero griego', avatar:null, title:'Autómatas de la "Pneumática"', desc:'Diseñó mecanismos impulsados por aire, vapor y cuerdas, considerados los primeros antecedentes documentados de la robótica.', place:'Alejandría, Egipto', date:'0060-01-01', dateLabel:'Siglo I d.C.' },
+  { id:'e3', name:'Blaise Pascal', role:'Matemático y filósofo', avatar:null, title:'Invención de la "Pascalina"', desc:'Una de las primeras calculadoras mecánicas funcionales, capaz de sumar y restar mediante ruedas dentadas.', place:'Francia', date:'1642-01-01', dateLabel:'1642' },
+  { id:'e4', name:'Gottfried Leibniz', role:'Filósofo y matemático alemán', avatar:null, title:'"Stepped Reckoner" y sistema binario', desc:'Perfeccionó la calculadora de Pascal para multiplicar y dividir, y desarrolló el sistema binario base de la computación moderna.', place:'Alemania', date:'1673-01-01', dateLabel:'c. 1673' },
+  { id:'e5', name:'Jacques de Vaucanson', role:'Inventor francés', avatar:null, title:'El "Pato Mecánico"', desc:'Autómata capaz de mover las alas y simular la digestión, mostrando un notable nivel de sofisticación mecánica.', place:'Francia', date:'1739-01-01', dateLabel:'1739' },
+  { id:'e6', name:'Joseph Marie Jacquard', role:'Inventor francés', avatar:null, title:'Telar programable de tarjetas perforadas', desc:'Patentó un telar controlado por tarjetas perforadas, idea que décadas después inspiraría la Máquina Analítica de Babbage.', place:'Lyon, Francia', date:'1804-01-01', dateLabel:'1804' },
+  { id:'e7', name:'Charles Babbage', role:'Matemático e inventor británico', avatar:null, title:'Diseño de la Máquina Analítica', desc:'Proyecto de computadora programable mediante tarjetas perforadas, con unidad de control, memoria y unidad aritmética.', place:'Londres, Inglaterra', date:'1837-01-01', dateLabel:'1837' },
+  { id:'e8', name:'Ada Lovelace', role:'Matemática', avatar:null, title:'Primer algoritmo de la historia', desc:'Escribió las instrucciones para que la Máquina Analítica calculara los números de Bernoulli, el primer algoritmo diseñado para una máquina.', place:'Londres, Inglaterra', date:'1842-01-01', dateLabel:'1842' },
+  { id:'e9', name:'Karel Čapek', role:'Escritor checo', avatar:null, title:'Origen del término "robot"', desc:'En su obra teatral "R.U.R." acuñó la palabra "robot", derivada del checo "robota" (trabajo forzado).', place:'Praga, Checoslovaquia', date:'1921-01-25', dateLabel:'1921' },
+  { id:'e10', name:'Alan Turing', role:'Matemático británico', avatar:null, title:'La "Máquina de Turing"', desc:'Modelo teórico que estableció los límites de lo que puede calcular una máquina, base de la computación teórica moderna.', place:'Reino Unido', date:'1936-01-01', dateLabel:'1936' },
+  { id:'e11', name:'Isaac Asimov', role:'Escritor y bioquímico', avatar:null, title:'Las Tres Leyes de la Robótica', desc:'En su relato "Runaround" formuló las leyes que aún hoy influyen en el debate ético sobre la inteligencia artificial.', place:'Estados Unidos', date:'1942-03-01', dateLabel:'1942' },
+  { id:'e12', name:'Equipo de ingenieros (ENIAC)', role:'Universidad de Pensilvania', avatar:null, title:'ENIAC: primera computadora electrónica', desc:'Con 18,000 tubos de vacío, fue la primera computadora electrónica de propósito general, con cerca de 5,000 sumas por segundo.', place:'Filadelfia, EE. UU.', date:'1945-01-01', dateLabel:'1945' },
+  { id:'e13', name:'Bardeen, Brattain y Shockley', role:'Laboratorios Bell', avatar:null, title:'Invención del transistor', desc:'Componente semiconductor que sustituyó a los tubos de vacío, sentando las bases de toda la electrónica moderna.', place:'Laboratorios Bell, EE. UU.', date:'1947-12-23', dateLabel:'1947' },
+  { id:'e14', name:'George Devol', role:'Inventor estadounidense', avatar:null, title:'Patente del Unimate', desc:'Patentó el primer brazo robótico programable de la historia, capaz de repetir secuencias de movimientos memorizadas.', place:'Estados Unidos', date:'1954-01-01', dateLabel:'1954' },
+  { id:'e15', name:'Joseph Engelberger', role:'"Padre de la robótica industrial"', avatar:null, title:'El Unimate llega a General Motors', desc:'Impulsó la comercialización del Unimate, instalado en una planta de GM y marcando el inicio de la robótica industrial.', place:'Estados Unidos', date:'1961-01-01', dateLabel:'1961' },
+  { id:'e16', name:'SRI International', role:'Instituto de investigación', avatar:null, title:'Shakey, el primer robot móvil autónomo', desc:'Capaz de percibir su entorno y razonar sobre sus propias acciones, marcó el encuentro entre robótica e inteligencia artificial.', place:'California, EE. UU.', date:'1966-01-01', dateLabel:'1966' },
+  { id:'e17', name:'Intel', role:'Empresa de tecnología', avatar:null, title:'Lanzamiento del microprocesador 4004', desc:'Primer microprocesador comercial del mundo, que integró en un solo chip todas las funciones de una unidad central de procesamiento.', place:'Santa Clara, EE. UU.', date:'1971-11-15', dateLabel:'1971' },
+  { id:'e18', name:'Tim Berners-Lee', role:'Científico de la computación', avatar:null, title:'Invención de la World Wide Web', desc:'Creó la Web junto con HTML, HTTP y las URL, transformando Internet en la plataforma global de información actual.', place:'CERN, Suiza', date:'1989-03-12', dateLabel:'1989' },
+  { id:'e19', name:'Honda', role:'Fabricante japonés', avatar:null, title:'Presentación del robot humanoide ASIMO', desc:'Robot humanoide capaz de caminar y moverse de forma natural, símbolo de la robótica autónoma moderna.', place:'Japón', date:'2000-10-31', dateLabel:'2000' },
+  { id:'e20', name:'Marc Raibert', role:'Fundador de Boston Dynamics', avatar:null, title:'Fundación de Boston Dynamics', desc:'Empresa pionera en robots con locomoción dinámica y equilibrio avanzado, como BigDog, Spot y Atlas.', place:'Massachusetts, EE. UU.', date:'1992-01-01', dateLabel:'1992' },
+];
+
+let placement = {};     // slotIndex -> eventId
+let dragState = null;   // active drag info
+
+/* ---- Sesión del estudiante y control de intento único ---- */
+let studentName = '';
+let studentGrade = '';
+let practiceActive = false;   // true una vez guardado nombre/grado
+let practiceLocked = false;   // true una vez que TODAS las ubicaciones quedan resueltas (correctas o bloqueadas)
+let trayOrder = shuffle(events.map(ev => ev.id)); // orden aleatorio de las tarjetas en la bandeja
+
+/* ---- Sistema de calificación: 40 puntos máximo ----
+   Verificación automática: apenas se suelta una tarjeta se comprueba si esa
+   UBICACIÓN quedó correcta. Regla: el primer error en una ubicación descuenta
+   el valor de esa ubicación de inmediato (de forma provisional/recuperable)
+   y da una segunda oportunidad; si esa misma ubicación vuelve a fallar (sin
+   importar qué tarjeta se haya colocado), se BLOQUEA como "intento fallido":
+   el punto queda perdido para siempre y ya no se puede volver a mover nada
+   ahí, pero el resto de la línea de tiempo sigue funcionando con normalidad.
+   Cada ubicación vale MAX_POINTS / cantidad de tarjetas (con 20 tarjetas y
+   40 puntos, cada una vale 2 puntos), así el descuento máximo posible
+   siempre alcanza los 40 puntos completos, sin importar cuántos eventos haya.
+   Nota final = 1 + (puntaje/10), es decir 40pts=5.0 ... 0pts=1.0 (0.1 por punto). */
+const MAX_POINTS = 40;
+let slotAttempts = {};       // slotIndex -> veces que esa UBICACIÓN ha recibido una tarjeta incorrecta
+let lockedSlots = new Set(); // slots que ya fallaron 2 veces: quedan bloqueados como "intento fallido"
+let totalDeduction = 0;      // puntos descontados hasta ahora
+
+// Valor en puntos de cada ubicación individual (se recalcula si cambia la
+// cantidad de eventos, por ejemplo si el profesor agrega o quita alguno).
+function pointsPerEvent(){
+  if(!events.length) return 0;
+  return MAX_POINTS / events.length;
+}
+function formatPoints(n){
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+/* ============================================================
+   HELPERS
+============================================================ */
+function uid(){ return 'e' + Math.random().toString(36).slice(2,9); }
+
+function initials(name){
+  return name.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+}
+function colorFromString(str){
+  let hash = 0;
+  for(let i=0;i<str.length;i++){ hash = str.charCodeAt(i) + ((hash<<5)-hash); }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue} 60% 52%)`;
+}
+function formatDate(iso){
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+function displayDate(ev){
+  return ev.dateLabel || formatDate(ev.date);
+}
+/* Convierte el campo "date" (ej. "1837-01-01" o "-001100-01-01") en un valor
+   numérico ordenable, sin depender de new Date(), ya que el parseo nativo de
+   años negativos/antiguos ("donde inicia la historia") no es consistente entre
+   navegadores y puede romper el orden cronológico usado para validar respuestas. */
+function dateSortValue(iso){
+  const m = /^(-?)(\d{1,6})-(\d{2})-(\d{2})$/.exec(String(iso).trim());
+  if(!m) return NaN;
+  const sign = m[1] === '-' ? -1 : 1;
+  const year = sign * parseInt(m[2], 10);
+  const month = parseInt(m[3], 10);
+  const day = parseInt(m[4], 10);
+  // multiplicador amplio para que año domine sobre mes/día en cualquier magnitud
+  return year * 10000 + month * 100 + day;
+}
+
+function sortedIds(){
+  return [...events].sort((a,b)=> dateSortValue(a.date) - dateSortValue(b.date)).map(e=>e.id);
+}
+
+/* Cuenta las UBICACIONES que en este momento están mal (pero todavía no
+   llevan 2 fallos, es decir, siguen con su segunda oportunidad). Este
+   descuento es provisional: si el estudiante corrige esa ubicación, el
+   punto se recupera. Las ubicaciones bloqueadas (lockedSlots) ya están
+   incluidas en totalDeduction de forma permanente y no se cuentan aquí. */
+function countCurrentlyWrongUnpenalized(){
+  const correct = sortedIds();
+  let count = 0;
+  for(let i=0;i<events.length;i++){
+    const id = placement[i];
+    if(id && id !== correct[i] && !lockedSlots.has(i)){
+      count++;
+    }
+  }
+  return count;
+}
+
+function calcScoreGrade(){
+  const provisional = countCurrentlyWrongUnpenalized() * pointsPerEvent();
+  const deduction = Math.min(MAX_POINTS, totalDeduction + provisional);
+  const score = Math.max(0, MAX_POINTS - deduction);
+  const grade = (1 + score * 0.1).toFixed(1);
+  return { score, grade };
+}
+
+function resetScoring(){
+  slotAttempts = {};
+  lockedSlots = new Set();
+  totalDeduction = 0;
+}
+
+/* ============================================================
+   PERSISTENCIA (localStorage): evita que un F5/refresh borre el
+   progreso del estudiante. Solo el botón "Reiniciar práctica"
+   protegido por contraseña puede borrar realmente el estado guardado.
+============================================================ */
+const STORAGE_KEY = 'timelinePracticeState_v1';
+
+function saveState(){
+  try{
+    const state = {
+      studentName, studentGrade, practiceActive, practiceLocked,
+      placement, trayOrder, slotAttempts,
+      lockedSlots: Array.from(lockedSlots),
+      totalDeduction,
+      events // se guardan también los eventos por si el profesor agregó/quitó alguno
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(err){
+    // almacenamiento no disponible (modo privado, cuota llena, etc.):
+    // no bloqueamos la práctica, simplemente no persiste entre refrescos.
+    console.warn('No se pudo guardar el progreso localmente:', err);
+  }
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const state = JSON.parse(raw);
+    if(Array.isArray(state.events) && state.events.length){ events = state.events; }
+    studentName = state.studentName || '';
+    studentGrade = state.studentGrade || '';
+    practiceActive = !!state.practiceActive;
+    practiceLocked = !!state.practiceLocked;
+    placement = state.placement || {};
+    trayOrder = Array.isArray(state.trayOrder) && state.trayOrder.length ? state.trayOrder : shuffle(events.map(ev=>ev.id));
+    slotAttempts = state.slotAttempts || {};
+    lockedSlots = new Set(state.lockedSlots || []);
+    totalDeduction = typeof state.totalDeduction === 'number' ? state.totalDeduction : 0;
+    return true;
+  } catch(err){
+    console.warn('No se pudo restaurar el progreso guardado:', err);
+    return false;
+  }
+}
+
+function clearState(){
+  try{ localStorage.removeItem(STORAGE_KEY); } catch(err){ /* ignorar */ }
+}
+function trayIds(){
+  const placed = new Set(Object.values(placement).filter(Boolean));
+  return trayOrder.filter(id => !placed.has(id));
+}
+function getEvent(id){ return events.find(e=>e.id===id); }
+
+/* Shuffle helper */
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/* ============================================================
+   CARD ELEMENT BUILDER
+============================================================ */
+function buildAvatar(ev){
+  const div = document.createElement('div');
+  div.className='avatar';
+  if(ev.avatar){
+    div.style.backgroundImage = `url(${ev.avatar})`;
+  } else {
+    div.style.background = colorFromString(ev.name || ev.title);
+    div.textContent = initials(ev.name || '??');
+  }
+  return div;
+}
+
+function buildCard(ev, ctx){
+  // ctx: { location: 'tray' | slotIndex }
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.dataset.id = ev.id;
+
+  const top = document.createElement('div');
+  top.className='card-top';
+  top.appendChild(buildAvatar(ev));
+  const idBox = document.createElement('div');
+  idBox.className='card-id';
+  const nameEl = document.createElement('div'); nameEl.className='card-name'; nameEl.textContent = ev.name;
+  idBox.appendChild(nameEl);
+  if(ev.role){
+    const roleEl = document.createElement('div'); roleEl.className='card-role'; roleEl.textContent = ev.role;
+    idBox.appendChild(roleEl);
+  }
+  top.appendChild(idBox);
+  card.appendChild(top);
+
+  const titleEl = document.createElement('div'); titleEl.className='card-title'; titleEl.textContent = ev.title;
+  card.appendChild(titleEl);
+
+  const descEl = document.createElement('div'); descEl.className='card-desc'; descEl.textContent = ev.desc;
+  card.appendChild(descEl);
+
+  const meta = document.createElement('div'); meta.className='card-meta';
+  const placeRow = document.createElement('div'); placeRow.className='card-meta-row';
+  placeRow.innerHTML = ICON_PIN + `<span>${ev.place}</span>`;
+  meta.appendChild(placeRow);
+  const dateRow = document.createElement('div'); dateRow.className='card-meta-row date-row';
+  dateRow.innerHTML = ICON_CALENDAR + `<span>${displayDate(ev)}</span>`;
+  meta.appendChild(dateRow);
+  card.appendChild(meta);
+
+  let locationLocked = false;
+  if(typeof ctx.location === 'number'){
+    // Verificación automática: en cuanto una tarjeta está en la línea de tiempo
+    // se muestra si su posición es correcta o incorrecta.
+    const correct = sortedIds();
+    const isOk = correct[ctx.location] === ev.id;
+    locationLocked = lockedSlots.has(ctx.location);
+    card.classList.add(isOk ? 'correct' : 'incorrect');
+    if(locationLocked) card.classList.add('locked-card');
+    const icon = document.createElement('div');
+    icon.className = 'card-result-icon ' + (isOk ? 'ok' : 'bad');
+    icon.textContent = isOk ? '✓' : '✕';
+    card.appendChild(icon);
+    if(!isOk){
+      const pen = document.createElement('div');
+      const ptsTxt = formatPoints(pointsPerEvent());
+      if(locationLocked){
+        pen.className = 'card-penalty-badge';
+        pen.textContent = `🔒 Intento fallido · -${ptsTxt} pt`;
+      } else {
+        pen.className = 'card-penalty-badge provisional';
+        pen.textContent = `-${ptsTxt} pt si no corriges`;
+      }
+      card.appendChild(pen);
+    }
+  }
+
+  // pointer drag: bloqueado si esta ubicación ya falló 2 veces
+  if(!locationLocked){
+    card.addEventListener('pointerdown', (e)=> startDrag(e, card, ev.id, ctx.location));
+  } else {
+    card.style.cursor = 'not-allowed';
+  }
+
+  return card;
+}
+
+/* ============================================================
+   RENDER: TRAY
+============================================================ */
+const trayRow = document.getElementById('trayRow');
+
+function renderTray(){
+  trayRow.innerHTML = '';
+  const ids = trayIds();
+  if(ids.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'tray-empty';
+    empty.textContent = '✓ Todas las tarjetas están colocadas en la línea de tiempo.';
+    trayRow.appendChild(empty);
+    return;
+  }
+  ids.forEach(id => {
+    const ev = getEvent(id);
+    if(!ev) return;
+    trayRow.appendChild(buildCard(ev, { location:'tray' }));
+  });
+}
+
+/* ============================================================
+   RENDER: TIMELINE
+============================================================ */
+const timelineGrid = document.getElementById('timelineGrid');
+
+function renderTimeline(){
+  timelineGrid.innerHTML = '';
+  const n = events.length;
+  timelineGrid.style.gridTemplateColumns = `repeat(${n}, 220px)`;
+  timelineGrid.style.gridTemplateRows = `220px 34px 20px 60px 34px 220px`;
+
+  // central line (always column 1/-1, spans everything)
+  const line = document.createElement('div');
+  line.className = 'tl-line';
+  const startLabel = document.createElement('span'); startLabel.className='tl-start-label'; startLabel.textContent='Inicio';
+  const endLabel = document.createElement('span'); endLabel.className='tl-end-label'; endLabel.textContent='Línea →';
+  line.appendChild(startLabel); line.appendChild(endLabel);
+  timelineGrid.appendChild(line);
+
+  for(let i=0;i<n;i++){
+    const col = i+1;
+    const placedId = placement[i];
+    const above = (i % 2 === 0);
+
+    // zone above
+    const zoneAbove = document.createElement('div');
+    zoneAbove.className = 'slot-zone zone-above';
+    zoneAbove.style.gridColumn = col;
+    // zone below
+    const zoneBelow = document.createElement('div');
+    zoneBelow.className = 'slot-zone zone-below';
+    zoneBelow.style.gridColumn = col;
+
+    const activeZone = above ? zoneAbove : zoneBelow;
+
+    if(placedId){
+      const ev = getEvent(placedId);
+      if(ev){
+        const cardWrap = document.createElement('div');
+        cardWrap.className = 'slot-card-host';
+        cardWrap.appendChild(buildCard(ev, { location:i }));
+        activeZone.appendChild(cardWrap);
+      }
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'placeholder-box';
+      placeholder.dataset.slot = i;
+      if(lockedSlots.has(i)){
+        // esta ubicación falló 2 veces: la tarjeta que estaba aquí ya regresó
+        // a la bandeja para poder ubicarla en otro lugar; este espacio queda
+        // bloqueado de forma permanente y no acepta más tarjetas.
+        placeholder.classList.add('locked-slot');
+        placeholder.innerHTML = ICON_LOCK + `<span>Bloqueado · intento fallido</span>`;
+      } else {
+        if(practiceLocked) placeholder.classList.add('result-missing');
+        placeholder.innerHTML = ICON_PLUS + `<span>Suelta aquí</span>`;
+      }
+      activeZone.appendChild(placeholder);
+    }
+
+    timelineGrid.appendChild(zoneAbove);
+    timelineGrid.appendChild(zoneBelow);
+
+    // connectors
+    const connAbove = document.createElement('div');
+    connAbove.className = 'connector connector-above' + (above ? ' filled' : '');
+    connAbove.style.gridColumn = col;
+    const connBelow = document.createElement('div');
+    connBelow.className = 'connector connector-below' + (!above ? ' filled' : '');
+    connBelow.style.gridColumn = col;
+    timelineGrid.appendChild(connAbove);
+    timelineGrid.appendChild(connBelow);
+
+    // tick
+    const tickCol = document.createElement('div');
+    tickCol.className = 'tick-col';
+    tickCol.style.gridColumn = col;
+    const tick = document.createElement('div');
+    tick.className = 'tick-mark' + (placedId ? ' has-card' : '');
+    tickCol.appendChild(tick);
+    tickCol.dataset.slot = i;
+    timelineGrid.appendChild(tickCol);
+
+    // date box (always visible)
+    const dateCol = document.createElement('div');
+    dateCol.className = 'date-col';
+    dateCol.style.gridColumn = col;
+    const dateBox = document.createElement('div');
+    dateBox.className = 'date-box' + (placedId ? ' filled' : '');
+    if(placedId){
+      const ev = getEvent(placedId);
+      dateBox.innerHTML = ICON_CALENDAR + `<span>${displayDate(ev)}</span>`;
+    } else {
+      dateBox.innerHTML = ICON_CALENDAR + `<span>DD/MM/AAAA</span>`;
+    }
+    dateCol.appendChild(dateBox);
+    timelineGrid.appendChild(dateCol);
+  }
+}
+
+function renderAll(){
+  renderTray();
+  renderTimeline();
+}
+
+/* ============================================================
+   DRAG & DROP (pointer events, mouse + touch)
+============================================================ */
+let ghostEl = null;
+
+function startDrag(e, cardEl, eventId, sourceLocation){
+  if(!practiceActive || practiceLocked) return;
+  if(typeof sourceLocation === 'number' && lockedSlots.has(sourceLocation)) return; // ubicación bloqueada, no se puede mover
+  e.preventDefault();
+  cardEl.setPointerCapture && cardEl.setPointerCapture(e.pointerId);
+
+  const rect = cardEl.getBoundingClientRect();
+  const offsetX = e.clientX - rect.left;
+  const offsetY = e.clientY - rect.top;
+
+  ghostEl = cardEl.cloneNode(true);
+  ghostEl.classList.add('ghost-card');
+  ghostEl.style.width = rect.width + 'px';
+  ghostEl.style.left = rect.left + 'px';
+  ghostEl.style.top = rect.top + 'px';
+  document.body.appendChild(ghostEl);
+
+  cardEl.classList.add('dragging-source');
+
+  dragState = { eventId, sourceLocation, offsetX, offsetY, pointerId: e.pointerId, lastTarget: null };
+
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', onDragEnd);
+}
+
+function getTickCols(){
+  return Array.from(document.querySelectorAll('.tick-col'));
+}
+
+function onDragMove(e){
+  if(!dragState || !ghostEl) return;
+  ghostEl.style.left = (e.clientX - dragState.offsetX) + 'px';
+  ghostEl.style.top = (e.clientY - dragState.offsetY) + 'px';
+
+  // find nearest slot by x distance to tick columns (se ignoran las bloqueadas)
+  const ticks = getTickCols();
+  let nearest = null, nearestDist = Infinity;
+  ticks.forEach(t => {
+    const slotIdx = parseInt(t.dataset.slot, 10);
+    if(lockedSlots.has(slotIdx)) return; // ubicación bloqueada: no es un destino válido
+    const r = t.getBoundingClientRect();
+    const cx = r.left + r.width/2;
+    const dist = Math.abs(e.clientX - cx);
+    if(dist < nearestDist){ nearestDist = dist; nearest = t; }
+  });
+
+  // clear previous highlight
+  document.querySelectorAll('.placeholder-box.drop-target-active').forEach(p=>p.classList.remove('drop-target-active'));
+
+  if(nearest){
+    const slotIdx = parseInt(nearest.dataset.slot, 10);
+    const ph = document.querySelector(`.placeholder-box[data-slot="${slotIdx}"]`);
+    if(ph) ph.classList.add('drop-target-active');
+    dragState.lastTarget = slotIdx;
+  }
+}
+
+function onDragEnd(e){
+  window.removeEventListener('pointermove', onDragMove);
+  window.removeEventListener('pointerup', onDragEnd);
+
+  document.querySelectorAll('.placeholder-box.drop-target-active').forEach(p=>p.classList.remove('drop-target-active'));
+  document.querySelectorAll('.dragging-source').forEach(c=>c.classList.remove('dragging-source'));
+
+  if(ghostEl){ ghostEl.remove(); ghostEl = null; }
+  if(!dragState) return;
+
+  const { eventId, sourceLocation, lastTarget } = dragState;
+
+  // determine drop target: check if pointer is over the tray area
+  const trayRect = document.getElementById('trayRow').getBoundingClientRect();
+  const overTray = e.clientY >= trayRect.top - 20 && e.clientY <= trayRect.bottom + 20 &&
+                   e.clientX >= trayRect.left && e.clientX <= trayRect.right;
+
+  const affectedSlots = []; // slots cuyo contenido cambió y deben verificarse automáticamente
+
+  if(overTray){
+    // send back to tray
+    if(typeof sourceLocation === 'number'){
+      placement[sourceLocation] = null;
+    }
+  } else if(lastTarget !== null && lastTarget !== undefined && !lockedSlots.has(lastTarget)){
+    const occupant = placement[lastTarget] || null;
+
+    if(typeof sourceLocation === 'number'){
+      if(sourceLocation === lastTarget){
+        // no-op: se soltó en el mismo lugar, nada que verificar
+      } else {
+        placement[sourceLocation] = occupant;
+        placement[lastTarget] = eventId;
+        affectedSlots.push(lastTarget);
+        if(occupant) affectedSlots.push(sourceLocation);
+      }
+    } else {
+      // coming from tray
+      placement[lastTarget] = eventId;
+      // occupant (if any) automatically returns to tray since ya no está referenciado
+      affectedSlots.push(lastTarget);
+    }
+  }
+
+  dragState = null;
+
+  if(affectedSlots.length && practiceActive && !practiceLocked){
+    evaluatePlacement(affectedSlots);
+  } else {
+    renderAll();
+  }
+  saveState();
+}
+
+/* ============================================================
+   VERIFICACIÓN AUTOMÁTICA AL SOLTAR CADA TARJETA
+============================================================ */
+/* La práctica se da por terminada cuando cada ubicación quedó resuelta:
+   o bien tiene la tarjeta correcta, o bien ya fue bloqueada tras 2 fallos
+   ("intento fallido"). Mientras una ubicación esté vacía o siga en su
+   primera oportunidad, la práctica continúa. */
+function isPracticeResolved(){
+  const correct = sortedIds();
+  for(let i=0;i<events.length;i++){
+    if(lockedSlots.has(i)) continue; // ubicación bloqueada: ya quedó resuelta (fallida) de forma permanente
+    const id = placement[i];
+    if(!id) return false; // ubicación vacía: aún falta colocar algo ahí
+    if(id !== correct[i]) return false; // todavía tiene su segunda oportunidad pendiente
+  }
+  return true;
+}
+
+function computeLiveStats(){
+  const correct = sortedIds();
+  let correctCount = 0, wrongCount = 0;
+  for(let i=0;i<events.length;i++){
+    if(lockedSlots.has(i)){
+      // ubicación bloqueada: aunque la tarjeta ya volvió a la bandeja,
+      // el error queda contado de forma permanente.
+      wrongCount++;
+      continue;
+    }
+    if(placement[i]){
+      if(placement[i] === correct[i]) correctCount++;
+      else wrongCount++;
+    }
+  }
+  return { correctCount, wrongCount };
+}
+
+function evaluatePlacement(slotIndexes){
+  const correct = sortedIds();
+  const results = []; // { slotIdx, eventId, isOk, justLocked }
+
+  slotIndexes.forEach(slotIdx => {
+    const eventId = placement[slotIdx];
+    if(!eventId) return;
+    const isOk = correct[slotIdx] === eventId;
+    if(isOk){
+      results.push({ slotIdx, eventId, isOk:true });
+    } else {
+      slotAttempts[slotIdx] = (slotAttempts[slotIdx] || 0) + 1;
+      let justLocked = false;
+      if(slotAttempts[slotIdx] >= 2 && !lockedSlots.has(slotIdx)){
+        lockedSlots.add(slotIdx);
+        totalDeduction = Math.min(MAX_POINTS, totalDeduction + pointsPerEvent());
+        justLocked = true;
+        // la tarjeta regresa automáticamente a la bandeja: el punto ya se
+        // perdió de forma permanente, pero la tarjeta se puede seguir
+        // usando para ubicarla en su lugar correcto en otra parte.
+        placement[slotIdx] = null;
+      }
+      results.push({ slotIdx, eventId, isOk:false, justLocked });
+    }
+  });
+
+  renderAll();
+  updateStatsPanel();
+  if(results.length) showMoveFeedback(results);
+
+  if(isPracticeResolved()){
+    practiceLocked = true;
+    updateLockUI();
+    const { correctCount } = computeLiveStats();
+    showCongrats(correctCount, events.length);
+  }
+}
+
+/* ============================================================
+   VERIFICACIÓN AUTOMÁTICA / BLOQUEO / FELICITACIONES
+============================================================ */
+const scorePill = document.getElementById('scorePill');
+const pointsPill = document.getElementById('pointsPill');
+const studentPill = document.getElementById('studentPill');
+const feedbackBanner = document.getElementById('feedbackBanner');
+const fbScore = document.getElementById('fbScore');
+const fbText = document.getElementById('fbText');
+const trayWrapEl = document.getElementById('trayWrap');
+const timelineWrapEl = document.getElementById('timelineWrap');
+let feedbackTimeout = null;
+
+/* Aviso tipo "toast" que aparece apenas se suelta una tarjeta, con el
+   resultado de esa jugada (o de las dos tarjetas si hubo intercambio). */
+function showMoveFeedback(results){
+  const { score, grade } = calcScoreGrade();
+  const allOk = results.every(r => r.isOk);
+  const anyLocked = results.some(r => r.justLocked);
+  const anyWrong = results.some(r => !r.isOk);
+
+  let icon, msg;
+
+  if(allOk){
+    icon = '✅';
+    if(results.length > 1){
+      msg = '¡Correcto! Las dos tarjetas quedaron en su lugar.';
+    } else {
+      const ev = getEvent(results[0].eventId);
+      msg = `¡Correcto! "${ev ? ev.title : 'La tarjeta'}" quedó bien ubicada.`;
+    }
+  } else if(anyLocked){
+    icon = '🔒';
+    msg = 'Esa ubicación falló 2 veces: queda bloqueada como intento fallido y el punto se pierde de forma permanente. La tarjeta vuelve a la bandeja para que puedas ubicarla en el lugar correcto.';
+  } else if(anyWrong){
+    icon = '⚠️';
+    msg = `Incorrecto: por ahora se descontaron ${formatPoints(pointsPerEvent())} puntos en esa ubicación. Tienes una segunda oportunidad: si la corriges, recuperas los puntos.`;
+  }
+
+  msg += ` Puntaje actual: ${score}/40 · Nota ${grade}`;
+
+  fbScore.textContent = icon;
+  fbText.textContent = msg;
+  feedbackBanner.classList.add('show');
+
+  clearTimeout(feedbackTimeout);
+  feedbackTimeout = setTimeout(hideFeedback, 4200);
+}
+
+function hideFeedback(){
+  feedbackBanner.classList.remove('show');
+}
+
+function updateStudentPill(){
+  studentPill.textContent = studentName ? `👤 ${studentName} · ${studentGrade}` : '👤 —';
+}
+
+const statErrorsEl = document.getElementById('statErrors');
+const statCorrectEl = document.getElementById('statCorrect');
+const statPointsEl = document.getElementById('statPoints');
+const statErrorsCardEl = document.getElementById('statErrorsCard');
+
+/* Estadísticas siempre en vivo: se recalculan a partir de la colocación
+   actual, sin depender de haber presionado ningún botón. */
+function updateStatsPanel(){
+  const { score, grade } = calcScoreGrade();
+  const { correctCount, wrongCount } = computeLiveStats();
+
+  if(!practiceActive){
+    statErrorsEl.textContent = '–';
+    statCorrectEl.textContent = '–';
+    statErrorsCardEl.classList.remove('has-errors');
+    scorePill.classList.remove('show');
+    pointsPill.classList.remove('show');
+  } else {
+    statErrorsEl.textContent = wrongCount;
+    statCorrectEl.textContent = `${correctCount}/${events.length}`;
+    statErrorsCardEl.classList.toggle('has-errors', wrongCount > 0);
+
+    scorePill.textContent = `🏆 ${correctCount} / ${events.length}`;
+    scorePill.classList.add('show');
+    pointsPill.textContent = `📊 ${score}/40 pts · Nota ${grade}`;
+    pointsPill.classList.add('show');
+  }
+  statPointsEl.textContent = `${score}/${MAX_POINTS}`;
+}
+
+function updateLockUI(){
+  if(practiceLocked){
+    trayWrapEl.classList.add('locked-area');
+    timelineWrapEl.classList.add('locked-area');
+  } else {
+    trayWrapEl.classList.remove('locked-area');
+    timelineWrapEl.classList.remove('locked-area');
+  }
+}
+
+function showCongrats(correctCount, total){
+  const { score, grade } = calcScoreGrade();
+  document.getElementById('congratsName').textContent = `${studentName} · ${studentGrade}`;
+  document.getElementById('congratsCorrect').textContent = `${correctCount}/${total}`;
+  document.getElementById('congratsPoints').textContent = `${score}/40`;
+  document.getElementById('congratsGrade').textContent = grade;
+  document.getElementById('congratsOverlay').classList.add('show');
+}
+
+document.getElementById('closeCongratsBtn').addEventListener('click', ()=>{
+  document.getElementById('congratsOverlay').classList.remove('show');
+});
+
+/* ============================================================
+   GATE: registro de nombre y grado
+============================================================ */
+document.getElementById('gateForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  studentName = document.getElementById('g_name').value.trim();
+  studentGrade = document.getElementById('g_grade').value.trim();
+  practiceActive = true;
+  trayOrder = shuffle(events.map(ev => ev.id));
+
+  document.getElementById('gateOverlay').classList.remove('show');
+  updateStudentPill();
+  updateLockUI();
+  updateStatsPanel();
+  renderAll();
+  saveState();
+});
+
+/* ============================================================
+   REINICIO PROTEGIDO POR CONTRASEÑA (code2026)
+============================================================ */
+const passOverlay = document.getElementById('passOverlay');
+const resetPasswordInput = document.getElementById('resetPasswordInput');
+const passwordError = document.getElementById('passwordError');
+
+document.getElementById('resetLockBtn').addEventListener('click', ()=>{
+  resetPasswordInput.value = '';
+  passwordError.textContent = '';
+  passOverlay.classList.add('show');
+  resetPasswordInput.focus();
+});
+document.getElementById('closePassModal').addEventListener('click', ()=> passOverlay.classList.remove('show'));
+document.getElementById('cancelPassModal').addEventListener('click', ()=> passOverlay.classList.remove('show'));
+
+function fullResetPractice(){
+  placement = {};
+  resetScoring();
+  practiceLocked = false;
+  practiceActive = false;
+  studentName = '';
+  studentGrade = '';
+  trayOrder = shuffle(events.map(ev => ev.id));
+
+  clearState();
+
+  hideFeedback();
+  updateStatsPanel();
+  document.getElementById('congratsOverlay').classList.remove('show');
+
+  document.getElementById('gateForm').reset();
+  document.getElementById('gateOverlay').classList.add('show');
+
+  updateStudentPill();
+  updateLockUI();
+  renderAll();
+}
+
+document.getElementById('confirmPassBtn').addEventListener('click', ()=>{
+  if(resetPasswordInput.value === 'code2026'){
+    passOverlay.classList.remove('show');
+    fullResetPractice();
+  } else {
+    passwordError.textContent = 'Código incorrecto. Intenta de nuevo.';
+    resetPasswordInput.value = '';
+    resetPasswordInput.focus();
+  }
+});
+resetPasswordInput.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    document.getElementById('confirmPassBtn').click();
+  }
+});
+
+/* ============================================================
+   MODAL: ADD / MANAGE EVENTS
+============================================================ */
+const modalOverlay = document.getElementById('modalOverlay');
+const eventForm = document.getElementById('eventForm');
+const existingList = document.getElementById('existingList');
+const countEvents = document.getElementById('countEvents');
+
+function openModal(){
+  modalOverlay.classList.add('show');
+  renderExistingList();
+}
+function closeModalFn(){ modalOverlay.classList.remove('show'); eventForm.reset(); }
+
+document.getElementById('openAddModal').addEventListener('click', openModal);
+document.getElementById('closeModal').addEventListener('click', closeModalFn);
+document.getElementById('cancelForm').addEventListener('click', closeModalFn);
+modalOverlay.addEventListener('click', (e)=>{ if(e.target === modalOverlay) closeModalFn(); });
+
+function renderExistingList(){
+  existingList.innerHTML = '';
+  countEvents.textContent = events.length;
+  events.forEach(ev => {
+    const row = document.createElement('div');
+    row.className = 'existing-row';
+    const av = buildAvatar(ev);
+    row.appendChild(av);
+    const main = document.createElement('div');
+    main.className='er-main';
+    main.innerHTML = `<div class="er-title">${ev.title}</div><div class="er-sub">${ev.name} · ${displayDate(ev)} · ${ev.place}</div>`;
+    row.appendChild(main);
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-sm btn-outline-danger';
+    delBtn.textContent = 'Eliminar';
+    delBtn.addEventListener('click', ()=>{
+      events = events.filter(e2 => e2.id !== ev.id);
+      trayOrder = trayOrder.filter(id => id !== ev.id);
+      // remove from placement
+      Object.keys(placement).forEach(k => { if(placement[k] === ev.id) placement[k] = null; });
+      resetScoring();
+      hideFeedback();
+      updateStatsPanel();
+      renderAll();
+      renderExistingList();
+      saveState();
+    });
+    row.appendChild(delBtn);
+    existingList.appendChild(row);
+  });
+}
+
+eventForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = document.getElementById('f_name').value.trim();
+  const role = document.getElementById('f_role').value.trim();
+  const place = document.getElementById('f_place').value.trim();
+  const date = document.getElementById('f_date').value;
+  const title = document.getElementById('f_title').value.trim();
+  const desc = document.getElementById('f_desc').value.trim();
+  const fileInput = document.getElementById('f_photo');
+
+  function finalizeAdd(avatarData){
+    const newEvent = { id: uid(), name, role, avatar: avatarData || null, title, desc, place, date };
+    events.push(newEvent);
+    const insertAt = Math.floor(Math.random() * (trayOrder.length + 1));
+    trayOrder.splice(insertAt, 0, newEvent.id);
+    resetScoring();
+    hideFeedback();
+    updateStatsPanel();
+    renderAll();
+    renderExistingList();
+    eventForm.reset();
+    saveState();
+  }
+
+  if(fileInput.files && fileInput.files[0]){
+    const reader = new FileReader();
+    reader.onload = (ev)=> finalizeAdd(ev.target.result);
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    finalizeAdd(null);
+  }
+});
+
+/* ============================================================
+   INIT
+============================================================ */
+const restored = loadState();
+if(restored && practiceActive){
+  // había una práctica en curso (o ya terminada): se restaura tal cual
+  // quedó, sin mostrar de nuevo el formulario de registro.
+  document.getElementById('gateOverlay').classList.remove('show');
+} else {
+  document.getElementById('gateOverlay').classList.add('show');
+}
+updateStudentPill();
+updateLockUI();
+updateStatsPanel();
+renderAll();
+</script>
+
+</body>
+</html>
