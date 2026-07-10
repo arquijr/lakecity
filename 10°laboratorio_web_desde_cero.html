@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>WebLab · Creación de una página web desde cero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --navy-900:#0a1128;
+  --navy-800:#101b3d;
+  --navy-700:#182658;
+  --blue-600:#2f5bea;
+  --blue-500:#4c78ff;
+  --blue-100:#e8edff;
+  --cyan-400:#22d3ee;
+  --cyan-300:#7ee6f7;
+  --white:#ffffff;
+  --slate-50:#f5f7fc;
+  --slate-100:#eef1f9;
+  --slate-200:#dfe4f2;
+  --slate-400:#98a2c0;
+  --slate-600:#4d597d;
+  --slate-800:#1c2440;
+  --green-500:#12b981;
+  --green-100:#e3faf1;
+  --red-500:#ef4444;
+  --red-100:#fdecec;
+  --amber-500:#f59e0b;
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+  --radius-lg:18px;
+  --radius-md:12px;
+  --radius-sm:8px;
+  --shadow-card:0 2px 10px rgba(16,27,61,0.06), 0 10px 30px rgba(16,27,61,0.05);
+  --shadow-pop:0 12px 40px rgba(47,91,234,0.18);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  background:
+    radial-gradient(1100px 500px at 85% -10%, rgba(76,120,255,0.12), transparent 60%),
+    radial-gradient(900px 500px at -5% 10%, rgba(34,211,238,0.10), transparent 55%),
+    var(--slate-50);
+  color:var(--slate-800);
+  min-height:100vh;
+}
+h1,h2,h3,h4{font-family:var(--font-display); margin:0;}
+p{margin:0;}
+button{font-family:var(--font-body); cursor:pointer;}
+::selection{background:var(--blue-100);}
+
+/* ============================================================
+   PANTALLA DE INICIO
+   ============================================================ */
+#pantallaInicio{
+  position:fixed; inset:0; z-index:200;
+  display:flex; align-items:center; justify-content:center;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  background:
+    radial-gradient(900px 500px at 20% 10%, rgba(76,120,255,0.35), transparent 60%),
+    radial-gradient(900px 600px at 85% 90%, rgba(34,211,238,0.25), transparent 55%),
+    linear-gradient(160deg, var(--navy-900), var(--navy-700));
+  padding:24px;
+  transition:opacity .6s ease, visibility .6s ease;
+}
+#pantallaInicio.oculto{ opacity:0; visibility:hidden; pointer-events:none; }
+.inicio-caja{
+  max-width:640px; width:100%;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.14);
+  backdrop-filter:blur(10px);
+  border-radius:24px;
+  padding:46px 40px;
+  color:var(--white);
+  text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,0.35);
+  margin:auto;
+}
+.inicio-eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-mono); font-size:0.72rem; letter-spacing:0.14em;
+  text-transform:uppercase; color:var(--cyan-300);
+  background:rgba(34,211,238,0.10); border:1px solid rgba(34,211,238,0.35);
+  padding:6px 14px; border-radius:99px; margin-bottom:22px;
+}
+.inicio-eyebrow .punto{width:6px;height:6px;border-radius:50%;background:var(--cyan-300); box-shadow:0 0 8px var(--cyan-300); animation:parpadeoPunto 1.6s infinite;}
+@keyframes parpadeoPunto{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.inicio-titulo{font-size:2.5rem; line-height:1.15; font-weight:700;}
+.inicio-titulo span{
+  background:linear-gradient(90deg, var(--cyan-300), var(--blue-500));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.inicio-desc{margin-top:16px; font-size:1rem; color:#c4cbe6; line-height:1.6;}
+.inicio-reglas{
+  margin-top:28px; text-align:left;
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+}
+.inicio-regla{
+  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.10);
+  border-radius:var(--radius-md); padding:12px 14px; font-size:0.83rem; color:#d7dcf3;
+}
+.inicio-regla b{display:block; color:var(--white); font-family:var(--font-display); font-size:0.95rem; margin-bottom:2px;}
+.inicio-form{
+  margin-top:26px; text-align:left;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.12);
+  border-radius:var(--radius-md); padding:16px 16px 6px;
+  display:grid; grid-template-columns:1fr 1fr; gap:12px;
+}
+.campo-form{ display:flex; flex-direction:column; gap:5px; }
+.campo-form label{
+  font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em; color:#9aa4cc;
+  font-family:var(--font-mono);
+}
+.campo-form input{
+  background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.16);
+  border-radius:var(--radius-sm); padding:10px 12px; color:var(--white); font-size:0.9rem;
+  font-family:var(--font-body); outline:none; transition:border-color .2s ease, background .2s ease;
+}
+.campo-form input::placeholder{ color:#7580a8; }
+.campo-form input:focus{ border-color:var(--cyan-400); background:rgba(255,255,255,0.1); }
+.campo-form input.campo-invalido{ border-color:var(--red-500); }
+.campo-fecha{ grid-column:1 / -1; }
+.fecha-auto{
+  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--radius-sm); padding:10px 12px; color:var(--cyan-300);
+  font-family:var(--font-mono); font-size:0.85rem;
+}
+.form-error{
+  grid-column:1 / -1; color:#ff9b9b; font-size:0.76rem; margin:2px 0 10px; display:none;
+}
+.form-error.mostrar{ display:block; }
+@media(max-width:560px){
+  .inicio-form{ grid-template-columns:1fr; }
+}
+
+.btn-iniciar{
+  margin-top:32px;
+  font-family:var(--font-display); font-weight:700; font-size:1.05rem;
+  padding:15px 40px; border:none; border-radius:99px;
+  background:linear-gradient(90deg, var(--blue-500), var(--cyan-400));
+  color:var(--navy-900);
+  box-shadow:0 14px 34px rgba(76,120,255,0.35);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.btn-iniciar:hover{transform:translateY(-2px); box-shadow:0 18px 42px rgba(76,120,255,0.45);}
+.btn-iniciar:active{transform:translateY(0px) scale(0.98);}
+
+@media(max-width:560px){
+  .inicio-reglas{grid-template-columns:1fr;}
+  .inicio-titulo{font-size:1.9rem;}
+  .inicio-caja{padding:34px 22px;}
+}
+
+/* Pantallas con poca altura (portátiles chicos, móvil en horizontal): todo más compacto */
+@media(max-height:760px){
+  #pantallaInicio{ align-items:flex-start; }
+  .inicio-caja{ padding:28px 26px; margin:16px auto; }
+  .inicio-eyebrow{ margin-bottom:14px; }
+  .inicio-titulo{ font-size:1.7rem; }
+  .inicio-desc{ margin-top:10px; font-size:0.9rem; }
+  .inicio-reglas{ margin-top:16px; gap:8px; }
+  .inicio-regla{ padding:9px 12px; font-size:0.78rem; }
+  .inicio-form{ margin-top:16px; padding:12px 12px 4px; }
+  .btn-iniciar{ margin-top:18px; padding:12px 36px; font-size:0.98rem; }
+}
+@media(max-height:560px){
+  .inicio-reglas{ display:none; }
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+#appShell{ display:none; min-height:100vh; flex-direction:column; }
+#appShell.activo{ display:flex; }
+
+.topbar{
+  position:sticky; top:0; z-index:40;
+  background:linear-gradient(120deg, var(--navy-900), var(--navy-700));
+  color:var(--white);
+  padding:14px 22px;
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  box-shadow:0 6px 24px rgba(10,17,40,0.25);
+}
+.topbar .marca{
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--font-display); font-weight:700; font-size:1.05rem;
+  margin-right:auto;
+}
+.topbar .marca .logo-chip{
+  width:34px; height:34px; border-radius:9px;
+  background:linear-gradient(135deg, var(--blue-500), var(--cyan-400));
+  display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+}
+.topbar .marca .marca-sub{
+  font-family:var(--font-body); font-weight:400; font-size:0.72rem; color:#aeb8de;
+  display:block; margin-top:1px;
+}
+.stats-hud{ display:flex; gap:8px; flex-wrap:wrap; }
+.stat-chip{
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+  border-radius:10px; padding:6px 12px; font-family:var(--font-mono); font-size:0.78rem;
+  display:flex; flex-direction:column; min-width:74px;
+}
+.stat-chip .lbl{ color:#93a0cc; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.06em;}
+.stat-chip .val{ color:var(--white); font-weight:600; font-size:0.95rem;}
+.stat-chip.puntaje .val{ color:var(--cyan-300); }
+.stat-chip.errores .val{ color:#ff8f8f; }
+.stat-chip.errores.alerta{ animation:pulseChip 1s infinite; border-color:var(--red-500); }
+#chipEstudiante .val{ max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@keyframes pulseChip{0%,100%{box-shadow:0 0 0 rgba(239,68,68,0);}50%{box-shadow:0 0 0 4px rgba(239,68,68,0.25);}}
+.btn-ayuda-top{
+  background:rgba(255,255,255,0.08); color:var(--white); border:1px solid rgba(255,255,255,0.18);
+  border-radius:10px; padding:8px 14px; font-size:0.82rem; font-weight:600;
+}
+.btn-ayuda-top:hover{ background:rgba(255,255,255,0.16); }
+
+/* Barra de progreso general */
+.progreso-general{
+  padding:10px 22px 14px;
+  background:var(--navy-800);
+}
+.progreso-cabecera{
+  display:flex; justify-content:space-between; align-items:baseline;
+  color:#c4cbe6; font-size:0.78rem; margin-bottom:6px; font-family:var(--font-mono);
+}
+.progreso-cabecera b{ color:var(--white); }
+.progreso-riel{
+  height:10px; border-radius:99px; background:rgba(255,255,255,0.08); overflow:hidden;
+  border:1px solid rgba(255,255,255,0.08);
+}
+.progreso-relleno{
+  height:100%; width:0%; border-radius:99px;
+  background:linear-gradient(90deg, var(--blue-500), var(--cyan-400));
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 12px rgba(34,211,238,0.5);
+}
+
+/* ============================================================
+   LAYOUT PRINCIPAL
+   ============================================================ */
+.layout{
+  flex:1;
+  display:grid;
+  grid-template-columns:1.05fr 1fr 1fr;
+  gap:16px;
+  padding:18px 22px 34px;
+  max-width:1440px;
+  width:100%;
+  margin:0 auto;
+  align-items:start;
+}
+@media(max-width:1180px){
+  .layout{ grid-template-columns:1fr 1fr; }
+  .panel-mockup{ grid-column:1 / -1; }
+}
+@media(max-width:760px){
+  .layout{ grid-template-columns:1fr; padding:14px; }
+  .topbar{ padding:12px 14px; }
+  .stats-hud{ width:100%; justify-content:space-between; }
+  .stat-chip{ min-width:0; flex:1; align-items:center; }
+}
+
+.panel{
+  background:var(--white);
+  border:1px solid var(--slate-200);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-card);
+  overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.panel-cabecera{
+  padding:14px 18px; border-bottom:1px solid var(--slate-100);
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.panel-cabecera h2{ font-size:0.98rem; }
+.panel-cabecera .sub{ font-size:0.74rem; color:var(--slate-400); margin-top:2px; }
+.panel-cuerpo{ padding:14px 16px; }
+
+/* ---------- Panel 1: pasos disponibles (pool) ---------- */
+.badge-conteo{
+  font-family:var(--font-mono); font-size:0.72rem; font-weight:600;
+  background:var(--blue-100); color:var(--blue-600); padding:3px 10px; border-radius:99px;
+}
+#poolPasos{
+  display:flex; flex-direction:column; gap:9px;
+  max-height:62vh; overflow-y:auto; padding-right:4px;
+}
+.tarjeta-paso{
+  display:flex; align-items:center; gap:11px;
+  background:var(--slate-50); border:1.5px solid var(--slate-200);
+  border-radius:var(--radius-md); padding:11px 13px;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  outline:none;
+}
+.tarjeta-paso:hover{ border-color:var(--blue-500); background:var(--white); box-shadow:0 6px 18px rgba(47,91,234,0.10); transform:translateY(-1px); }
+.tarjeta-paso:active{ transform:translateY(0) scale(0.99); }
+.tarjeta-paso.arrastrando{ opacity:0.4; }
+.tarjeta-paso .icono-paso{
+  width:34px; height:34px; flex:0 0 auto; border-radius:9px;
+  background:var(--white); border:1px solid var(--slate-200);
+  display:flex; align-items:center; justify-content:center; font-size:1.05rem;
+}
+.tarjeta-paso .texto-paso{ font-size:0.86rem; font-weight:600; color:var(--slate-800); line-height:1.3; }
+.tarjeta-paso.error-shake{ animation:shakeError .45s ease; border-color:var(--red-500); background:var(--red-100); }
+@keyframes shakeError{
+  0%,100%{ transform:translateX(0); }
+  20%{ transform:translateX(-6px); }
+  40%{ transform:translateX(6px); }
+  60%{ transform:translateX(-4px); }
+  80%{ transform:translateX(4px); }
+}
+.pool-vacio{ text-align:center; padding:30px 10px; color:var(--slate-400); font-size:0.85rem; }
+
+/* mensaje de retro en pool */
+#mensajePool{
+  margin:0 16px 12px; padding:10px 12px; border-radius:var(--radius-sm);
+  font-size:0.82rem; font-weight:600; display:none; align-items:center; gap:8px;
+}
+#mensajePool.mostrar{ display:flex; }
+#mensajePool.ok{ background:var(--green-100); color:#0a8a5f; }
+#mensajePool.err{ background:var(--red-100); color:#c23434; }
+
+/* ---------- Panel 2: linea de producción (slots ordenados) ---------- */
+#lineaProduccion{
+  display:flex; flex-direction:column; gap:7px;
+  max-height:62vh; overflow-y:auto; padding-right:4px;
+}
+.slot-paso{
+  display:flex; align-items:center; gap:10px;
+  border:1.5px dashed var(--slate-200); border-radius:var(--radius-md);
+  padding:9px 12px; min-height:46px;
+  background:var(--slate-50);
+  transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.slot-paso .num{
+  font-family:var(--font-mono); font-size:0.72rem; font-weight:700; color:var(--slate-400);
+  width:20px; text-align:center; flex:0 0 auto;
+}
+.slot-paso .contenido-slot{ font-size:0.82rem; color:var(--slate-400); font-weight:500; flex:1; }
+.slot-paso.siguiente{
+  border:1.5px solid var(--blue-500); background:var(--blue-100);
+  box-shadow:0 0 0 4px rgba(76,120,255,0.10);
+}
+.slot-paso.siguiente .num{ color:var(--blue-600); }
+.slot-paso.siguiente .contenido-slot{ color:var(--blue-600); font-weight:600; }
+.slot-paso.completo{
+  border:1.5px solid var(--green-500); background:var(--green-100);
+}
+.slot-paso.completo .num{ color:#0a8a5f; }
+.slot-paso.completo .contenido-slot{ color:#0a6b48; font-weight:700; }
+.slot-paso.completo .icono-slot{ font-size:1rem; }
+.slot-paso .check{ color:#0a8a5f; font-weight:700; font-size:0.85rem; opacity:0; transform:scale(0.5); transition:all .25s ease; }
+.slot-paso.completo .check{ opacity:1; transform:scale(1); }
+.slot-paso.recien-llegado{ animation:popIn .5s ease; }
+@keyframes popIn{
+  0%{ transform:scale(0.9); box-shadow:0 0 0 0 rgba(18,185,129,0.4); }
+  50%{ transform:scale(1.02); }
+  100%{ transform:scale(1); box-shadow:0 0 0 8px rgba(18,185,129,0); }
+}
+
+/* toast de hito */
+#toastHito{
+  position:fixed; left:50%; top:18px; transform:translate(-50%,-140%);
+  z-index:150; background:var(--navy-900); color:var(--white);
+  padding:13px 22px; border-radius:99px; display:flex; align-items:center; gap:10px;
+  font-family:var(--font-display); font-weight:600; font-size:0.9rem;
+  box-shadow:0 16px 40px rgba(10,17,40,0.35);
+  transition:transform .45s cubic-bezier(.34,1.4,.64,1);
+  border:1px solid rgba(255,255,255,0.14);
+}
+#toastHito.mostrar{ transform:translate(-50%,0); }
+#toastHito .em{ font-size:1.2rem; }
+
+/* ---------- Panel 3: mockup navegador ---------- */
+.panel-mockup .panel-cuerpo{ padding:14px; }
+.navegador-mock{
+  border:1px solid var(--slate-200); border-radius:var(--radius-md); overflow:hidden;
+  background:var(--white); box-shadow:0 6px 20px rgba(16,27,61,0.06);
+}
+.navegador-barra{
+  background:var(--slate-100); padding:9px 12px; display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid var(--slate-200);
+}
+.navegador-puntos{ display:flex; gap:5px; }
+.navegador-puntos span{ width:9px; height:9px; border-radius:50%; background:var(--slate-200); }
+.navegador-direccion{
+  flex:1; background:var(--white); border:1px solid var(--slate-200); border-radius:99px;
+  padding:5px 12px; font-family:var(--font-mono); font-size:0.72rem; color:var(--slate-400);
+  display:flex; align-items:center; gap:6px; overflow:hidden; white-space:nowrap;
+}
+.navegador-direccion .candado{ color:var(--slate-400); }
+.navegador-direccion .candado.seguro{ color:var(--green-500); }
+.navegador-direccion #textoDominio{ color:var(--slate-600); }
+.navegador-lienzo{
+  min-height:280px; position:relative; padding:20px;
+  background:
+    linear-gradient(180deg, rgba(76,120,255,0.03), transparent 40%),
+    var(--white);
+}
+.mock-placeholder{
+  height:100%; min-height:240px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; color:var(--slate-400); text-align:center; padding:20px;
+}
+.mock-placeholder .icono-grande{ font-size:2rem; opacity:0.5; }
+.mock-placeholder p{ font-size:0.8rem; max-width:220px; line-height:1.5; }
+
+.mock-sitio{ display:none; }
+.mock-sitio.visible{ display:block; animation:fadeUp .5s ease; }
+@keyframes fadeUp{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
+.mock-nav{
+  display:flex; justify-content:space-between; align-items:center;
+  padding-bottom:12px; border-bottom:1px solid var(--slate-100); margin-bottom:14px;
+}
+.mock-nav .mock-logo{ font-family:var(--font-display); font-weight:700; font-size:0.95rem; color:var(--slate-800); }
+.mock-nav .mock-links{ display:flex; gap:12px; font-size:0.68rem; color:var(--slate-400); }
+.mock-hero{ text-align:center; padding:18px 6px 22px; }
+.mock-hero h3{ font-size:1.15rem; color:var(--slate-800); }
+.mock-hero p{ font-size:0.76rem; color:var(--slate-400); margin-top:6px; }
+.mock-hero .mock-cta{
+  display:inline-block; margin-top:12px; padding:7px 18px; border-radius:99px;
+  background:linear-gradient(90deg, var(--blue-500), var(--cyan-400)); color:var(--white);
+  font-size:0.72rem; font-weight:700;
+}
+.mock-cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px; }
+.mock-cards .mc{
+  border:1px solid var(--slate-100); border-radius:8px; padding:10px 8px; text-align:center;
+  background:var(--slate-50);
+}
+.mock-cards .mc .em{ font-size:1rem; }
+.mock-cards .mc .tt{ font-size:0.64rem; color:var(--slate-600); margin-top:4px; font-weight:600; }
+
+.hitos-mini{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:14px;
+}
+.hito-mini{
+  border:1px solid var(--slate-200); border-radius:var(--radius-sm); padding:9px 6px;
+  text-align:center; background:var(--slate-50); transition:all .3s ease;
+}
+.hito-mini .em{ font-size:1.1rem; opacity:0.35; filter:grayscale(1); transition:all .3s ease; }
+.hito-mini .tt{ font-size:0.62rem; color:var(--slate-400); margin-top:4px; font-weight:600; }
+.hito-mini.activo{ border-color:var(--green-500); background:var(--green-100); }
+.hito-mini.activo .em{ opacity:1; filter:none; }
+.hito-mini.activo .tt{ color:#0a8a5f; }
+
+/* ============================================================
+   ALARMA / ERROR DE IMPLEMENTACIÓN
+   ============================================================ */
+#overlayAlarma{
+  position:fixed; inset:0; z-index:180; display:none; align-items:center; justify-content:center;
+  overflow-y:auto;
+  background:rgba(10,17,40,0.72); backdrop-filter:blur(3px); padding:20px;
+}
+#overlayAlarma.activo{ display:flex; }
+.caja-alarma{
+  max-width:460px; width:100%; background:var(--white); border-radius:20px; overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,0.4);
+  border:1px solid var(--red-500);
+  animation:alarmaPop .35s ease;
+}
+@keyframes alarmaPop{ from{ transform:scale(0.92); opacity:0;} to{ transform:scale(1); opacity:1;} }
+.alarma-franja{
+  background:repeating-linear-gradient(135deg, var(--red-500), var(--red-500) 10px, #d63a3a 10px, #d63a3a 20px);
+  height:8px; animation:franjaMove 1s linear infinite;
+}
+@keyframes franjaMove{ from{ background-position:0 0;} to{ background-position:28px 0;} }
+.alarma-cuerpo{ padding:30px 28px; text-align:center; }
+.alarma-icono{ font-size:2.6rem; animation:alarmaShake 0.6s infinite; }
+@keyframes alarmaShake{ 0%,100%{ transform:rotate(0);} 25%{ transform:rotate(-8deg);} 75%{ transform:rotate(8deg);} }
+.alarma-titulo{ font-family:var(--font-display); color:var(--red-500); font-size:1.15rem; margin-top:10px; font-weight:700; }
+.alarma-texto{ color:var(--slate-600); font-size:0.87rem; margin-top:10px; line-height:1.55; }
+.alarma-contador{
+  margin-top:20px; font-family:var(--font-mono); font-size:2.1rem; font-weight:700; color:var(--red-500);
+}
+.alarma-nota{ margin-top:10px; font-size:0.72rem; color:var(--slate-400); }
+.btn-contener{
+  margin-top:18px; width:100%; padding:13px; border:none; border-radius:var(--radius-md);
+  background:linear-gradient(90deg, var(--red-500), #ff7a59); color:var(--white);
+  font-weight:700; font-size:0.9rem; font-family:var(--font-display);
+  box-shadow:0 10px 26px rgba(239,68,68,0.3);
+  transition:transform .15s ease;
+}
+.btn-contener:hover{ transform:translateY(-1px); }
+.btn-contener:active{ transform:translateY(0) scale(0.98); }
+
+/* ---- Modo PiP: la alarma se reduce a una esquina y deja de bloquear la pantalla ---- */
+#overlayAlarma.modo-pip{
+  background:transparent; backdrop-filter:none; pointer-events:none;
+  align-items:flex-end; justify-content:flex-end; padding:18px;
+}
+#overlayAlarma.modo-pip .caja-alarma{
+  max-width:230px; pointer-events:auto; cursor:pointer;
+  box-shadow:0 16px 40px rgba(0,0,0,0.4);
+  animation:none;
+}
+#overlayAlarma.modo-pip .alarma-cuerpo{ padding:14px 14px 16px; text-align:left; }
+#overlayAlarma.modo-pip .alarma-icono{ font-size:1.3rem; }
+#overlayAlarma.modo-pip .alarma-titulo{ font-size:0.72rem; margin-top:4px; line-height:1.3; }
+#overlayAlarma.modo-pip .alarma-texto,
+#overlayAlarma.modo-pip .alarma-nota{ display:none; }
+#overlayAlarma.modo-pip .alarma-contador{ margin-top:8px; font-size:1.3rem; }
+#overlayAlarma.modo-pip .btn-contener{ margin-top:10px; padding:8px; font-size:0.7rem; }
+#overlayAlarma.modo-pip .caja-alarma::after{
+  content:"👁 Toca para ampliar"; display:block; text-align:center; margin-top:8px;
+  font-size:0.62rem; color:var(--slate-400);
+}
+
+/* ============================================================
+   MODAL AYUDA
+   ============================================================ */
+#overlayAyuda{
+  position:fixed; inset:0; z-index:170; display:none; align-items:center; justify-content:center;
+  background:rgba(10,17,40,0.55); padding:20px;
+}
+#overlayAyuda.activo{ display:flex; }
+.caja-ayuda{
+  max-width:560px; width:100%; max-height:85vh; overflow-y:auto;
+  background:var(--white); border-radius:20px; padding:30px 30px 24px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.3);
+}
+.caja-ayuda h2{ font-size:1.2rem; }
+.caja-ayuda h3{ font-size:0.92rem; margin-top:18px; color:var(--blue-600); }
+.caja-ayuda p, .caja-ayuda li{ font-size:0.85rem; color:var(--slate-600); line-height:1.6; }
+.caja-ayuda ul{ margin:6px 0 0 18px; padding:0; }
+.btn-cerrar-ayuda{
+  margin-top:22px; width:100%; padding:12px; border:none; border-radius:var(--radius-md);
+  background:var(--slate-800); color:var(--white); font-weight:700; font-size:0.88rem;
+}
+
+/* ============================================================
+   PANTALLA FINAL (VICTORIA)
+   ============================================================ */
+#overlayVictoria{
+  position:fixed; inset:0; z-index:190; display:none; align-items:center; justify-content:center;
+  overflow-y:auto;
+  background:rgba(10,17,40,0.78); padding:20px; backdrop-filter:blur(4px);
+}
+#overlayVictoria.activo{ display:flex; }
+.caja-victoria{
+  max-width:520px; width:100%; background:var(--white); border-radius:24px; overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,0.4);
+  animation:alarmaPop .4s ease;
+  margin:auto;
+  max-height:calc(100vh - 40px); display:flex; flex-direction:column;
+}
+.victoria-cuerpo{ overflow-y:auto; }
+.victoria-cabecera{
+  background:linear-gradient(120deg, var(--navy-900), var(--blue-600) 130%);
+  color:var(--white); text-align:center; padding:34px 26px 26px; position:relative; overflow:hidden;
+  flex-shrink:0;
+}
+.victoria-cabecera::before{
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at 30% 20%, rgba(34,211,238,0.35), transparent 55%);
+}
+.victoria-emoji{ font-size:2.8rem; position:relative; }
+.victoria-cabecera h2{ font-size:1.35rem; margin-top:8px; position:relative; }
+.victoria-cabecera p{ font-size:0.85rem; color:#c4cbe6; margin-top:6px; position:relative; }
+.victoria-nota{
+  margin-top:16px; font-family:var(--font-display); font-size:2.4rem; font-weight:700;
+  position:relative; color:var(--cyan-300);
+}
+.victoria-cuerpo{ padding:22px 26px 26px; }
+.resumen-fila{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:9px 0; font-size:0.85rem; color:var(--slate-600);
+  border-bottom:1px solid var(--slate-100);
+}
+.resumen-fila:last-child{ border-bottom:none; }
+.resumen-fila b{ color:var(--slate-800); font-family:var(--font-mono); font-size:0.86rem; }
+.resumen-fila.destacado{ margin-top:6px; padding-top:14px; border-top:1px dashed var(--slate-200); }
+.resumen-fila.destacado b{ color:var(--blue-600); font-size:1.05rem; }
+.btn-reiniciar{
+  margin-top:20px; width:100%; padding:13px; border:none; border-radius:var(--radius-md);
+  background:linear-gradient(90deg, var(--blue-500), var(--cyan-400)); color:var(--navy-900);
+  font-weight:700; font-size:0.92rem; font-family:var(--font-display);
+}
+
+/* ---------- Laboratorio comprometido (game over) ---------- */
+#overlayGameOver{
+  position:fixed; inset:0; z-index:190; display:none; align-items:center; justify-content:center;
+  overflow-y:auto;
+  background:rgba(10,17,40,0.78); padding:20px; backdrop-filter:blur(4px);
+}
+#overlayGameOver.activo{ display:flex; }
+.cabecera-derrota{
+  background:linear-gradient(120deg, #2b0d0d, #7a1f1f 130%) !important;
+}
+.cabecera-derrota::before{
+  background:radial-gradient(circle at 30% 20%, rgba(239,68,68,0.35), transparent 55%) !important;
+}
+.cabecera-derrota #derrotaNota, .cabecera-derrota .victoria-nota{ color:#ff9b9b; }
+.caja-derrota .btn-reiniciar{ background:linear-gradient(90deg, var(--red-500), #ff7a59); color:var(--white); }
+
+/* scrollbars discretos */
+#poolPasos::-webkit-scrollbar, #lineaProduccion::-webkit-scrollbar, .caja-ayuda::-webkit-scrollbar{ width:6px; }
+#poolPasos::-webkit-scrollbar-thumb, #lineaProduccion::-webkit-scrollbar-thumb, .caja-ayuda::-webkit-scrollbar-thumb{ background:var(--slate-200); border-radius:99px; }
+
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PANTALLA DE INICIO
+     ============================================================ -->
+<div id="pantallaInicio">
+  <div class="inicio-caja">
+    <div class="inicio-eyebrow"><span class="punto"></span> Laboratorio interactivo</div>
+    <h1 class="inicio-titulo">Creación de una <span>página web</span> desde cero</h1>
+    <p class="inicio-desc">Ordena correctamente las 15 etapas del proceso real de publicación de un sitio web, hasta dejarlo funcionando en línea.</p>
+    <div class="inicio-reglas">
+      <div class="inicio-regla"><b>🧩 Mecánica</b>Selecciona los pasos en el orden correcto, uno a la vez.</div>
+      <div class="inicio-regla"><b>🏆 Puntuación</b>Hasta 40 puntos en total, distribuidos entre los 15 pasos correctos.</div>
+      <div class="inicio-regla"><b>🚨 Alarma</b>Cada error activa un ataque hacker de 2 minutos. Solo se detiene acertando el siguiente paso; puedes minimizarla a una esquina (PiP) mientras lo resuelves.</div>
+      <div class="inicio-regla"><b>🌐 Resultado</b>Verás tu sitio cargar en un navegador simulado.</div>
+    </div>
+
+    <div class="inicio-form">
+      <div class="campo-form">
+        <label for="inputNombre">Nombre completo</label>
+        <input type="text" id="inputNombre" placeholder="Ej. María Fernández" autocomplete="off">
+      </div>
+      <div class="campo-form">
+        <label for="inputGrado">Grado / Salón</label>
+        <input type="text" id="inputGrado" placeholder="Ej. 11-A" autocomplete="off">
+      </div>
+      <div class="campo-form campo-fecha">
+        <label>Fecha y hora (automática)</label>
+        <div class="fecha-auto" id="fechaAutoDisplay">—</div>
+      </div>
+      <p class="form-error" id="formError">Completa tu nombre y grado para iniciar la práctica.</p>
+    </div>
+
+    <button class="btn-iniciar" id="btnIniciar">🚀 Iniciar práctica</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP PRINCIPAL
+     ============================================================ -->
+<div id="appShell">
+
+  <div class="topbar">
+    <div class="marca">
+      <div class="logo-chip">🌐</div>
+      <div>
+        WebLab
+        <span class="marca-sub">Proceso de publicación de un sitio web</span>
+      </div>
+    </div>
+    <div class="stats-hud">
+      <div class="stat-chip" id="chipEstudiante"><span class="lbl">Estudiante</span><span class="val" id="valEstudiante">—</span></div>
+      <div class="stat-chip puntaje"><span class="lbl">Puntaje</span><span class="val" id="statPuntaje">0</span></div>
+      <div class="stat-chip"><span class="lbl">Pasos</span><span class="val" id="statPasos">0/15</span></div>
+      <div class="stat-chip"><span class="lbl">Intentos</span><span class="val" id="statIntentos">0</span></div>
+      <div class="stat-chip errores" id="chipErrores"><span class="lbl">Errores</span><span class="val" id="statErrores">0</span></div>
+      <div class="stat-chip"><span class="lbl">Tiempo</span><span class="val" id="statTiempo">00:00</span></div>
+    </div>
+    <button class="btn-ayuda-top" id="btnAyuda">❓ Reglas</button>
+  </div>
+
+  <div class="progreso-general">
+    <div class="progreso-cabecera">
+      <span>Progreso del proyecto</span>
+      <b id="progresoTexto">0%</b>
+    </div>
+    <div class="progreso-riel"><div class="progreso-relleno" id="progresoRelleno"></div></div>
+  </div>
+
+  <div class="layout">
+
+    <!-- PANEL 1: Pasos disponibles -->
+    <section class="panel">
+      <div class="panel-cabecera">
+        <div>
+          <h2>Pasos disponibles</h2>
+          <div class="sub">Toca un paso para colocarlo en la posición actual</div>
+        </div>
+        <span class="badge-conteo" id="badgeConteo">15</span>
+      </div>
+      <div id="mensajePool"></div>
+      <div class="panel-cuerpo" style="flex:1; display:flex; flex-direction:column;">
+        <div id="poolPasos"></div>
+      </div>
+    </section>
+
+    <!-- PANEL 2: Línea de producción -->
+    <section class="panel">
+      <div class="panel-cabecera">
+        <div>
+          <h2>Línea de producción</h2>
+          <div class="sub">Orden correcto del proyecto</div>
+        </div>
+      </div>
+      <div class="panel-cuerpo">
+        <div id="lineaProduccion"></div>
+      </div>
+    </section>
+
+    <!-- PANEL 3: Mockup del navegador -->
+    <section class="panel panel-mockup">
+      <div class="panel-cabecera">
+        <div>
+          <h2>Vista previa en vivo</h2>
+          <div class="sub">Así avanza tu sitio web</div>
+        </div>
+      </div>
+      <div class="panel-cuerpo">
+        <div class="navegador-mock">
+          <div class="navegador-barra">
+            <div class="navegador-puntos"><span></span><span></span><span></span></div>
+            <div class="navegador-direccion">
+              <span class="candado" id="candadoDireccion">🔓</span>
+              <span id="textoDominio">esperando-dominio…</span>
+            </div>
+          </div>
+          <div class="navegador-lienzo">
+            <div class="mock-placeholder" id="mockPlaceholder">
+              <div class="icono-grande">🖥️</div>
+              <p>Todavía no hay nada publicado. Completa los pasos para construir el sitio en tiempo real.</p>
+            </div>
+            <div class="mock-sitio" id="mockSitio">
+              <div class="mock-nav">
+                <div class="mock-logo" id="mockLogo">Mi Proyecto</div>
+                <div class="mock-links"><span>Inicio</span><span>Nosotros</span><span>Contacto</span></div>
+              </div>
+              <div class="mock-hero">
+                <h3>Bienvenido a tu nuevo sitio</h3>
+                <p>Publicado y funcionando correctamente.</p>
+                <span class="mock-cta">Empezar</span>
+              </div>
+              <div class="mock-cards">
+                <div class="mc"><div class="em">📄</div><div class="tt">Página</div></div>
+                <div class="mc"><div class="em">✍️</div><div class="tt">Contenido</div></div>
+                <div class="mc"><div class="em">📋</div><div class="tt">Menú</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hitos-mini" id="hitosMini"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     TOAST DE HITO
+     ============================================================ -->
+<div id="toastHito"><span class="em">✔</span><span id="toastHitoTexto">Paso completado</span></div>
+
+<!-- ============================================================
+     ALARMA
+     ============================================================ -->
+<div id="overlayAlarma">
+  <div class="caja-alarma">
+    <div class="alarma-franja"></div>
+    <div class="alarma-cuerpo">
+      <div class="alarma-icono">🚨</div>
+      <div class="alarma-titulo">ALERTA DE SEGURIDAD — ATAQUE DETECTADO</div>
+      <p class="alarma-texto">El proyecto presenta una falla crítica de implementación y el sistema está siendo vulnerado.<br>La alarma no se detendrá hasta que completes correctamente el siguiente paso.</p>
+      <div class="alarma-contador" id="alarmaContador">02:00</div>
+      <button class="btn-contener" id="btnContener">📌 Minimizar alarma (modo PiP)</button>
+      <p class="alarma-nota">Minimizar no detiene el ataque: el contador y los descuentos siguen activos. Solo se detiene al acertar el siguiente paso.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LABORATORIO COMPROMETIDO (GAME OVER)
+     ============================================================ -->
+<div id="overlayGameOver">
+  <div class="caja-victoria caja-derrota">
+    <div class="victoria-cabecera cabecera-derrota">
+      <div class="victoria-emoji">☠️</div>
+      <h2>Laboratorio comprometido</h2>
+      <p>No contuviste el ataque a tiempo. El sistema fue vulnerado por completo.</p>
+      <div class="victoria-nota" id="derrotaNota">0%</div>
+    </div>
+    <div class="victoria-cuerpo">
+      <div class="resumen-fila"><span>Estudiante</span><b id="derPersona">—</b></div>
+      <div class="resumen-fila"><span>Fecha y hora de inicio</span><b id="derFecha">—</b></div>
+      <div class="resumen-fila"><span>Pasos completados</span><b id="derPasos">0 de 15</b></div>
+      <div class="resumen-fila"><span>Intentos incorrectos</span><b id="derIncorrectos">0</b></div>
+      <div class="resumen-fila"><span>Intentos totales</span><b id="derIntentos">0</b></div>
+      <div class="resumen-fila"><span>Tiempo empleado</span><b id="derTiempo">00:00</b></div>
+      <div class="resumen-fila destacado"><span>Puntaje obtenido</span><b id="derPuntaje">0 de 40 puntos</b></div>
+      <div class="resumen-fila destacado"><span>Calificación final</span><b id="derCalificacion">0% (1.0)</b></div>
+      <button class="btn-reiniciar" id="btnReiniciarGameOver">🔄 Reiniciar laboratorio</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL AYUDA
+     ============================================================ -->
+<div id="overlayAyuda">
+  <div class="caja-ayuda">
+    <h2>📖 Cómo funciona el laboratorio</h2>
+    <p>Debes reconstruir, en el orden correcto, las <b>15 etapas</b> reales para crear y publicar una página web desde cero.</p>
+    <h3>1. Selecciona los pasos</h3>
+    <p>En el panel izquierdo aparecen los pasos desordenados. Toca (o arrastra) el que creas que corresponde a la siguiente posición vacía de la "Línea de producción".</p>
+    <h3>2. Puntuación</h3>
+    <p>Cada paso correcto suma sus puntos correspondientes (<b>40 puntos en total</b>, distribuidos entre los 15 pasos). Cada paso incorrecto resta <b>2 puntos</b> y cuenta como intento fallido. No se revela cuál era la respuesta correcta: deberás razonar el proceso.</p>
+    <h3>3. Alarma de seguridad (ataque hacker)</h3>
+    <p><b>Cualquier error</b> activa de inmediato una alerta de seguridad: el sistema queda "bajo ataque" y tienes <b>2 minutos</b> para contenerlo. La alarma <b>no se detiene sola ni con un botón</b>: solo se apaga cuando aciertas el siguiente paso correcto (el contador y los descuentos por error siguen aplicando mientras tanto). Puedes pulsar "Minimizar alarma (modo PiP)" para reducirla a una esquina, como una ventana flotante, y seguir trabajando en el laboratorio mientras suena; toca la ventanita para volver a expandirla. Si el contador llega a 0:00 sin resolverlo, <b>pierdes el laboratorio</b> (game over) con el puntaje que llevabas hasta ese momento.</p>
+    <h3>4. Vista previa en vivo</h3>
+    <p>A medida que avanzas, el panel derecho construye tu sitio: dominio, candado SSL, CMS y publicación final, hasta ver el sitio cargando en el navegador simulado.</p>
+    <h3>5. Calificación final</h3>
+    <p>Al completar los 15 pasos verás tu resumen: pasos correctos, intentos, errores, tiempo empleado, puntaje y porcentaje final.</p>
+    <button class="btn-cerrar-ayuda" id="btnCerrarAyuda">Entendido</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     PANTALLA FINAL
+     ============================================================ -->
+<div id="overlayVictoria">
+  <div class="caja-victoria">
+    <div class="victoria-cabecera">
+      <div class="victoria-emoji">🎉</div>
+      <h2>¡Laboratorio finalizado!</h2>
+      <p>Completaste el proceso de creación de una página web.</p>
+      <div class="victoria-nota" id="victoriaNota">100%</div>
+    </div>
+    <div class="victoria-cuerpo">
+      <div class="resumen-fila"><span>Estudiante</span><b id="resPersona">—</b></div>
+      <div class="resumen-fila"><span>Fecha y hora de inicio</span><b id="resFecha">—</b></div>
+      <div class="resumen-fila"><span>Pasos completados</span><b id="resPasos">15 de 15</b></div>
+      <div class="resumen-fila"><span>Intentos incorrectos</span><b id="resIncorrectos">0</b></div>
+      <div class="resumen-fila"><span>Intentos totales</span><b id="resIntentos">0</b></div>
+      <div class="resumen-fila"><span>Tiempo empleado</span><b id="resTiempo">00:00</b></div>
+      <div class="resumen-fila destacado"><span>Puntaje obtenido</span><b id="resPuntaje">0 de 40 puntos</b></div>
+      <div class="resumen-fila destacado"><span>Calificación final</span><b id="resCalificacion">0% (0.0)</b></div>
+      <button class="btn-reiniciar" id="btnReiniciar">🔄 Reiniciar laboratorio</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+
+/* ============================================================
+   DATOS: LAS 15 ETAPAS DEL PROCESO
+   ============================================================ */
+const PASOS = [
+  { id:1,  orden:1,  icono:"📋", titulo:"Definir el nombre del proyecto", hito:null, puntos:2 },
+  { id:2,  orden:2,  icono:"🌐", titulo:"Comprar el dominio", hito:"dominio", puntos:3 },
+  { id:3,  orden:3,  icono:"🖥️", titulo:"Contratar el servicio de hosting", hito:"hosting", puntos:3 },
+  { id:4,  orden:4,  icono:"🔒", titulo:"Verificar que el plan incluya un certificado SSL (o activarlo si es necesario)", hito:"ssl", puntos:2 },
+  { id:5,  orden:5,  icono:"📧", titulo:"Verificar que el plan incluya cuentas de correo corporativo", hito:null, puntos:3 },
+  { id:6,  orden:6,  icono:"🧭", titulo:"Verificar que el dominio esté correctamente apuntando al hosting (DNS configurados)", hito:"dns", puntos:3 },
+  { id:7,  orden:7,  icono:"📦", titulo:"Verificar si el hosting incluye instalación automática de WordPress u otro CMS", hito:null, puntos:2 },
+  { id:8,  orden:8,  icono:"⚙️", titulo:"Instalar o activar el CMS (si aún no está instalado) y realizar la configuración inicial", hito:"cms", puntos:3 },
+  { id:9,  orden:9,  icono:"🎨", titulo:"Seleccionar e instalar un tema o plantilla", hito:null, puntos:3 },
+  { id:10, orden:10, icono:"🔌", titulo:"Instalar los complementos (plugins) esenciales", hito:null, puntos:2 },
+  { id:11, orden:11, icono:"📄", titulo:"Crear las páginas principales (Inicio, Nosotros, Servicios, Contacto, etc.)", hito:null, puntos:3 },
+  { id:12, orden:12, icono:"✍️", titulo:"Agregar el contenido del sitio web", hito:null, puntos:3 },
+  { id:13, orden:13, icono:"📋", titulo:"Configurar los menús de navegación", hito:null, puntos:2 },
+  { id:14, orden:14, icono:"🚀", titulo:"Publicar el sitio web", hito:"publicado", puntos:3 },
+  { id:15, orden:15, icono:"✅", titulo:"Verificar que el sitio web funcione correctamente en Internet", hito:"verificado", puntos:3 }
+];
+
+const HITOS = [
+  { id:"dominio",   icono:"🌐", texto:"Dominio" },
+  { id:"hosting",   icono:"🖥️", texto:"Hosting" },
+  { id:"ssl",       icono:"🔒", texto:"SSL" },
+  { id:"dns",       icono:"🧭", texto:"DNS" },
+  { id:"cms",       icono:"📦", texto:"CMS" },
+  { id:"publicado", icono:"🚀", texto:"Publicado" }
+];
+
+const MENSAJES_HITO = {
+  dominio:   "Dominio registrado ✔",
+  hosting:   "Hosting activo ✔",
+  ssl:       "SSL activo ✔",
+  dns:       "DNS configurado ✔",
+  cms:       "CMS instalado ✔",
+  publicado: "Sitio publicado ✔"
+};
+
+const PENALIZACION_ERROR = 2;
+const ERRORES_PARA_ALARMA = 1; /* cada error activa la alarma de inmediato */
+const TIEMPO_ALARMA_SEG = 120; /* 2 minutos, igual que en el laberinto */
+const TOTAL_PASOS = PASOS.length;
+const PUNTAJE_MAXIMO = PASOS.reduce(function(acc, p){ return acc + p.puntos; }, 0);
+
+/* Tabla de calificación (escala Colegio Episcopal 0→1.0 .. 40→5.0) */
+const TABLA_NOTAS = {
+  40:5.0, 39:4.9, 38:4.8, 37:4.7, 36:4.6, 35:4.5, 34:4.4, 33:4.3, 32:4.2, 31:4.1,
+  30:4.0, 29:3.9, 28:3.8, 27:3.7, 26:3.6, 25:3.5, 24:3.4, 23:3.3, 22:3.2, 21:3.1,
+  20:3.0, 19:2.9, 18:2.8, 17:2.7, 16:2.6, 15:2.5, 14:2.4, 13:2.3, 12:2.2, 11:2.1,
+  10:2.0, 9:1.9, 8:1.8, 7:1.7, 6:1.6, 5:1.5, 4:1.4, 3:1.3, 2:1.2, 1:1.1, 0:1.0
+};
+function obtenerNota(puntaje){
+  const redondeado = Math.round(Math.max(0,puntaje));
+  const clamped = Math.max(0, Math.min(PUNTAJE_MAXIMO, redondeado));
+  return TABLA_NOTAS[clamped];
+}
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+let pool = [];
+let siguienteOrden = 1;
+let puntuacion = 0;
+let intentosTotales = 0;
+let erroresTotales = 0;
+let erroresConsecutivos = 0;
+let inicioTiempo = null;
+let cronometroId = null;
+let alarmaActiva = false;
+let alarmaCountdownId = null;
+let alarmaSegundosRestantes = 0;
+let juegoTerminado = false;
+let juegoIniciado = false;
+let hackerBeepIntervalId = null;
+
+let estudianteNombre = "";
+let estudianteGrado = "";
+let fechaInicioTexto = "";
+
+function barajar(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+/* ============================================================
+   RENDER: LÍNEA DE PRODUCCIÓN (slots)
+   ============================================================ */
+function renderLinea(){
+  const cont = document.getElementById("lineaProduccion");
+  cont.innerHTML = "";
+  PASOS.forEach(function(p){
+    const completo = p.orden < siguienteOrden;
+    const esSiguiente = p.orden === siguienteOrden && !juegoTerminado;
+    const div = document.createElement("div");
+    div.className = "slot-paso" + (completo ? " completo" : "") + (esSiguiente ? " siguiente" : "");
+    div.id = "slot-" + p.orden;
+    div.innerHTML =
+      '<span class="num">' + String(p.orden).padStart(2,"0") + '</span>' +
+      (completo ? '<span class="icono-slot">'+p.icono+'</span>' : '') +
+      '<span class="contenido-slot">' + (completo ? p.titulo : (esSiguiente ? "Coloca aquí el siguiente paso…" : "—")) + '</span>' +
+      '<span class="check">✔</span>';
+    cont.appendChild(div);
+  });
+}
+
+/* ============================================================
+   RENDER: POOL DE PASOS DISPONIBLES
+   ============================================================ */
+function renderPool(){
+  const cont = document.getElementById("poolPasos");
+  cont.innerHTML = "";
+  document.getElementById("badgeConteo").textContent = pool.length;
+
+  if(pool.length === 0){
+    cont.innerHTML = '<div class="pool-vacio">🎉 Ya no quedan pasos por colocar.</div>';
+    return;
+  }
+
+  pool.forEach(function(p){
+    const div = document.createElement("div");
+    div.className = "tarjeta-paso";
+    div.tabIndex = 0;
+    div.dataset.id = p.id;
+    div.draggable = true;
+    div.innerHTML =
+      '<span class="icono-paso">' + p.icono + '</span>' +
+      '<span class="texto-paso">' + p.titulo + '</span>';
+
+    div.addEventListener("click", function(){ intentarColocar(p.id, div); });
+    div.addEventListener("keydown", function(e){
+      if(e.key === "Enter" || e.key === " "){ e.preventDefault(); intentarColocar(p.id, div); }
+    });
+    div.addEventListener("dragstart", function(e){
+      e.dataTransfer.setData("text/plain", String(p.id));
+      div.classList.add("arrastrando");
+    });
+    div.addEventListener("dragend", function(){ div.classList.remove("arrastrando"); });
+
+    cont.appendChild(div);
+  });
+}
+
+/* Permitir soltar la tarjeta directamente sobre el slot "siguiente" */
+function habilitarDropEnLinea(){
+  const cont = document.getElementById("lineaProduccion");
+  cont.addEventListener("dragover", function(e){ e.preventDefault(); });
+  cont.addEventListener("drop", function(e){
+    e.preventDefault();
+    if(juegoTerminado) return;
+    const id = parseInt(e.dataTransfer.getData("text/plain"), 10);
+    if(!isNaN(id)) intentarColocar(id, null);
+  });
+}
+
+/* ============================================================
+   MENSAJE DE RETROALIMENTACIÓN
+   ============================================================ */
+let mensajeTimeoutId = null;
+function mostrarMensaje(texto, tipo){
+  const el = document.getElementById("mensajePool");
+  el.textContent = texto;
+  el.className = "mostrar " + tipo;
+  clearTimeout(mensajeTimeoutId);
+  mensajeTimeoutId = setTimeout(function(){ el.className = ""; }, 3200);
+}
+
+/* ============================================================
+   TOAST DE HITO
+   ============================================================ */
+let toastTimeoutId = null;
+function mostrarToast(texto){
+  const el = document.getElementById("toastHito");
+  document.getElementById("toastHitoTexto").textContent = texto;
+  el.classList.add("mostrar");
+  clearTimeout(toastTimeoutId);
+  toastTimeoutId = setTimeout(function(){ el.classList.remove("mostrar"); }, 2200);
+}
+
+/* ============================================================
+   HITOS MINI (panel de vista previa)
+   ============================================================ */
+function renderHitosMini(){
+  const cont = document.getElementById("hitosMini");
+  cont.innerHTML = "";
+  HITOS.forEach(function(h){
+    const div = document.createElement("div");
+    div.className = "hito-mini";
+    div.id = "hito-" + h.id;
+    div.innerHTML = '<div class="em">' + h.icono + '</div><div class="tt">' + h.texto + '</div>';
+    cont.appendChild(div);
+  });
+}
+
+function activarHitoVisual(hitoId){
+  const el = document.getElementById("hito-" + hitoId);
+  if(el) el.classList.add("activo");
+
+  if(hitoId === "dominio"){
+    document.getElementById("textoDominio").textContent = "www.mi-proyecto.com";
+  }
+  if(hitoId === "ssl"){
+    const c = document.getElementById("candadoDireccion");
+    c.textContent = "🔒"; c.classList.add("seguro");
+    document.getElementById("textoDominio").textContent = "https://www.mi-proyecto.com";
+  }
+  if(hitoId === "publicado"){
+    document.getElementById("mockPlaceholder").style.display = "none";
+    document.getElementById("mockSitio").classList.add("visible");
+  }
+}
+
+/* ============================================================
+   LÓGICA PRINCIPAL: intentar colocar un paso
+   ============================================================ */
+function intentarColocar(pasoId, elementoTarjeta){
+  if(juegoTerminado) return;
+
+  const paso = PASOS.find(function(p){ return p.id === pasoId; });
+  if(!paso) return;
+
+  intentosTotales++;
+
+  if(paso.orden === siguienteOrden){
+    /* --- CORRECTO --- */
+    erroresConsecutivos = 0;
+    puntuacion += paso.puntos;
+    pool = pool.filter(function(p){ return p.id !== pasoId; });
+
+    renderPool();
+    siguienteOrden++;
+    renderLinea();
+
+    const slotEl = document.getElementById("slot-" + paso.orden);
+    if(slotEl) slotEl.classList.add("recien-llegado");
+
+    if(alarmaActiva){
+      desactivarAlarma();
+    } else {
+      mostrarMensaje("✔ Paso correcto: " + paso.titulo, "ok");
+    }
+
+    if(paso.hito){
+      activarHitoVisual(paso.hito);
+      mostrarToast(MENSAJES_HITO[paso.hito] || (paso.titulo + " ✔"));
+    }
+
+    actualizarStats();
+
+    if(siguienteOrden > TOTAL_PASOS){
+      setTimeout(finalizarJuego, 500);
+    }
+
+  } else {
+    /* --- INCORRECTO --- */
+    erroresConsecutivos++;
+    erroresTotales++;
+    puntuacion = Math.max(0, puntuacion - PENALIZACION_ERROR);
+
+    if(elementoTarjeta){
+      elementoTarjeta.classList.add("error-shake");
+      setTimeout(function(){ elementoTarjeta.classList.remove("error-shake"); }, 460);
+    }
+
+    mostrarMensaje("✖ Orden incorrecto. Ese paso no corresponde a esta posición todavía.", "err");
+    actualizarStats();
+
+    if(alarmaActiva){
+      /* La alarma ya está sonando: el error solo penaliza puntos, no reinicia el contador */
+    } else if(erroresConsecutivos >= ERRORES_PARA_ALARMA){
+      erroresConsecutivos = 0;
+      activarAlarma();
+    }
+  }
+}
+
+/* ============================================================
+   STATS / CRONÓMETRO
+   ============================================================ */
+function actualizarStats(){
+  document.getElementById("statPuntaje").textContent = puntuacion;
+  document.getElementById("statPasos").textContent = (siguienteOrden - 1) + "/" + TOTAL_PASOS;
+  document.getElementById("statIntentos").textContent = intentosTotales;
+  document.getElementById("statErrores").textContent = erroresTotales;
+
+  const chip = document.getElementById("chipErrores");
+  chip.classList.toggle("alerta", erroresConsecutivos > 0);
+
+  const pct = Math.round(((siguienteOrden - 1) / TOTAL_PASOS) * 100);
+  document.getElementById("progresoRelleno").style.width = pct + "%";
+  document.getElementById("progresoTexto").textContent = pct + "%";
+}
+
+function formatoTiempo(ms){
+  const totalSeg = Math.floor(ms/1000);
+  const min = String(Math.floor(totalSeg/60)).padStart(2,"0");
+  const seg = String(totalSeg%60).padStart(2,"0");
+  return min + ":" + seg;
+}
+
+function iniciarCronometro(){
+  inicioTiempo = Date.now();
+  clearInterval(cronometroId);
+  cronometroId = setInterval(function(){
+    if(juegoTerminado) return;
+    document.getElementById("statTiempo").textContent = formatoTiempo(Date.now() - inicioTiempo);
+  }, 1000);
+}
+
+/* ============================================================
+   SISTEMA DE ALARMA (ataque hacker — misma lógica que el laberinto)
+   ============================================================ */
+function reproducirBeepAlarma(){
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    const ctxAudio = new AudioCtx();
+    const osc = ctxAudio.createOscillator();
+    const gain = ctxAudio.createGain();
+    osc.type = "square";
+    osc.frequency.value = 880;
+    gain.gain.value = 0.04;
+    osc.connect(gain);
+    gain.connect(ctxAudio.destination);
+    osc.start();
+    osc.stop(ctxAudio.currentTime + 0.18);
+  }catch(e){ /* audio no disponible, se ignora */ }
+}
+
+function activarAlarma(){
+  if(juegoTerminado) return;
+  alarmaActiva = true;
+  const overlay = document.getElementById("overlayAlarma");
+  overlay.classList.remove("modo-pip");
+  overlay.classList.add("activo");
+  document.getElementById("btnContener").textContent = "📌 Minimizar alarma (modo PiP)";
+  alarmaSegundosRestantes = TIEMPO_ALARMA_SEG;
+  actualizarContadorAlarma();
+
+  reproducirBeepAlarma();
+  clearInterval(hackerBeepIntervalId);
+  hackerBeepIntervalId = setInterval(reproducirBeepAlarma, 900);
+
+  clearInterval(alarmaCountdownId);
+  alarmaCountdownId = setInterval(function(){
+    alarmaSegundosRestantes--;
+    if(alarmaSegundosRestantes <= 0){
+      alarmaSegundosRestantes = 0;
+      actualizarContadorAlarma();
+      clearInterval(alarmaCountdownId);
+      alarmaCountdownId = null;
+      perderLaboratorio();
+      return;
+    }
+    actualizarContadorAlarma();
+  }, 1000);
+}
+
+/* Minimiza o expande la alarma en modo "picture-in-picture": no la detiene,
+   solo deja de bloquear la pantalla para que el estudiante pueda seguir intentando pasos. */
+function alternarModoPip(){
+  if(!alarmaActiva) return;
+  const overlay = document.getElementById("overlayAlarma");
+  const enPip = overlay.classList.toggle("modo-pip");
+  document.getElementById("btnContener").textContent = enPip
+    ? "🔎 Expandir alarma"
+    : "📌 Minimizar alarma (modo PiP)";
+}
+
+function actualizarContadorAlarma(){
+  const min = String(Math.floor(alarmaSegundosRestantes/60)).padStart(2,"0");
+  const seg = String(alarmaSegundosRestantes%60).padStart(2,"0");
+  document.getElementById("alarmaContador").textContent = min + ":" + seg;
+}
+
+function desactivarAlarma(){
+  if(!alarmaActiva) return;
+  clearInterval(alarmaCountdownId);
+  alarmaCountdownId = null;
+  clearInterval(hackerBeepIntervalId);
+  hackerBeepIntervalId = null;
+  alarmaActiva = false;
+  const overlay = document.getElementById("overlayAlarma");
+  overlay.classList.remove("activo");
+  overlay.classList.remove("modo-pip");
+  document.getElementById("btnContener").textContent = "📌 Minimizar alarma (modo PiP)";
+  mostrarMensaje("✔ Ataque neutralizado con el paso correcto. Continúa la práctica.", "ok");
+}
+
+/* Se pierde el laboratorio si el contador de la alarma llega a 0:00 */
+function perderLaboratorio(){
+  if(juegoTerminado) return;
+  juegoTerminado = true;
+  alarmaActiva = false;
+  clearInterval(hackerBeepIntervalId);
+  hackerBeepIntervalId = null;
+  clearInterval(cronometroId);
+
+  document.getElementById("overlayAlarma").classList.remove("activo");
+  document.getElementById("overlayAlarma").classList.remove("modo-pip");
+  const nota = obtenerNota(puntuacion);
+  const pct = Math.round((puntuacion / PUNTAJE_MAXIMO) * 100);
+  const pasosCompletados = siguienteOrden - 1;
+
+  document.getElementById("derrotaNota").textContent = pct + "%";
+  document.getElementById("derPersona").textContent = estudianteNombre + " — " + estudianteGrado;
+  document.getElementById("derFecha").textContent = fechaInicioTexto;
+  document.getElementById("derPasos").textContent = pasosCompletados + " de " + TOTAL_PASOS;
+  document.getElementById("derIncorrectos").textContent = erroresTotales;
+  document.getElementById("derIntentos").textContent = intentosTotales;
+  document.getElementById("derTiempo").textContent = formatoTiempo(tiempoFinal);
+  document.getElementById("derPuntaje").textContent = puntuacion + " de " + PUNTAJE_MAXIMO + " puntos";
+  document.getElementById("derCalificacion").textContent = pct + "% (" + nota.toFixed(1) + ")";
+
+  document.getElementById("overlayGameOver").classList.add("activo");
+}
+
+/* ============================================================
+   FINAL DEL JUEGO (laboratorio completado con éxito)
+   ============================================================ */
+function finalizarJuego(){
+  juegoTerminado = true;
+  clearInterval(cronometroId);
+
+  const tiempoFinal = Date.now() - inicioTiempo;
+  const nota = obtenerNota(puntuacion);
+  const pct = Math.round((puntuacion / PUNTAJE_MAXIMO) * 100);
+  const incorrectos = erroresTotales;
+
+  document.getElementById("victoriaNota").textContent = pct + "%";
+  document.getElementById("resPersona").textContent = estudianteNombre + " — " + estudianteGrado;
+  document.getElementById("resFecha").textContent = fechaInicioTexto;
+  document.getElementById("resPasos").textContent = TOTAL_PASOS + " de " + TOTAL_PASOS;
+  document.getElementById("resIncorrectos").textContent = incorrectos;
+  document.getElementById("resIntentos").textContent = intentosTotales;
+  document.getElementById("resTiempo").textContent = formatoTiempo(tiempoFinal);
+  document.getElementById("resPuntaje").textContent = puntuacion + " de " + PUNTAJE_MAXIMO + " puntos";
+  document.getElementById("resCalificacion").textContent = pct + "% (" + nota.toFixed(1) + ")";
+
+  document.getElementById("overlayVictoria").classList.add("activo");
+
+  guardarMejorResultado(pct, puntuacion, tiempoFinal);
+}
+
+/* Mejor resultado guardado localmente (localStorage) */
+function guardarMejorResultado(pct, puntaje, tiempoMs){
+  try{
+    const actual = JSON.parse(localStorage.getItem("weblab_mejor_resultado") || "null");
+    if(!actual || pct > actual.pct || (pct === actual.pct && tiempoMs < actual.tiempoMs)){
+      localStorage.setItem("weblab_mejor_resultado", JSON.stringify({ pct:pct, puntaje:puntaje, tiempoMs:tiempoMs, fecha:Date.now() }));
+    }
+  }catch(e){ /* localStorage no disponible, se ignora */ }
+}
+
+/* ============================================================
+   INICIO / REINICIO
+   ============================================================ */
+function iniciarJuego(){
+  pool = barajar(PASOS);
+  siguienteOrden = 1;
+  puntuacion = 0;
+  intentosTotales = 0;
+  erroresTotales = 0;
+  erroresConsecutivos = 0;
+  juegoTerminado = false;
+  alarmaActiva = false;
+
+  clearInterval(alarmaCountdownId); alarmaCountdownId = null;
+  clearInterval(hackerBeepIntervalId); hackerBeepIntervalId = null;
+
+  document.getElementById("overlayVictoria").classList.remove("activo");
+  document.getElementById("overlayGameOver").classList.remove("activo");
+  document.getElementById("overlayAlarma").classList.remove("activo");
+  document.getElementById("overlayAlarma").classList.remove("modo-pip");
+  document.getElementById("mockPlaceholder").style.display = "flex";
+  document.getElementById("mockSitio").classList.remove("visible");
+  document.getElementById("textoDominio").textContent = "esperando-dominio…";
+  const candado = document.getElementById("candadoDireccion");
+  candado.textContent = "🔓"; candado.classList.remove("seguro");
+
+  renderHitosMini();
+  renderPool();
+  renderLinea();
+  actualizarStats();
+  document.getElementById("statTiempo").textContent = "00:00";
+  iniciarCronometro();
+}
+
+/* Captura del nombre, grado y fecha/hora automática del estudiante */
+function actualizarFechaAutoDisplay(){
+  const ahora = new Date();
+  const texto = ahora.toLocaleDateString("es-PA", { day:"2-digit", month:"short", year:"numeric" }) +
+    ", " + ahora.toLocaleTimeString("es-PA", { hour:"2-digit", minute:"2-digit" });
+  const el = document.getElementById("fechaAutoDisplay");
+  if(el) el.textContent = texto;
+  return texto;
+}
+actualizarFechaAutoDisplay();
+setInterval(actualizarFechaAutoDisplay, 30000);
+
+/* ============================================================
+   EVENTOS GLOBALES
+   ============================================================ */
+document.getElementById("btnIniciar").addEventListener("click", function(){
+  const inputNombre = document.getElementById("inputNombre");
+  const inputGrado = document.getElementById("inputGrado");
+  const nombre = inputNombre.value.trim();
+  const grado = inputGrado.value.trim();
+  const errorEl = document.getElementById("formError");
+
+  if(!nombre || !grado){
+    inputNombre.classList.toggle("campo-invalido", !nombre);
+    inputGrado.classList.toggle("campo-invalido", !grado);
+    errorEl.classList.add("mostrar");
+    return;
+  }
+  inputNombre.classList.remove("campo-invalido");
+  inputGrado.classList.remove("campo-invalido");
+  errorEl.classList.remove("mostrar");
+
+  estudianteNombre = nombre;
+  estudianteGrado = grado;
+  fechaInicioTexto = actualizarFechaAutoDisplay();
+  document.getElementById("valEstudiante").textContent = nombre + " · " + grado;
+
+  document.getElementById("pantallaInicio").classList.add("oculto");
+  document.getElementById("appShell").classList.add("activo");
+  if(!juegoIniciado){
+    juegoIniciado = true;
+    habilitarDropEnLinea();
+    iniciarJuego();
+  }
+});
+
+document.getElementById("btnAyuda").addEventListener("click", function(){
+  document.getElementById("overlayAyuda").classList.add("activo");
+});
+document.getElementById("btnCerrarAyuda").addEventListener("click", function(){
+  document.getElementById("overlayAyuda").classList.remove("activo");
+});
+
+document.getElementById("btnContener").addEventListener("click", function(e){
+  e.stopPropagation();
+  alternarModoPip();
+});
+
+/* Al tocar la cajita en modo PiP (fuera del botón), se vuelve a expandir */
+document.querySelector("#overlayAlarma .caja-alarma").addEventListener("click", function(e){
+  const overlay = document.getElementById("overlayAlarma");
+  if(!overlay.classList.contains("modo-pip")) return;
+  if(e.target.closest("#btnContener")) return;
+  alternarModoPip();
+});
+
+document.getElementById("btnReiniciar").addEventListener("click", function(){
+  iniciarJuego();
+});
+document.getElementById("btnReiniciarGameOver").addEventListener("click", function(){
+  iniciarJuego();
+});
+
+})();
+</script>
+
+</body>
+</html>
