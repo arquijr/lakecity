@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetLab · Cacería de Linux</title>
+<style>
+
+:root{
+--bg:#0a1420;
+--bg-panel:#0f1f33;
+--bg-panel-2:#142a44;
+--line:#1f3b5c;
+--line-soft:#16304d;
+--cyan:#22c3e6;
+--cyan-dim:#0d7d94;
+--amber:#ffb020;
+--green:#22e08f;
+--red:#ff5470;
+--text:#d9e7f7;
+--text-dim:#7d93b0;
+--mono:'Consolas','Courier New',monospace;
+--sans:'Segoe UI',Arial,sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+background:
+radial-gradient(ellipse at 20% -10%, rgba(34,195,230,0.10), transparent 45%),
+radial-gradient(ellipse at 90% 110%, rgba(34,224,143,0.08), transparent 45%),
+var(--bg);
+color:var(--text);
+font-family:var(--sans);
+min-height:100vh;
+padding:18px;
+}
+
+:focus-visible{
+outline:2px solid var(--cyan);
+outline-offset:2px;
+}
+
+/* ---------------- Topbar ---------------- */
+
+.topbar{
+max-width:1180px;
+margin:0 auto 18px auto;
+display:flex;
+align-items:center;
+justify-content:space-between;
+flex-wrap:wrap;
+gap:12px;
+padding:14px 20px;
+background:var(--bg-panel);
+border:1px solid var(--line);
+border-radius:12px;
+}
+
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:700;
+font-size:1.15em;
+letter-spacing:0.3px;
+}
+.brand .tag{
+color:var(--cyan);
+}
+.brand .sub{
+font-weight:400;
+color:var(--text-dim);
+font-size:0.7em;
+display:block;
+margin-top:2px;
+}
+
+.stats{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+.stat{
+display:flex;
+align-items:center;
+gap:6px;
+background:var(--bg-panel-2);
+border:1px solid var(--line-soft);
+border-radius:8px;
+padding:7px 12px;
+font-size:0.82em;
+font-family:var(--mono);
+color:var(--text-dim);
+}
+.stat span{
+color:var(--cyan);
+font-weight:700;
+}
+.stat.completo span{ color:var(--green); }
+.stat.puntuacion span{ color:var(--amber); }
+.stat.puntuacion.negativo span{ color:var(--red); }
+.stat.errores span{ color:var(--red); }
+
+.btn-ayuda{
+background:transparent;
+border:1px solid var(--line);
+color:var(--text-dim);
+padding:9px 14px;
+border-radius:8px;
+cursor:pointer;
+font-family:var(--sans);
+font-size:0.82em;
+}
+.btn-ayuda:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+/* ---------------- Layout ---------------- */
+
+.layout{
+max-width:1180px;
+margin:0 auto;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px;
+align-items:start;
+}
+
+@media (max-width:900px){
+.layout{ grid-template-columns:1fr; }
+}
+
+.panel{
+background:var(--bg-panel);
+border:1px solid var(--line);
+border-radius:14px;
+padding:22px;
+}
+
+/* ---------------- Ruleta ---------------- */
+
+.panel-ruleta{ text-align:center; }
+
+.panel-titulo{
+font-size:0.75em;
+letter-spacing:1.5px;
+text-transform:uppercase;
+color:var(--text-dim);
+margin-bottom:14px;
+font-family:var(--mono);
+}
+
+.wheel-wrap{
+position:relative;
+width:min(340px, 80vw);
+margin:0 auto 18px auto;
+}
+
+.pointer{
+position:absolute;
+top:-6px;
+left:50%;
+transform:translateX(-50%);
+font-size:26px;
+color:var(--amber);
+text-shadow:0 0 10px rgba(255,176,32,0.7);
+z-index:2;
+}
+
+#ruleta{
+width:100%;
+height:auto;
+display:block;
+filter:drop-shadow(0 8px 30px rgba(0,0,0,0.5));
+transition:transform 4s cubic-bezier(0.15,0.68,0.1,1);
+}
+
+.hub{
+position:absolute;
+top:50%; left:50%;
+transform:translate(-50%,-50%);
+width:54px; height:54px;
+border-radius:50%;
+background:var(--bg-panel-2);
+border:2px solid var(--cyan);
+display:flex; align-items:center; justify-content:center;
+font-size:20px;
+box-shadow:0 0 18px rgba(34,195,230,0.35);
+z-index:2;
+}
+
+.btn-girar{
+background:linear-gradient(135deg, var(--cyan), var(--cyan-dim));
+color:#04141c;
+border:none;
+padding:13px 26px;
+border-radius:10px;
+font-weight:700;
+font-size:0.95em;
+cursor:pointer;
+letter-spacing:0.3px;
+box-shadow:0 6px 20px rgba(34,195,230,0.25);
+}
+.btn-girar:hover{ filter:brightness(1.08); }
+.btn-girar:disabled{
+opacity:0.4;
+cursor:not-allowed;
+filter:none;
+}
+
+.red-actual{
+margin-top:14px;
+font-family:var(--mono);
+font-size:0.95em;
+color:var(--text);
+min-height:20px;
+}
+.red-actual b{ color:var(--cyan); }
+
+.leyenda{
+margin-top:18px;
+display:grid;
+grid-template-columns:repeat(2, 1fr);
+gap:6px;
+text-align:left;
+}
+.leyenda-item{
+display:flex;
+align-items:center;
+gap:7px;
+font-family:var(--mono);
+font-size:0.72em;
+color:var(--text-dim);
+background:var(--bg-panel-2);
+border:1px solid var(--line-soft);
+border-radius:6px;
+padding:5px 8px;
+}
+.leyenda-item .chip{
+width:10px; height:10px;
+border-radius:50%;
+flex-shrink:0;
+}
+.leyenda-item.resuelto{ color:var(--text); }
+.leyenda-item .marca{ margin-left:auto; font-size:1em; }
+
+/* ---------------- Terminal ---------------- */
+
+.panel-terminal{ padding:0; overflow:hidden; display:flex; flex-direction:column; }
+
+.terminal-header{
+display:flex;
+align-items:center;
+gap:8px;
+padding:12px 16px;
+background:var(--bg-panel-2);
+border-bottom:1px solid var(--line);
+}
+.dot{ width:10px; height:10px; border-radius:50%; }
+.dot.red{ background:#ff5f57; }
+.dot.amber{ background:#febc2e; }
+.dot.green{ background:#28c840; }
+.terminal-title{
+margin-left:8px;
+font-family:var(--mono);
+font-size:0.78em;
+color:var(--text-dim);
+}
+
+.terminal-body{
+background:#050c14;
+font-family:var(--mono);
+font-size:0.85em;
+line-height:1.55;
+padding:16px;
+height:360px;
+overflow-y:auto;
+position:relative;
+white-space:pre-wrap;
+}
+.terminal-body::after{
+content:"";
+position:absolute;
+inset:0;
+pointer-events:none;
+background:repeating-linear-gradient(
+to bottom,
+rgba(255,255,255,0.015) 0px,
+rgba(255,255,255,0.015) 1px,
+transparent 1px,
+transparent 3px
+);
+}
+@media (prefers-reduced-motion: reduce){
+.terminal-body::after{ display:none; }
+}
+
+.linea{ color:#3ee06f; }
+.linea.comando{ color:#c9f7d6; }
+.linea.error{ color:var(--red); }
+.linea.ok{ color:var(--green); }
+.linea.sys{ color:var(--cyan); }
+.linea.dim{ color:#3a7a55; }
+
+.terminal-input-row{
+display:flex;
+align-items:center;
+gap:8px;
+padding:12px 16px;
+background:#050c14;
+border-top:1px solid var(--line-soft);
+}
+.prompt{
+font-family:var(--mono);
+color:#3ee06f;
+font-size:0.85em;
+}
+#terminalInput{
+flex:1;
+background:transparent;
+border:none;
+outline:none;
+color:#eafff0;
+font-family:var(--mono);
+font-size:0.85em;
+}
+
+/* ---------------- Registro de IPs Linux ---------------- */
+
+.registro-linux{
+padding:14px 16px 16px 16px;
+background:#050c14;
+border-top:1px solid var(--line-soft);
+}
+.registro-titulo{
+font-family:var(--mono);
+font-size:0.75em;
+letter-spacing:0.4px;
+color:var(--text-dim);
+margin-bottom:10px;
+}
+.registro-slot{
+display:flex;
+align-items:center;
+gap:8px;
+margin-bottom:8px;
+}
+.registro-slot:last-child{ margin-bottom:0; }
+.registro-input{
+flex:1;
+background:var(--bg-panel-2);
+border:1px solid var(--line-soft);
+border-radius:7px;
+padding:8px 10px;
+color:var(--text);
+font-family:var(--mono);
+font-size:0.82em;
+outline:none;
+}
+.registro-input:focus{ border-color:var(--cyan); }
+.registro-input:disabled{
+opacity:0.6;
+color:var(--green);
+border-color:var(--green);
+}
+.btn-agregar{
+background:linear-gradient(135deg, var(--green), #0d9d67);
+color:#04140c;
+border:none;
+padding:8px 14px;
+border-radius:7px;
+font-weight:700;
+font-size:0.78em;
+cursor:pointer;
+white-space:nowrap;
+}
+.btn-agregar:hover{ filter:brightness(1.08); }
+.btn-agregar:disabled{
+opacity:0.4;
+cursor:not-allowed;
+filter:none;
+}
+.registro-estado{
+font-family:var(--mono);
+font-size:0.8em;
+min-width:20px;
+text-align:center;
+}
+.registro-estado.ok{ color:var(--green); }
+.registro-estado.error{ color:var(--red); }
+
+/* ---------------- Panel de explicación del comando ---------------- */
+
+.panel-explicacion{
+max-width:1180px;
+margin:18px auto 0 auto;
+}
+
+.comando-completo{
+font-family:var(--mono);
+font-size:0.88em;
+background:#050c14;
+border:1px solid var(--line-soft);
+border-radius:8px;
+padding:14px 16px;
+color:#3ee06f;
+margin-bottom:18px;
+overflow-x:auto;
+white-space:pre;
+}
+
+.tabla-explicacion{
+width:100%;
+border-collapse:collapse;
+margin-bottom:16px;
+}
+.tabla-explicacion tr{
+border-bottom:1px solid var(--line-soft);
+}
+.tabla-explicacion tr:last-child{ border-bottom:none; }
+.tabla-explicacion td{
+padding:12px 10px;
+vertical-align:top;
+font-size:0.87em;
+color:var(--text-dim);
+line-height:1.55;
+}
+.tabla-explicacion td:first-child{
+width:230px;
+white-space:nowrap;
+}
+.tabla-explicacion code{
+font-family:var(--mono);
+background:var(--bg-panel-2);
+border:1px solid var(--line-soft);
+padding:3px 8px;
+border-radius:5px;
+color:var(--cyan);
+font-size:0.95em;
+white-space:normal;
+}
+.tabla-explicacion b{ color:var(--text); }
+
+@media (max-width:700px){
+.tabla-explicacion, .tabla-explicacion tbody, .tabla-explicacion tr, .tabla-explicacion td{
+display:block;
+width:auto;
+}
+.tabla-explicacion tr{ padding:10px 0; }
+.tabla-explicacion td:first-child{ margin-bottom:6px; }
+}
+
+.resumen-explicacion{
+font-size:0.87em;
+color:var(--text);
+background:var(--bg-panel-2);
+border-left:3px solid var(--cyan);
+border-radius:6px;
+padding:12px 14px;
+line-height:1.6;
+}
+
+/* ---------------- Overlays ---------------- */
+
+.overlay-ayuda, .overlay-victoria{
+position:fixed;
+inset:0;
+background:rgba(4,10,18,0.82);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:100;
+padding:20px;
+}
+.overlay-ayuda.activo, .overlay-victoria.activo{ display:flex; }
+
+.caja-ayuda{
+background:var(--bg-panel);
+border:1px solid var(--line);
+border-radius:14px;
+max-width:560px;
+width:100%;
+padding:28px;
+max-height:85vh;
+overflow-y:auto;
+}
+.caja-ayuda h2{
+color:var(--cyan);
+margin-bottom:14px;
+font-size:1.15em;
+}
+.caja-ayuda h3{
+color:var(--text);
+font-size:0.9em;
+margin:18px 0 8px;
+}
+.caja-ayuda p, .caja-ayuda li{
+color:var(--text-dim);
+font-size:0.86em;
+line-height:1.6;
+}
+.caja-ayuda ul{ padding-left:20px; }
+.caja-ayuda code{
+font-family:var(--mono);
+background:var(--bg-panel-2);
+padding:2px 6px;
+border-radius:4px;
+color:var(--cyan);
+}
+.caja-ayuda .regla{
+display:flex;
+gap:10px;
+align-items:center;
+background:var(--bg-panel-2);
+border:1px solid var(--line-soft);
+border-radius:8px;
+padding:10px 12px;
+margin-top:8px;
+font-family:var(--mono);
+font-size:0.85em;
+}
+.btn-cerrar-ayuda{
+margin-top:20px;
+width:100%;
+background:var(--cyan);
+color:#04141c;
+border:none;
+padding:11px;
+border-radius:8px;
+font-weight:700;
+cursor:pointer;
+}
+
+.caja-victoria{
+background:var(--bg-panel);
+border:2px solid var(--green);
+border-radius:14px;
+max-width:520px;
+width:100%;
+padding:32px;
+text-align:center;
+box-shadow:0 0 60px rgba(34,224,143,0.25);
+}
+.banner-victoria{
+font-family:var(--mono);
+color:var(--green);
+white-space:pre;
+font-size:0.72em;
+line-height:1.5;
+margin-bottom:18px;
+overflow-x:auto;
+}
+.caja-victoria h2{
+color:var(--green);
+font-size:1.4em;
+margin-bottom:8px;
+}
+.caja-victoria p{ color:var(--text-dim); margin-bottom:6px; }
+.puntuacion{
+font-size:2.4em;
+font-weight:800;
+color:var(--green);
+margin:14px 0;
+font-family:var(--mono);
+}
+.btn-reiniciar{
+margin-top:16px;
+background:linear-gradient(135deg, var(--green), #0d9d67);
+color:#04140c;
+border:none;
+padding:12px 24px;
+border-radius:9px;
+font-weight:700;
+cursor:pointer;
+font-size:0.95em;
+}
+
+.caja-victoria.derrota{
+border-color:var(--red);
+box-shadow:0 0 60px rgba(255,84,112,0.3);
+}
+.caja-victoria.derrota .banner-victoria{ color:var(--red); }
+.caja-victoria.derrota h2{ color:var(--red); }
+.caja-victoria.derrota .puntuacion{ color:var(--red); }
+.caja-victoria.derrota .btn-reiniciar{
+background:linear-gradient(135deg, var(--red), #c23a53);
+color:#1c0408;
+}
+
+/* ---------------- Alerta de seguridad (simulación hacker, no bloqueante) ---------------- */
+
+.terminal-alarma{
+display:none;
+align-items:center;
+gap:8px;
+padding:9px 16px;
+background:#2a0000;
+color:#ff9aa2;
+font-family:var(--mono);
+font-size:0.78em;
+line-height:1.5;
+border-bottom:1px solid #ff1f3d;
+}
+.terminal-alarma.activo{
+display:flex;
+animation:alarmaFranjaParpadeo 0.8s infinite;
+}
+@keyframes alarmaFranjaParpadeo{
+0%,100%{ background:#2a0000; }
+50%{ background:#4d0000; }
+}
+.terminal-alarma .icono-alarma{
+font-size:1.1em;
+animation:hackerParpadeo 0.6s infinite;
+}
+@keyframes hackerParpadeo{
+0%,100%{ opacity:1; }
+50%{ opacity:0.3; }
+}
+.terminal-alarma .alarma-contador{
+margin-left:auto;
+flex-shrink:0;
+font-weight:800;
+font-size:1.05em;
+color:#fff;
+background:#ff1f3d;
+padding:3px 10px;
+border-radius:6px;
+letter-spacing:0.5px;
+white-space:nowrap;
+font-family:var(--mono);
+}
+
+.panel-terminal.alarma-activa{
+animation:panelBordeAlarma 0.8s infinite;
+}
+@keyframes panelBordeAlarma{
+0%,100%{ box-shadow:0 0 0 rgba(255,31,61,0); border-color:var(--line); }
+50%{ box-shadow:0 0 22px rgba(255,31,61,0.55); border-color:#ff1f3d; }
+}
+.panel-terminal.alarma-activa .terminal-body{
+animation:cuerpoAlarma 0.8s infinite;
+}
+@keyframes cuerpoAlarma{
+0%,100%{ box-shadow:inset 0 0 0 rgba(255,31,61,0); }
+50%{ box-shadow:inset 0 0 45px rgba(255,31,61,0.3); }
+}
+
+/* ---------------- Pregunta final ---------------- */
+
+.overlay-pregunta-final{
+position:fixed;
+inset:0;
+background:rgba(4,10,18,0.85);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:150;
+padding:20px;
+}
+.overlay-pregunta-final.activo{ display:flex; }
+.caja-pregunta-final{
+background:var(--bg-panel);
+border:1px solid var(--cyan);
+border-radius:14px;
+max-width:520px;
+width:100%;
+padding:28px;
+text-align:center;
+}
+.caja-pregunta-final h2{
+color:var(--cyan);
+margin-bottom:14px;
+font-size:1.1em;
+}
+.caja-pregunta-final p{
+color:var(--text);
+font-size:0.9em;
+line-height:1.6;
+margin-bottom:10px;
+}
+.ip-pregunta{
+font-family:var(--mono);
+font-size:1.3em;
+color:var(--text);
+background:#050c14;
+border:1px solid var(--line-soft);
+border-radius:8px;
+padding:12px;
+margin-bottom:18px;
+}
+.ip-pregunta .x-resaltada{
+color:var(--amber);
+font-weight:800;
+}
+.opciones-pregunta{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:14px;
+}
+.btn-opcion{
+background:var(--bg-panel-2);
+border:1px solid var(--line-soft);
+color:var(--text);
+padding:12px 10px;
+border-radius:8px;
+cursor:pointer;
+font-family:var(--sans);
+font-size:0.88em;
+text-align:left;
+}
+.btn-opcion:hover:not(:disabled){ border-color:var(--cyan); color:var(--cyan); }
+.btn-opcion:disabled{ opacity:0.5; cursor:not-allowed; }
+.btn-opcion.correcta{ border-color:var(--green); color:var(--green); opacity:1; }
+.btn-opcion.incorrecta{ border-color:var(--red); color:var(--red); opacity:1; }
+.resultado-pregunta{
+font-family:var(--mono);
+font-size:0.9em;
+min-height:22px;
+margin-bottom:6px;
+}
+.resultado-pregunta.ok{ color:var(--green); }
+.resultado-pregunta.error{ color:var(--red); }
+
+.btn-finalizar-practica{
+margin-top:12px;
+width:100%;
+background:linear-gradient(135deg, var(--amber), #d98c12);
+color:#241400;
+border:none;
+padding:16px;
+border-radius:10px;
+font-weight:800;
+font-size:1.05em;
+cursor:pointer;
+letter-spacing:0.3px;
+box-shadow:0 6px 20px rgba(255,176,32,0.3);
+}
+.btn-finalizar-practica:hover{ filter:brightness(1.08); }
+
+/* ---------------- Resumen detallado (pantalla final) ---------------- */
+
+.resumen-detallado{
+background:#050c14;
+border:1px solid var(--line-soft);
+border-radius:10px;
+padding:16px 18px;
+margin:16px 0;
+text-align:left;
+}
+.resumen-titulo{
+font-family:var(--mono);
+color:var(--cyan);
+font-size:0.85em;
+letter-spacing:0.4px;
+margin-bottom:10px;
+text-transform:uppercase;
+}
+.resumen-fila{
+display:flex;
+justify-content:space-between;
+gap:10px;
+padding:5px 0;
+font-size:0.87em;
+color:var(--text-dim);
+border-bottom:1px solid var(--line-soft);
+}
+.resumen-fila:last-child{ border-bottom:none; }
+.resumen-fila b{ color:var(--text); font-family:var(--mono); }
+.resumen-fila.destacado{ margin-top:4px; padding-top:10px; border-top:1px dashed var(--line-soft); }
+.resumen-fila.destacado b{ color:var(--green); font-size:1.05em; }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+<div class="brand">
+🔬 <span class="tag">NetLab</span> — Cacería de Linux
+<span class="sub">Identifica sistemas operativos por TTL usando ping</span>
+</div>
+<div class="stats">
+<div class="stat" id="statLinuxWrap">🐧 <span id="statLinux">0</span>/4</div>
+<div class="stat">🎯 <span id="statIntentos">0</span> intentos</div>
+<div class="stat errores">✖ Errores: <span id="statErrores">0</span></div>
+<div class="stat">⏱ <span id="statTiempo">00:00</span></div>
+<div class="stat puntuacion">🏆 Puntuación: <span id="statPuntuacion">0</span> puntos</div>
+</div>
+<button class="btn-ayuda" id="btnAyuda">❓ Ayuda / Reglas</button>
+</div>
+
+<div class="layout">
+
+<section class="panel panel-ruleta">
+<div class="panel-titulo">Selector de red</div>
+
+<div class="wheel-wrap">
+<div class="pointer">▼</div>
+<canvas id="ruleta" width="420" height="420"></canvas>
+<div class="hub">🌐</div>
+</div>
+
+<button class="btn-girar" id="btnGirar">🎰 Girar ruleta</button>
+
+<div class="red-actual" id="redActualLabel">Ninguna red seleccionada todavía.</div>
+
+<div class="leyenda" id="leyenda"></div>
+</section>
+
+<section class="panel panel-terminal" id="panelTerminal">
+<div class="terminal-header">
+<span class="dot red"></span><span class="dot amber"></span><span class="dot green"></span>
+<span class="terminal-title">Símbolo del sistema — Laboratorio de Redes</span>
+</div>
+<div class="terminal-alarma" id="terminalAlarma">
+<span class="icono-alarma">🚨</span>
+<span>ALERTA DE SEGURIDAD: el sistema está siendo vulnerado. Escribe un comando válido para detener la alarma.</span>
+<span class="alarma-contador" id="alarmaContador">02:00</span>
+</div>
+<div class="terminal-body" id="terminalBody"></div>
+<div class="terminal-input-row">
+<span class="prompt">C:\&gt;</span>
+<input type="text" id="terminalInput" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+</div>
+
+<div class="registro-linux">
+<div class="registro-titulo">🐧 Registra aquí las IPs con TTL=64 que encuentres (4 en total)</div>
+<div class="registro-slot" data-slot="0">
+<input type="text" class="registro-input" id="registroInput0" placeholder="Pega aquí la IP encontrada" autocomplete="off" spellcheck="false">
+<button class="btn-agregar" id="registroBtn0">Agregar</button>
+<span class="registro-estado" id="registroEstado0"></span>
+</div>
+<div class="registro-slot" data-slot="1">
+<input type="text" class="registro-input" id="registroInput1" placeholder="Pega aquí la IP encontrada" autocomplete="off" spellcheck="false">
+<button class="btn-agregar" id="registroBtn1">Agregar</button>
+<span class="registro-estado" id="registroEstado1"></span>
+</div>
+<div class="registro-slot" data-slot="2">
+<input type="text" class="registro-input" id="registroInput2" placeholder="Pega aquí la IP encontrada" autocomplete="off" spellcheck="false">
+<button class="btn-agregar" id="registroBtn2">Agregar</button>
+<span class="registro-estado" id="registroEstado2"></span>
+</div>
+<div class="registro-slot" data-slot="3">
+<input type="text" class="registro-input" id="registroInput3" placeholder="Pega aquí la IP encontrada" autocomplete="off" spellcheck="false">
+<button class="btn-agregar" id="registroBtn3">Agregar</button>
+<span class="registro-estado" id="registroEstado3"></span>
+</div>
+</div>
+</section>
+
+</div>
+
+<section class="panel panel-explicacion">
+<div class="panel-titulo">📖 Comando de barrido — qué hace cada parte</div>
+
+<div class="comando-completo" id="comandoEjemplo">for /L %i in (1,1,254) do @ping -n 1 -w 100 192.168.10.%i | find "TTL="</div>
+
+<table class="tabla-explicacion">
+<tbody>
+<tr>
+<td><code>for /L %i in (1,1,254) do</code></td>
+<td>Inicia un <b>bucle</b>: la variable <code>%i</code> va tomando, uno por uno, todos los valores desde <b>1</b> hasta <b>254</b> (el tercer número es el "paso", de 1 en 1). Por cada valor, ejecuta el comando que sigue después de <code>do</code>.</td>
+</tr>
+<tr>
+<td><code>@ping</code></td>
+<td>Ejecuta el comando <code>ping</code>. El símbolo <code>@</code> le dice a la consola que <b>no muestre en pantalla</b> el comando que se está ejecutando en cada vuelta del bucle — así solo se ve el resultado, no las 254 líneas del comando repetido.</td>
+</tr>
+<tr>
+<td><code>-n 1</code></td>
+<td>Envía <b>un solo paquete</b> de ping (en vez de los 4 que envía por defecto), para que cada intento sea más rápido.</td>
+</tr>
+<tr>
+<td><code>-w 100</code></td>
+<td>Espera como máximo <b>100 milisegundos</b> por una respuesta antes de darla por perdida. Sin esto, cada IP inactiva tardaría varios segundos en fallar, y con 254 direcciones el barrido completo se volvería eterno.</td>
+</tr>
+<tr>
+<td><code>192.168.10.%i</code></td>
+<td>Arma la <b>dirección IP completa</b> combinando la red fija (<code>192.168.10.</code>) con el número que va generando el bucle: primero prueba <code>.1</code>, luego <code>.2</code>, luego <code>.3</code>... hasta <code>.254</code>.</td>
+</tr>
+<tr>
+<td><code>| find "TTL="</code></td>
+<td>El símbolo <code>|</code> ("pipe" o tubería) envía la salida de cada ping al comando <code>find</code>, que actúa como un <b>filtro</b>: solo deja pasar las líneas que contienen el texto <code>TTL=</code>. Como esa línea solo aparece cuando un equipo <b>sí responde</b>, el resultado final muestra únicamente los equipos activos — todo lo demás (los que fallan) queda oculto automáticamente.</td>
+</tr>
+</tbody>
+</table>
+
+<p class="resumen-explicacion">
+En conjunto, este comando revisa las 254 direcciones posibles de una red /24 en pocos segundos y solo te muestra los equipos que están activos, en vez de tener que adivinar y hacer ping IP por IP.
+</p>
+</section>
+
+<div class="overlay-ayuda" id="overlayAyuda">
+<div class="caja-ayuda">
+<h2>🔬 Cómo funciona el laboratorio</h2>
+<p>Debes encontrar <b>4 equipos con sistema operativo Linux</b>, ubicados en <b>4 redes distintas</b>, usando únicamente <code>ping</code> y el valor de TTL de la respuesta.</p>
+
+<h3>1. Gira la ruleta</h3>
+<p>Selecciona al azar una de las 12 redes disponibles. Se genera un equipo con una IP válida dentro de esa red (el sistema operativo queda oculto).</p>
+
+<h3>2. Localiza el equipo objetivo</h3>
+<p>Adivinar la IP una por una entre 254 posibles puede tardar todo el día. Usa el <b>comando de barrido</b> (ya lo verás sugerido en la consola al girar la ruleta) para ver en segundos qué IPs están activas. Verás varios equipos (es una red real, con varios dispositivos); ninguno está marcado, así que tendrás que revisar tú mismo el TTL de cada uno:</p>
+<div class="regla" style="display:block; font-size:0.78em;">for /L %i in (1,1,254) do @ping -n 1 -w 100 &lt;red&gt;.%i | find "TTL="</div>
+<p>Debajo de la consola encontrarás la explicación completa de qué hace cada parte de este comando.</p>
+
+<h3>3. Interpreta el TTL</h3>
+<p>El barrido (o un <code>ping</code> directo a una IP) te mostrará el TTL de respuesta de cada equipo.</p>
+
+<div class="regla">🐧 TTL = 64 → el equipo es <b>Linux</b></div>
+<div class="regla">🪟 TTL = 128 → el equipo es <b>Windows</b></div>
+
+<h3>4. Registra tu hallazgo</h3>
+<p>Cuando encuentres en la lista un equipo con <b>TTL=64</b>, copia esa IP y pégala en uno de los 4 cuadros que están debajo de la consola. Pulsa <b>Agregar</b> y, si es correcta, sumará puntos arriba. Tienes 4 cuadros porque necesitas encontrar 4 equipos Linux en redes distintas.</p>
+
+<h3>Comandos disponibles</h3>
+<ul>
+<li><code>ping &lt;ip&gt;</code> — hace ping al equipo de la red actual</li>
+<li><code>ipconfig</code> — muestra la configuración de red local</li>
+<li><code>cls</code> — limpia la pantalla</li>
+<li><code>help</code> — muestra esta lista de comandos</li>
+<li><code>exit</code> — intenta cerrar la consola</li>
+</ul>
+
+<h3>Puntuación</h3>
+<p>El laboratorio vale <b>25 puntos</b> en total: 5 puntos por cada uno de los 4 equipos Linux encontrados (20 puntos) + 5 puntos por la pregunta final. Cada error (comando inválido, IP mal escrita en <code>ping</code>, o una IP incorrecta registrada en las cajitas) <b>resta 1 punto</b>. Los puntos finales se convierten en una <b>nota sobre 5.0</b> según la tabla de equivalencia oficial.</p>
+
+<h3>⚠ Alerta de seguridad</h3>
+<p>Cada error que cometas activa de inmediato una alarma visual de seguridad (parpadeo rojo y sonido) y resta 1 punto. Tienes <b>2 minutos</b>, mostrados en el contador rojo, para escribir un comando válido y detener la alarma. Si el contador llega a 0:00 sin resolverla, <b>pierdes el laboratorio</b> (game over) con el puntaje que llevabas hasta ese momento.</p>
+
+<button class="btn-cerrar-ayuda" id="btnCerrarAyuda">Entendido</button>
+</div>
+</div>
+
+<div class="overlay-victoria" id="overlayVictoria">
+<div class="caja-victoria">
+<div class="banner-victoria" id="bannerVictoria"></div>
+<h2>¡Laboratorio completado!</h2>
+<p>Encontraste los 4 equipos Linux en redes distintas.</p>
+<div class="puntuacion" id="puntuacionFinal">5.0</div>
+<p id="detalleFinal"></p>
+
+<div class="resumen-detallado" id="resumenDetallado">
+<div class="resumen-titulo">📊 Resumen de resultados</div>
+<div class="resumen-fila"><span>Equipos Linux encontrados</span><b id="resEquipos"></b></div>
+<div class="resumen-fila"><span>Puntos por equipos encontrados</span><b id="resPuntosEquipos"></b></div>
+<div class="resumen-fila"><span>Pregunta final</span><b id="resPreguntaFinal"></b></div>
+<div class="resumen-fila"><span>Puntos en la pregunta final</span><b id="resPuntosPregunta"></b></div>
+<div class="resumen-fila destacado"><span>Puntaje total</span><b id="resPuntajeTotal"></b></div>
+<div class="resumen-fila destacado"><span>Calificación final</span><b id="resCalificacionFinal"></b></div>
+<div class="resumen-fila"><span>Tiempo empleado</span><b id="resTiempo"></b></div>
+<div class="resumen-fila"><span>Intentos realizados</span><b id="resIntentos"></b></div>
+</div>
+
+<button class="btn-reiniciar" id="btnReiniciar">🔄 Reiniciar laboratorio</button>
+</div>
+</div>
+
+<div class="overlay-victoria" id="overlayGameOver">
+<div class="caja-victoria derrota">
+<div class="banner-victoria" id="bannerGameOver"></div>
+<h2>☠ Laboratorio comprometido</h2>
+<p>No contuviste el ataque a tiempo. El sistema fue vulnerado por completo.</p>
+<div class="puntuacion" id="puntuacionGameOver">1.0</div>
+<p id="detalleGameOver"></p>
+<button class="btn-reiniciar" id="btnReiniciarGameOver">🔄 Reiniciar laboratorio</button>
+</div>
+</div>
+
+<div class="overlay-pregunta-final" id="overlayPreguntaFinal">
+<div class="caja-pregunta-final">
+<h2>🧩 Pregunta final (vale 5 puntos)</h2>
+<p>En la práctica diaria (jerga informática), ¿cómo se le llama al segmento marcado con la "X" en la siguiente dirección IP?</p>
+<div class="ip-pregunta">192.168.<span class="x-resaltada">X</span>.1</div>
+<div class="opciones-pregunta" id="opcionesPreguntaFinal">
+<button class="btn-opcion" data-opcion="A">A) Host</button>
+<button class="btn-opcion" data-opcion="B">B) Gateway</button>
+<button class="btn-opcion" data-opcion="C">C) Subred</button>
+<button class="btn-opcion" data-opcion="D">D) DNS</button>
+</div>
+<p class="resultado-pregunta" id="resultadoPreguntaFinal"></p>
+<button class="btn-finalizar-practica" id="btnFinalizarPractica" style="display:none;">🏁 Finalizar práctica</button>
+</div>
+</div>
+
+<script>
+(function(){
+
+/* ==================== Datos de redes ==================== */
+
+const CIDRS = [
+"192.168.10.0/24","192.168.20.0/24","192.168.30.0/24","192.168.40.0/24",
+"192.168.50.0/24","192.168.60.0/24","10.0.1.0/24","10.0.5.0/24",
+"10.0.9.0/24","172.16.5.0/24","172.16.8.0/24","172.16.12.0/24"
+];
+
+const COLORES = [
+"#22c3e6","#0d7d94","#22e08f","#0d9d67",
+"#ffb020","#d98c12","#7c8cff","#4a5bd6",
+"#ff5470","#c23a53","#7de0c9","#3f9e86"
+];
+
+function generarIP(cidr){
+const base = cidr.split("/")[0].split(".").slice(0,3).join(".");
+const host = Math.floor(Math.random()*253) + 2; // .2 a .254
+return base + "." + host;
+}
+
+function construirRedes(){
+// Se garantiza que exactamente 4 de las 12 redes tengan un equipo Linux (TTL 64);
+// el resto son todo equipos Windows (TTL 128).
+const indices = CIDRS.map((_, i) => i);
+for(let i = indices.length - 1; i > 0; i--){
+const j = Math.floor(Math.random() * (i+1));
+[indices[i], indices[j]] = [indices[j], indices[i]];
+}
+const linuxIdx = new Set(indices.slice(0, 4));
+
+return CIDRS.map((cidr, i) => {
+const so = linuxIdx.has(i) ? "linux" : "windows";
+return {
+cidr: cidr,
+color: COLORES[i % COLORES.length],
+ip: generarIP(cidr),
+so: so,
+ttl: so === "linux" ? 64 : 128,
+resuelto: false,
+descubierto: false // true una vez que el alumno acertó el diagnóstico
+};
+});
+}
+
+let redes = construirRedes();
+let redActualIdx = null;
+let linuxEncontrados = 0;
+let totalIntentos = 0;
+let rotacionActual = 0;
+let girando = false;
+let inicioTiempo = Date.now();
+let juegoTerminado = false;
+let escaneando = false;
+
+/* --- Nuevas variables: puntuación, alerta hacker y pregunta final --- */
+const TOTAL_EQUIPOS_REQUERIDOS = 4;
+const PUNTOS_POR_EQUIPO = 5;
+const PUNTOS_PREGUNTA_FINAL = 5;
+let puntuacionJuego = 0;
+let ataqueActivo = false;
+let erroresConsecutivos = 0;
+let totalErrores = 0;
+const ERRORES_PARA_ATAQUE = 1; // cada error activa la alarma de inmediato
+const PENALIZACION_POR_ERROR = 1; // puntos que se restan de puntuacionJuego por cada error detectado
+const TIEMPO_ALARMA_SEG = 120; // 2 minutos para contener el ataque antes del game over
+let alarmaCountdownId = null;
+let alarmaSegundosRestantes = 0;
+let hackerBeepIntervalId = null;
+let preguntaFinalRespondida = false;
+let preguntaFinalCorrecta = false;
+
+/* ==================== Ruleta (canvas) ==================== */
+
+const canvas = document.getElementById("ruleta");
+const ctx = canvas.getContext("2d");
+const N = redes.length;
+const ANGULO = (Math.PI * 2) / N;
+
+function dibujarRuleta(){
+const w = canvas.width, h = canvas.height;
+const cx = w/2, cy = h/2, r = w/2 - 6;
+
+ctx.clearRect(0,0,w,h);
+
+for(let i=0;i<N;i++){
+const start = -Math.PI/2 + i*ANGULO;
+const end = start + ANGULO;
+
+ctx.beginPath();
+ctx.moveTo(cx,cy);
+ctx.arc(cx,cy,r,start,end);
+ctx.closePath();
+ctx.fillStyle = redes[i].color;
+ctx.globalAlpha = redes[i].resuelto ? 0.35 : 1;
+ctx.fill();
+ctx.globalAlpha = 1;
+ctx.strokeStyle = "#050c14";
+ctx.lineWidth = 2;
+ctx.stroke();
+
+ctx.save();
+ctx.translate(cx,cy);
+ctx.rotate(start + ANGULO/2);
+ctx.textAlign = "right";
+ctx.fillStyle = "#04141c";
+ctx.font = "bold 11px Consolas, monospace";
+ctx.fillText(redes[i].cidr.replace("/24",""), r - 14, 4);
+ctx.restore();
+}
+
+// borde exterior
+ctx.beginPath();
+ctx.arc(cx,cy,r,0,Math.PI*2);
+ctx.strokeStyle = "#0f1f33";
+ctx.lineWidth = 4;
+ctx.stroke();
+}
+
+dibujarRuleta();
+
+function girarRuleta(){
+if(girando || juegoTerminado) return;
+
+const disponibles = redes.map((r,i)=>i).filter(i => !redes[i].resuelto);
+const pool = disponibles.length > 0 ? disponibles : redes.map((r,i)=>i);
+const idx = pool[Math.floor(Math.random()*pool.length)];
+
+const anguloSegmento = (idx * (360/N)) + (360/N)/2;
+const objetivoMod = (360 - anguloSegmento + 360) % 360;
+const actualMod = ((rotacionActual % 360) + 360) % 360;
+let delta = (objetivoMod - actualMod + 360) % 360;
+delta += 360 * (5 + Math.floor(Math.random()*2));
+
+rotacionActual += delta;
+girando = true;
+document.getElementById("btnGirar").disabled = true;
+
+canvas.style.transform = "rotate(" + rotacionActual + "deg)";
+
+setTimeout(function(){
+girando = false;
+document.getElementById("btnGirar").disabled = false;
+seleccionarRed(idx);
+}, 4150);
+}
+
+function seleccionarRed(idx){
+redActualIdx = idx;
+const red = redes[idx];
+document.getElementById("redActualLabel").innerHTML =
+"Red activa: <b>" + red.cidr + "</b>" + (red.resuelto ? " — ya evaluada ✔" : "");
+
+imprimir("", "dim");
+imprimir("Nueva red seleccionada: " + red.cidr, "sys");
+if(red.resuelto){
+imprimir("Ya evaluaste el equipo de esta red anteriormente.", "dim");
+} else {
+const prefijo = red.ip.split(".").slice(0,3).join(".");
+imprimir("Adivinar IP por IP puede tardar todo el día (254 posibles).", "dim");
+imprimir("Ejecuta este barrido para localizar tu equipo objetivo entre los activos:", "dim");
+imprimir("for /L %i in (1,1,254) do @ping -n 1 -w 100 " + prefijo + ".%i | find \"TTL=\"", "sys");
+}
+actualizarLeyenda();
+}
+
+/* ==================== Leyenda ==================== */
+
+function actualizarLeyenda(){
+const cont = document.getElementById("leyenda");
+cont.innerHTML = "";
+redes.forEach((red, i) => {
+const div = document.createElement("div");
+div.className = "leyenda-item" + (red.resuelto ? " resuelto" : "");
+const chip = document.createElement("span");
+chip.className = "chip";
+chip.style.background = red.color;
+const texto = document.createElement("span");
+texto.textContent = red.cidr;
+div.appendChild(chip);
+div.appendChild(texto);
+if(red.resuelto){
+const marca = document.createElement("span");
+marca.className = "marca";
+marca.textContent = red.descubierto ? (red.so === "linux" ? "🐧" : "🪟") : "✖";
+div.appendChild(marca);
+}
+cont.appendChild(div);
+});
+}
+
+actualizarLeyenda();
+
+/* ==================== Terminal ==================== */
+
+const terminalBody = document.getElementById("terminalBody");
+const terminalInput = document.getElementById("terminalInput");
+const historial = [];
+let historialIdx = -1;
+
+function imprimir(texto, clase){
+const linea = document.createElement("div");
+linea.className = "linea" + (clase ? " " + clase : "");
+linea.textContent = texto;
+terminalBody.appendChild(linea);
+terminalBody.scrollTop = terminalBody.scrollHeight;
+}
+
+function esIPValida(str){
+const partes = str.split(".");
+if(partes.length !== 4) return false;
+return partes.every(p => /^\d{1,3}$/.test(p) && Number(p) >= 0 && Number(p) <= 255);
+}
+
+function comandoPing(ip){
+if(redActualIdx === null){
+imprimir("Primero gira la ruleta para seleccionar una red objetivo.", "error");
+return;
+}
+if(!esIPValida(ip)){
+imprimir("Error: '" + ip + "' no es una dirección IP válida.", "error");
+registrarErrorConsola();
+return;
+}
+
+erroresConsecutivos = 0;
+desactivarAtaqueHacker();
+totalIntentos++;
+actualizarStats();
+
+const red = redes[redActualIdx];
+imprimir("", "dim");
+imprimir("Haciendo ping a " + ip + " con 32 bytes de datos:", "comando");
+
+if(ip === red.ip){
+const t1 = Math.floor(Math.random()*4)+1;
+const t2 = Math.floor(Math.random()*4)+1;
+imprimir("Respuesta desde " + ip + ": bytes=32 tiempo=" + t1 + "ms TTL=" + red.ttl, "ok");
+imprimir("Respuesta desde " + ip + ": bytes=32 tiempo=" + t2 + "ms TTL=" + red.ttl, "ok");
+imprimir("", "dim");
+imprimir("Estadísticas de ping para " + ip + ":", "dim");
+imprimir("    Paquetes: enviados = 2, recibidos = 2, perdidos = 0 (0% perdidos)", "dim");
+} else {
+imprimir("Tiempo de espera agotado para esta solicitud.", "error");
+imprimir("Tiempo de espera agotado para esta solicitud.", "error");
+imprimir("", "dim");
+imprimir("Estadísticas de ping para " + ip + ":", "dim");
+imprimir("    Paquetes: enviados = 2, recibidos = 0, perdidos = 2 (100% perdidos)", "dim");
+}
+}
+
+function registrarIPLinux(ipTexto, slot){
+const estadoEl = document.getElementById("registroEstado" + slot);
+const inputEl = document.getElementById("registroInput" + slot);
+const btnEl = document.getElementById("registroBtn" + slot);
+const ip = ipTexto.trim();
+
+if(ip === ""){
+estadoEl.textContent = "";
+return;
+}
+
+if(!esIPValida(ip)){
+estadoEl.textContent = "✘";
+estadoEl.className = "registro-estado error";
+imprimir("✘ '" + ip + "' no es una dirección IP válida.", "error");
+registrarErrorConsola();
+return;
+}
+
+totalIntentos++;
+actualizarStats();
+
+const red = redes.find(r => r.ip === ip);
+
+if(!red){
+estadoEl.textContent = "✘";
+estadoEl.className = "registro-estado error";
+imprimir("✘ La IP " + ip + " no corresponde a ningún equipo activo detectado.", "error");
+registrarErrorConsola();
+return;
+}
+
+if(red.so !== "linux"){
+estadoEl.textContent = "✘";
+estadoEl.className = "registro-estado error";
+imprimir("✘ El equipo " + ip + " existe, pero su TTL es 128 (Windows), no cuenta.", "error");
+registrarErrorConsola();
+return;
+}
+
+if(red.resuelto){
+estadoEl.textContent = "✘";
+estadoEl.className = "registro-estado error";
+imprimir("✘ El equipo " + ip + " ya había sido registrado antes.", "dim");
+registrarErrorConsola();
+return;
+}
+
+erroresConsecutivos = 0;
+desactivarAtaqueHacker();
+
+red.resuelto = true;
+red.descubierto = true;
+linuxEncontrados++;
+
+estadoEl.textContent = "✔";
+estadoEl.className = "registro-estado ok";
+inputEl.value = ip;
+inputEl.disabled = true;
+btnEl.disabled = true;
+
+imprimir("✔ Correcto. El equipo " + ip + " (red " + red.cidr + ") es Linux (TTL=64). Punto sumado.", "ok");
+
+puntuacionJuego += PUNTOS_POR_EQUIPO;
+actualizarPuntuacionJuego();
+imprimir("🏆 +" + PUNTOS_POR_EQUIPO + " puntos. Puntuación actual: " + puntuacionJuego + " puntos.", "sys");
+
+actualizarStats();
+actualizarLeyenda();
+
+if(linuxEncontrados >= TOTAL_EQUIPOS_REQUERIDOS && !juegoTerminado){
+mostrarPreguntaFinal();
+}
+}
+
+const REGEX_BARRIDO = /^for\s+\/l\s+%{1,2}[a-z]\s+in\s*\(\s*1\s*,\s*1\s*,\s*254\s*\)\s+do\s+@?ping\s+-n\s*1\s+-w\s*100\s+(\d{1,3}\.\d{1,3}\.\d{1,3})\.%{1,2}[a-z]\s*\|\s*find\s+"ttl="\s*$/i;
+
+function generarSecuenciaEscaneo(){
+const secuencia = [];
+for(let n = 1; n <= 254; n++){
+secuencia.push(n);
+}
+return secuencia;
+}
+
+function formatoTiempoPing(){
+// Replica el comportamiento real de ping en Windows: "tiempo<1m" cuando es menor a 1ms
+if(Math.random() < 0.15){
+return "tiempo<1m";
+}
+const t = Math.floor(Math.random()*58) + 1;
+return "tiempo=" + t + "ms";
+}
+
+function generarHostsActivos(red, cantidadSeñuelo){
+// Genera una lista realista de equipos activos en la red /24: el equipo
+// objetivo real (red.ip / red.ttl) más varios equipos señuelo con TTL aleatorio.
+const prefijo = red.ip.split(".").slice(0,3).join(".");
+const hostObjetivo = Number(red.ip.split(".")[3]);
+const usados = new Set([hostObjetivo]);
+const lista = [];
+
+while(lista.length < cantidadSeñuelo){
+const h = Math.floor(Math.random()*253) + 2; // .2 a .254
+if(usados.has(h)) continue;
+usados.add(h);
+lista.push({
+ip: prefijo + "." + h,
+ttl: 128, // los señuelos siempre son Windows; el único TTL=64 posible es el equipo objetivo real
+objetivo: false
+});
+}
+
+lista.push({ ip: red.ip, ttl: red.ttl, objetivo: true });
+
+// Orden aleatorio para que el objetivo no siempre quede al final...
+for(let i = lista.length - 1; i > 0; i--){
+const j = Math.floor(Math.random()*(i+1));
+[lista[i], lista[j]] = [lista[j], lista[i]];
+}
+// ...y luego se ordena por IP para que se vea como un barrido real.
+lista.sort((a,b) => Number(a.ip.split(".")[3]) - Number(b.ip.split(".")[3]));
+
+return lista;
+}
+
+function comandoBarrido(textoOriginal){
+if(redActualIdx === null){
+imprimir("Primero gira la ruleta para seleccionar una red objetivo.", "error");
+return;
+}
+if(escaneando){
+imprimir("Ya hay un barrido en curso, espera a que termine.", "dim");
+return;
+}
+
+const match = textoOriginal.match(REGEX_BARRIDO);
+const prefijoEscrito = match[1];
+const red = redes[redActualIdx];
+const prefijoRed = red.ip.split(".").slice(0,3).join(".");
+const redCoincide = prefijoEscrito === prefijoRed;
+
+totalIntentos++;
+actualizarStats();
+
+imprimir("", "dim");
+imprimir("Iniciando barrido en " + prefijoEscrito + ".0/24 (1 a 254)...", "sys");
+
+escaneando = true;
+terminalInput.disabled = true;
+
+const secuencia = generarSecuenciaEscaneo();
+
+const lineaEscaneo = document.createElement("div");
+lineaEscaneo.className = "linea dim";
+terminalBody.appendChild(lineaEscaneo);
+
+let i = 0;
+const pasoMs = 18;
+
+const intervalo = setInterval(function(){
+if(i >= secuencia.length){
+clearInterval(intervalo);
+lineaEscaneo.remove();
+
+if(!redCoincide){
+imprimir("Barrido finalizado. 0 equipos activos encontrados en " + prefijoEscrito + ".0/24 (rango revisado: 1 a 254).", "dim");
+imprimir("(Esa no es la red activa. Red activa: " + red.cidr + ")", "dim");
+} else {
+const cantidadSeñuelo = Math.floor(Math.random()*16) + 39; // entre 39 y 54 señuelos + 1 objetivo = 40 a 55 equipos
+const hosts = generarHostsActivos(red, cantidadSeñuelo);
+
+hosts.forEach(function(h){
+const linea = "Respuesta desde " + h.ip + ": bytes=32 " + formatoTiempoPing() + " TTL=" + h.ttl;
+imprimir(linea, "dim");
+});
+
+imprimir("", "dim");
+imprimir("Barrido finalizado. " + hosts.length + " equipos activos encontrados en " + prefijoRed + ".0/24 (rango revisado: 1 a 254).", "sys");
+imprimir("Revisa el TTL de cada equipo. Si encuentras uno con TTL=64, copia su IP y agrégala en uno de los cuadros debajo de la consola.", "dim");
+}
+
+escaneando = false;
+terminalInput.disabled = false;
+terminalInput.focus();
+terminalBody.scrollTop = terminalBody.scrollHeight;
+return;
+}
+
+const octeto = secuencia[i];
+lineaEscaneo.textContent = "Probando " + prefijoEscrito + "." + octeto + " ... (dirección " + octeto + " de 254)";
+terminalBody.scrollTop = terminalBody.scrollHeight;
+i++;
+}, pasoMs);
+}
+
+function comandoIpconfig(){
+imprimir("", "dim");
+imprimir("Adaptador de Ethernet Laboratorio:", "sys");
+imprimir("", "dim");
+imprimir("   Sufijo DNS específico para la conexión. . : netlab.local", "dim");
+imprimir("   Dirección IPv4. . . . . . . . . . . . . . : 10.10.10.5", "dim");
+imprimir("   Máscara de subred . . . . . . . . . . . . : 255.255.255.0", "dim");
+imprimir("   Puerta de enlace predeterminada . . . . . : 10.10.10.1", "dim");
+}
+
+function comandoHelp(){
+imprimir("", "dim");
+imprimir("Comandos disponibles:", "sys");
+imprimir("  ping <ip>        Envía ping al equipo de la red activa", "dim");
+imprimir("  for /L %i in (1,1,254) do @ping -n 1 -w 100 <red>.%i | find \"TTL=\"", "dim");
+imprimir("                    Barre toda la red y muestra los equipos activos", "dim");
+imprimir("  Si encuentras un TTL=64 en la lista, copia esa IP y agrégala en los", "dim");
+imprimir("  cuadros debajo de la consola para sumar el punto.", "dim");
+imprimir("  ipconfig         Muestra la configuración de red local", "dim");
+imprimir("  cls              Limpia la pantalla", "dim");
+imprimir("  help             Muestra esta ayuda", "dim");
+imprimir("  exit             Intenta cerrar la consola", "dim");
+}
+
+function procesarComando(entrada){
+const texto = entrada.trim();
+if(texto === "") return;
+
+imprimir("C:\\>" + texto, "comando");
+historial.push(texto);
+historialIdx = historial.length;
+
+const partes = texto.split(/\s+/);
+const cmd = partes[0].toLowerCase();
+
+if(cmd === "ping"){
+if(!partes[1]){
+imprimir("Uso: ping <dirección-ip>", "error");
+} else {
+comandoPing(partes[1]);
+}
+} else if(REGEX_BARRIDO.test(texto)){
+erroresConsecutivos = 0;
+desactivarAtaqueHacker();
+comandoBarrido(texto);
+} else if(cmd === "cls"){
+erroresConsecutivos = 0;
+desactivarAtaqueHacker();
+terminalBody.innerHTML = "";
+} else if(cmd === "help"){
+erroresConsecutivos = 0;
+desactivarAtaqueHacker();
+comandoHelp();
+} else if(cmd === "ipconfig"){
+erroresConsecutivos = 0;
+desactivarAtaqueHacker();
+comandoIpconfig();
+} else if(cmd === "exit"){
+erroresConsecutivos = 0;
+desactivarAtaqueHacker();
+imprimir("No se puede cerrar la consola durante la práctica del laboratorio.", "error");
+} else {
+imprimir("'" + partes[0] + "' no se reconoce como un comando interno o externo,", "error");
+imprimir("programa o archivo por lotes ejecutable.", "error");
+registrarErrorConsola();
+}
+}
+
+terminalInput.addEventListener("keydown", function(e){
+if(juegoTerminado) return;
+if(e.key === "Enter"){
+procesarComando(terminalInput.value);
+terminalInput.value = "";
+} else if(e.key === "ArrowUp"){
+if(historial.length && historialIdx > 0){
+historialIdx--;
+terminalInput.value = historial[historialIdx];
+}
+e.preventDefault();
+} else if(e.key === "ArrowDown"){
+if(historialIdx < historial.length - 1){
+historialIdx++;
+terminalInput.value = historial[historialIdx];
+} else {
+historialIdx = historial.length;
+terminalInput.value = "";
+}
+e.preventDefault();
+}
+});
+
+/* ==================== Stats / timer ==================== */
+
+function actualizarStats(){
+document.getElementById("statLinux").textContent = linuxEncontrados;
+document.getElementById("statIntentos").textContent = totalIntentos;
+document.getElementById("statErrores").textContent = totalErrores;
+document.getElementById("statLinuxWrap").classList.toggle("completo", linuxEncontrados >= 4);
+}
+
+function actualizarPuntuacionJuego(){
+document.getElementById("statPuntuacion").textContent = puntuacionJuego;
+document.querySelector(".stat.puntuacion").classList.toggle("negativo", puntuacionJuego < 0);
+}
+
+function formatoTiempo(ms){
+const totalSeg = Math.floor(ms/1000);
+const min = String(Math.floor(totalSeg/60)).padStart(2,"0");
+const seg = String(totalSeg%60).padStart(2,"0");
+return min + ":" + seg;
+}
+
+setInterval(function(){
+if(juegoTerminado) return;
+document.getElementById("statTiempo").textContent = formatoTiempo(Date.now() - inicioTiempo);
+}, 1000);
+
+/* ==================== Pregunta final ==================== */
+
+function mostrarPreguntaFinal(){
+preguntaFinalRespondida = false;
+preguntaFinalCorrecta = false;
+
+const opciones = document.querySelectorAll("#opcionesPreguntaFinal .btn-opcion");
+opciones.forEach(function(btn){
+btn.disabled = false;
+btn.classList.remove("correcta", "incorrecta");
+});
+document.getElementById("resultadoPreguntaFinal").textContent = "";
+document.getElementById("resultadoPreguntaFinal").className = "resultado-pregunta";
+document.getElementById("btnFinalizarPractica").style.display = "none";
+
+terminalInput.disabled = true;
+document.getElementById("overlayPreguntaFinal").classList.add("activo");
+}
+
+function responderPreguntaFinal(opcionSeleccionada, btnClicado){
+if(preguntaFinalRespondida) return;
+preguntaFinalRespondida = true;
+
+const correcta = (opcionSeleccionada === "C");
+preguntaFinalCorrecta = correcta;
+
+const opciones = document.querySelectorAll("#opcionesPreguntaFinal .btn-opcion");
+opciones.forEach(function(btn){
+btn.disabled = true;
+if(btn.dataset.opcion === "C"){
+btn.classList.add("correcta");
+} else if(btn === btnClicado && !correcta){
+btn.classList.add("incorrecta");
+}
+});
+
+const resultadoEl = document.getElementById("resultadoPreguntaFinal");
+if(correcta){
+puntuacionJuego += PUNTOS_PREGUNTA_FINAL;
+actualizarPuntuacionJuego();
+resultadoEl.textContent = "Respuesta correcta. +5 puntos.";
+resultadoEl.className = "resultado-pregunta ok";
+} else {
+resultadoEl.textContent = "Respuesta incorrecta. La respuesta correcta era: Subred.";
+resultadoEl.className = "resultado-pregunta error";
+}
+
+document.getElementById("btnFinalizarPractica").style.display = "block";
+}
+
+document.querySelectorAll("#opcionesPreguntaFinal .btn-opcion").forEach(function(btn){
+btn.addEventListener("click", function(){
+responderPreguntaFinal(btn.dataset.opcion, btn);
+});
+});
+
+document.getElementById("btnFinalizarPractica").addEventListener("click", function(){
+document.getElementById("overlayPreguntaFinal").classList.remove("activo");
+finalizarJuego();
+});
+
+/* ==================== Simulación de ataque hacker ==================== */
+
+function reproducirBeepAlarma(){
+try{
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+if(!AudioCtx) return;
+const ctxAudio = new AudioCtx();
+const osc = ctxAudio.createOscillator();
+const gain = ctxAudio.createGain();
+osc.type = "square";
+osc.frequency.value = 880;
+gain.gain.value = 0.04;
+osc.connect(gain);
+gain.connect(ctxAudio.destination);
+osc.start();
+osc.stop(ctxAudio.currentTime + 0.18);
+}catch(e){ /* audio no disponible, se ignora */ }
+}
+
+function registrarErrorConsola(){
+erroresConsecutivos++;
+totalErrores++;
+actualizarStats();
+
+puntuacionJuego -= PENALIZACION_POR_ERROR;
+actualizarPuntuacionJuego();
+imprimir("✖ Error registrado (" + totalErrores + " en total). -" + PENALIZACION_POR_ERROR + " punto. Puntuación actual: " + puntuacionJuego + " puntos.", "error");
+
+if(erroresConsecutivos >= ERRORES_PARA_ATAQUE){
+erroresConsecutivos = 0;
+activarAtaqueHacker();
+} else {
+const restantes = ERRORES_PARA_ATAQUE - erroresConsecutivos;
+imprimir("⚠ Aviso de seguridad: error " + erroresConsecutivos + "/" + ERRORES_PARA_ATAQUE + ". " + restantes + " error" + (restantes === 1 ? "" : "es") + " más seguido" + (restantes === 1 ? "" : "s") + " activará la alarma.", "dim");
+}
+}
+
+function activarAtaqueHacker(){
+if(juegoTerminado) return;
+
+if(ataqueActivo){
+return; // ya está activa, no se reinicia ni se acumulan intervalos
+}
+ataqueActivo = true;
+
+document.getElementById("terminalAlarma").classList.add("activo");
+document.getElementById("panelTerminal").classList.add("alarma-activa");
+
+imprimir("", "dim");
+imprimir("⚠ ALERTA DE SEGURIDAD ⚠", "error");
+imprimir("Se detectó un ataque al sistema. El sistema está siendo vulnerado.", "error");
+imprimir("Escribe un comando válido para iniciar el protocolo de contención y detener la alarma.", "dim");
+imprimir("Tienes 2:00 minutos para contener el ataque. Si el contador llega a 0, pierdes el laboratorio.", "error");
+
+reproducirBeepAlarma();
+hackerBeepIntervalId = setInterval(reproducirBeepAlarma, 900);
+
+iniciarContadorAlarma();
+}
+
+function actualizarContadorAlarma(){
+const min = String(Math.floor(alarmaSegundosRestantes/60)).padStart(2,"0");
+const seg = String(alarmaSegundosRestantes%60).padStart(2,"0");
+document.getElementById("alarmaContador").textContent = min + ":" + seg;
+}
+
+function iniciarContadorAlarma(){
+alarmaSegundosRestantes = TIEMPO_ALARMA_SEG;
+actualizarContadorAlarma();
+detenerContadorAlarma();
+alarmaCountdownId = setInterval(function(){
+alarmaSegundosRestantes--;
+if(alarmaSegundosRestantes <= 0){
+alarmaSegundosRestantes = 0;
+actualizarContadorAlarma();
+detenerContadorAlarma();
+perderPorAtaqueHacker();
+return;
+}
+actualizarContadorAlarma();
+}, 1000);
+}
+
+function detenerContadorAlarma(){
+if(alarmaCountdownId){
+clearInterval(alarmaCountdownId);
+alarmaCountdownId = null;
+}
+}
+
+function desactivarAtaqueHacker(){
+if(!ataqueActivo) return;
+ataqueActivo = false;
+
+document.getElementById("terminalAlarma").classList.remove("activo");
+document.getElementById("panelTerminal").classList.remove("alarma-activa");
+
+if(hackerBeepIntervalId){
+clearInterval(hackerBeepIntervalId);
+hackerBeepIntervalId = null;
+}
+detenerContadorAlarma();
+
+imprimir("✔ Protocolo de contención completado. Alarma desactivada, continúa la práctica.", "sys");
+}
+
+function perderPorAtaqueHacker(){
+if(juegoTerminado) return;
+juegoTerminado = true;
+ataqueActivo = false;
+
+if(hackerBeepIntervalId){
+clearInterval(hackerBeepIntervalId);
+hackerBeepIntervalId = null;
+}
+detenerContadorAlarma();
+
+document.getElementById("terminalAlarma").classList.remove("activo");
+document.getElementById("panelTerminal").classList.remove("alarma-activa");
+terminalInput.disabled = true;
+
+imprimir("", "dim");
+imprimir("☠ TIEMPO AGOTADO: el ataque no fue contenido dentro de los 2 minutos.", "error");
+imprimir("El sistema fue comprometido por completo. Laboratorio finalizado.", "error");
+
+const puntos = calcularPuntuacion();
+const nota = obtenerNota(puntos);
+
+const banner =
+"####################################\n" +
+" LABORATORIO COMPROMETIDO\n" +
+" No contuviste el ataque a tiempo\n" +
+" Puntuación alcanzada: " + puntos + "/25 puntos\n" +
+" Nota: " + nota.toFixed(1) + "\n" +
+"####################################";
+
+banner.split("\n").forEach(l => imprimir(l, "error"));
+
+document.getElementById("bannerGameOver").textContent = banner;
+document.getElementById("puntuacionGameOver").textContent = nota.toFixed(1);
+document.getElementById("detalleGameOver").textContent =
+puntos + "/25 puntos · " + totalIntentos + " intentos totales · " + formatoTiempo(Date.now()-inicioTiempo) + " transcurridos";
+
+document.getElementById("overlayGameOver").classList.add("activo");
+}
+
+/* ==================== Final del juego ==================== */
+
+const TABLA_NOTAS = {
+25:5.0, 24:4.8, 23:4.6, 22:4.5, 21:4.3, 20:4.2, 19:4.0, 18:3.8,
+17:3.7, 16:3.5, 15:3.4, 14:3.2, 13:3.0, 12:2.9, 11:2.7, 10:2.6,
+9:2.4, 8:2.2, 7:2.1, 6:1.9, 5:1.8, 4:1.6, 3:1.4, 2:1.3, 1:1.1, 0:1.0
+};
+
+function calcularPuntuacion(){
+// La puntuación final es directamente puntuacionJuego: 5 puntos por cada uno de los
+// 4 equipos Linux encontrados (20) + 5 puntos por la pregunta final (5) = 25 máximo,
+// menos las penalizaciones ya aplicadas por cada error cometido (registrarErrorConsola).
+return Math.max(0, Math.min(25, puntuacionJuego));
+}
+
+function obtenerNota(puntos){
+return TABLA_NOTAS[puntos] !== undefined ? TABLA_NOTAS[puntos] : 1.0;
+}
+
+function finalizarJuego(){
+juegoTerminado = true;
+const puntos = calcularPuntuacion();
+const nota = obtenerNota(puntos);
+
+const banner =
+"####################################\n" +
+" FELICIDADES\n" +
+" Has encontrado los 4 equipos Linux\n" +
+" Puntuación: " + puntos + "/25 puntos\n" +
+" Nota: " + nota.toFixed(1) + "\n" +
+"####################################";
+
+imprimir("", "dim");
+banner.split("\n").forEach(l => imprimir(l, "ok"));
+
+document.getElementById("bannerVictoria").textContent = banner;
+document.getElementById("puntuacionFinal").textContent = nota.toFixed(1);
+document.getElementById("detalleFinal").textContent =
+puntos + "/25 puntos · " + totalIntentos + " intentos totales · " + formatoTiempo(Date.now()-inicioTiempo) + " transcurridos";
+
+/* --- Resumen detallado (nuevo sistema de puntuación por evento) --- */
+const puntosMaxEquipos = TOTAL_EQUIPOS_REQUERIDOS * PUNTOS_POR_EQUIPO;
+const puntajeMaximoTotal = puntosMaxEquipos + PUNTOS_PREGUNTA_FINAL;
+const puntosEquiposObtenidos = linuxEncontrados * PUNTOS_POR_EQUIPO;
+const puntosPreguntaObtenidos = preguntaFinalCorrecta ? PUNTOS_PREGUNTA_FINAL : 0;
+const calificacionPct = Math.round((puntuacionJuego / puntajeMaximoTotal) * 100);
+
+document.getElementById("resEquipos").textContent = linuxEncontrados + " de " + TOTAL_EQUIPOS_REQUERIDOS;
+document.getElementById("resPuntosEquipos").textContent = puntosEquiposObtenidos + " de " + puntosMaxEquipos;
+document.getElementById("resPreguntaFinal").textContent = preguntaFinalRespondida ? (preguntaFinalCorrecta ? "Correcta" : "Incorrecta") : "Sin responder";
+document.getElementById("resPuntosPregunta").textContent = puntosPreguntaObtenidos + " de " + PUNTOS_PREGUNTA_FINAL;
+document.getElementById("resPuntajeTotal").textContent = puntuacionJuego + " de " + puntajeMaximoTotal + " puntos";
+document.getElementById("resCalificacionFinal").textContent = calificacionPct + "%";
+document.getElementById("resTiempo").textContent = formatoTiempo(Date.now() - inicioTiempo);
+document.getElementById("resIntentos").textContent = totalIntentos;
+
+document.getElementById("overlayVictoria").classList.add("activo");
+}
+
+/* ==================== Reinicio ==================== */
+
+function reiniciar(){
+redes = construirRedes();
+redActualIdx = null;
+linuxEncontrados = 0;
+totalIntentos = 0;
+rotacionActual = 0;
+girando = false;
+inicioTiempo = Date.now();
+juegoTerminado = false;
+
+/* --- Reinicio del nuevo estado: puntuación, ataque hacker, pregunta final --- */
+puntuacionJuego = 0;
+actualizarPuntuacionJuego();
+
+if(hackerBeepIntervalId){
+clearInterval(hackerBeepIntervalId);
+hackerBeepIntervalId = null;
+}
+detenerContadorAlarma();
+ataqueActivo = false;
+erroresConsecutivos = 0;
+totalErrores = 0;
+document.getElementById("terminalAlarma").classList.remove("activo");
+document.getElementById("panelTerminal").classList.remove("alarma-activa");
+document.getElementById("alarmaContador").textContent = "02:00";
+document.getElementById("overlayGameOver").classList.remove("activo");
+
+preguntaFinalRespondida = false;
+preguntaFinalCorrecta = false;
+document.getElementById("overlayPreguntaFinal").classList.remove("activo");
+document.getElementById("btnFinalizarPractica").style.display = "none";
+document.getElementById("resultadoPreguntaFinal").textContent = "";
+document.getElementById("resultadoPreguntaFinal").className = "resultado-pregunta";
+document.querySelectorAll("#opcionesPreguntaFinal .btn-opcion").forEach(function(btn){
+btn.disabled = false;
+btn.classList.remove("correcta", "incorrecta");
+});
+
+terminalInput.disabled = false;
+
+canvas.style.transition = "none";
+canvas.style.transform = "rotate(0deg)";
+requestAnimationFrame(function(){
+canvas.style.transition = "transform 4s cubic-bezier(0.15,0.68,0.1,1)";
+});
+
+dibujarRuleta();
+actualizarLeyenda();
+actualizarStats();
+document.getElementById("redActualLabel").textContent = "Ninguna red seleccionada todavía.";
+document.getElementById("statTiempo").textContent = "00:00";
+terminalBody.innerHTML = "";
+imprimir("Laboratorio reiniciado. Nuevas redes y equipos generados.", "sys");
+imprimir("Gira la ruleta para comenzar.", "dim");
+document.getElementById("overlayVictoria").classList.remove("activo");
+
+for(let slot = 0; slot < 4; slot++){
+const input = document.getElementById("registroInput" + slot);
+const boton = document.getElementById("registroBtn" + slot);
+const estado = document.getElementById("registroEstado" + slot);
+input.value = "";
+input.disabled = false;
+boton.disabled = false;
+estado.textContent = "";
+estado.className = "registro-estado";
+}
+}
+
+/* ==================== Eventos ==================== */
+
+document.getElementById("btnGirar").addEventListener("click", girarRuleta);
+document.getElementById("btnAyuda").addEventListener("click", function(){
+document.getElementById("overlayAyuda").classList.add("activo");
+});
+document.getElementById("btnCerrarAyuda").addEventListener("click", function(){
+document.getElementById("overlayAyuda").classList.remove("activo");
+});
+document.getElementById("btnReiniciar").addEventListener("click", reiniciar);
+document.getElementById("btnReiniciarGameOver").addEventListener("click", reiniciar);
+
+for(let slot = 0; slot < 4; slot++){
+(function(s){
+const input = document.getElementById("registroInput" + s);
+const boton = document.getElementById("registroBtn" + s);
+boton.addEventListener("click", function(){
+if(juegoTerminado || input.disabled) return;
+registrarIPLinux(input.value, s);
+});
+input.addEventListener("keydown", function(e){
+if(e.key === "Enter"){
+e.preventDefault();
+if(juegoTerminado || input.disabled) return;
+registrarIPLinux(input.value, s);
+}
+});
+})(slot);
+}
+
+/* ==================== Mensaje inicial ==================== */
+
+imprimir("Bienvenido a la Consola del Laboratorio de Redes.", "sys");
+imprimir("Objetivo: encuentra 4 equipos Linux en 4 redes distintas.", "dim");
+imprimir("Escribe 'help' para ver los comandos disponibles.", "dim");
+imprimir("Gira la ruleta para seleccionar tu primera red objetivo.", "dim");
+
+actualizarStats();
+
+})();
+</script>
+
+</body>
+</html>
