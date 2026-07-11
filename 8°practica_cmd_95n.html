@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comandos CMD · Práctica 8° - Diagoona Concept</title>
+
+    <!-- Bootstrap 5 CSS para asegurar compatibilidad -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome para los íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas: usado únicamente para generar la captura de pantalla del resumen final -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0c0f12;
+            --text-light: #ffffff;
+            --primary-accent: #00f2fe;
+            --secondary-accent: #4facfe;
+            --panel-bg: rgba(18, 20, 24, 0.85);
+            --content-size: 1rem;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+
+        /* Contenedor de Pantalla Dividida */
+        .split-screen {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* LADO IZQUIERDO: ahora contiene las tabletas de comandos */
+        .image-side {
+            flex: 1;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            position: relative;
+            background-color: #121416;
+            transition: background-image 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200');
+            display: flex;
+            flex-direction: column;
+            padding: 50px 40px;
+        }
+
+        .image-side::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(12,15,18,0.55) 0%, rgba(12,15,18,0.85) 100%);
+            pointer-events: none;
+        }
+
+        .cmd-list-title {
+            position: relative;
+            z-index: 2;
+            color: var(--primary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .cmd-list {
+            position: relative;
+            z-index: 2;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 6px;
+        }
+        .cmd-list::-webkit-scrollbar { width: 6px; }
+        .cmd-list::-webkit-scrollbar-thumb { background: var(--secondary-accent); border-radius: 10px; }
+
+        .cmd-tablet {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: var(--panel-bg);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            color: var(--text-light);
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .cmd-tablet:hover {
+            border-color: var(--primary-accent);
+            transform: translateX(4px);
+        }
+        .cmd-tablet.active {
+            background: linear-gradient(45deg, var(--primary-accent), var(--secondary-accent));
+            color: #000;
+            font-weight: 700;
+            border-color: transparent;
+            box-shadow: 0 0 18px rgba(0,242,254,0.4);
+        }
+        .cmd-tablet.disabled { opacity: 0.4; pointer-events: none; }
+        .cmd-tablet .check-icon { float: right; opacity: 0; }
+        .cmd-tablet.seen .check-icon { opacity: 1; color: #7ee787; }
+        .cmd-tablet.active .check-icon { color: #000; }
+        .cmd-tablet .pts-badge {
+            float: right;
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: rgba(0,242,254,0.18);
+            color: var(--primary-accent);
+            border: 1px solid rgba(0,242,254,0.4);
+            border-radius: 20px;
+            padding: 1px 8px;
+            margin-right: 8px;
+            letter-spacing: 0.5px;
+        }
+        .cmd-tablet.active .pts-badge { background: rgba(0,0,0,0.15); color: #000; border-color: rgba(0,0,0,0.3); }
+
+        /* LADO DERECHO: Contenido y Diagonal */
+        .content-side {
+            flex: 1;
+            background-color: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 80px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 2;
+            margin-left: -100px;
+            clip-path: polygon(100px 0, 100% 0, 100% 100%, 0% 100%);
+            transition: all 0.5s ease;
+            height: 100vh;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+        .content-side::-webkit-scrollbar { width: 6px; }
+        .content-side::-webkit-scrollbar-thumb { background: var(--secondary-accent); border-radius: 10px; }
+        .content-side > div { padding-top: 30px; }
+
+        .content-side::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary-accent), var(--secondary-accent));
+            opacity: 0.7;
+            clip-path: polygon(100px 0, 101px 0, 1px 100%, 0% 100%);
+            pointer-events: none;
+        }
+
+        .main-title {
+            font-size: 2.6rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffffff, #a0a5b5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-text {
+            font-size: var(--content-size);
+            line-height: 1.8;
+            color: #b0b5c6;
+            margin-bottom: 28px;
+            transition: font-size 0.2s ease;
+        }
+
+        .example-box {
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid var(--primary-accent);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--primary-accent);
+            margin-bottom: 28px;
+            word-break: break-all;
+        }
+
+        /* --- NIVEL 2: ejercicios de completar comando --- */
+        .complete-exercise {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 14px;
+        }
+        .complete-exercise .complete-text { white-space: pre; }
+        .complete-input {
+            display: inline-block;
+            width: 150px;
+            max-width: 100%;
+            margin: 0 4px;
+            padding: 6px 10px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: var(--text-light);
+        }
+        .complete-input:focus { outline: none; border-color: var(--secondary-accent); }
+        .complete-input.correct { border-color: #7ee787; background: rgba(126,231,135,0.12); color: #7ee787; }
+        .complete-input.wrong { border-color: #ff7b72; }
+        .complete-check { opacity: 0; color: #7ee787; margin-left: 4px; transition: opacity 0.2s ease; }
+        .light-theme .complete-input { color: #1a1f26; }
+
+        /* --- NIVEL 2: extensiones (pista, temporizador individual, bloqueo por tiempo) --- */
+        .complete-exercise-outer { margin-bottom: 6px; }
+        .complete-timer {
+            font-size: 0.72rem;
+            padding: 2px 9px;
+            margin-left: 6px;
+        }
+        .btn-hint {
+            font-size: 0.72rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(79,172,254,0.5);
+            background: rgba(79,172,254,0.08);
+            color: var(--secondary-accent);
+            margin-left: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-hint:hover { background: rgba(79,172,254,0.2); }
+        .hint-text {
+            display: none;
+            font-size: 0.8rem;
+            color: #b0b5c6;
+            background: rgba(255,255,255,0.04);
+            border-left: 3px solid var(--secondary-accent);
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin: 4px 0 14px 0;
+        }
+        .hint-text.visible { display: block; }
+        .complete-expired-msg {
+            width: 100%;
+            font-size: 0.78rem;
+            color: #ff7b72;
+            margin: 2px 0 14px 0;
+            font-weight: 600;
+        }
+        .light-theme .hint-text { color: #4a5568; }
+
+        /* --- RECUADROS INFORMATIVOS (solo texto explicativo, no afectan la lógica) --- */
+        .info-callout {
+            background: rgba(79,172,254,0.08);
+            border: 1px solid rgba(79,172,254,0.35);
+            border-left: 4px solid var(--secondary-accent);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: #dbe2f0;
+        }
+        .info-callout strong { color: var(--primary-accent); }
+        .info-callout ul { margin: 6px 0 0 0; padding-left: 20px; }
+        .info-callout table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.82rem; }
+        .info-callout table td { padding: 3px 6px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .info-callout table td:last-child { text-align: right; font-weight: 700; color: var(--primary-accent); }
+        .info-callout table tr.total-row td { border-bottom: none; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 6px; font-weight: 700; color: #ffffff; }
+
+        .success-callout {
+            background: rgba(126,231,135,0.1);
+            border: 1px solid rgba(126,231,135,0.4);
+            border-left: 4px solid #7ee787;
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin: 10px 0 20px 0;
+            font-size: 0.85rem;
+            color: #c9f7cd;
+            font-weight: 600;
+            display: none;
+        }
+        .success-callout.visible { display: block; }
+
+        .warning-callout {
+            background: rgba(255,123,114,0.08);
+            border: 1px solid rgba(255,123,114,0.35);
+            border-left: 4px solid #ff7b72;
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #f5c8c5;
+        }
+
+        /* Botones con efecto Neón */
+        .btn-neon {
+            border: 2px solid var(--primary-accent);
+            color: #ffffff;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: transparent;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            background: linear-gradient(45deg, var(--primary-accent), var(--secondary-accent));
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
+            color: #000000;
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+        .btn-neon:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .quiz-opt {
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: 2px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-light);
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-size: 0.92rem;
+            transition: all 0.2s ease;
+        }
+        .quiz-opt:hover { border-color: var(--secondary-accent); }
+        .quiz-opt.correct { border-color: #7ee787; background: rgba(126,231,135,0.15); }
+        .quiz-opt.wrong { border-color: #ff7b72; background: rgba(255,123,114,0.15); }
+        .quiz-opt[disabled] { cursor: default; }
+
+        /* --- LISTA IZQUIERDA: subgrupos y separador --- */
+        .cmd-group-title {
+            position: relative;
+            z-index: 2;
+            color: var(--secondary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin: 16px 0 8px;
+            opacity: 0.9;
+        }
+        .cmd-tablet .group-badge {
+            font-size: 0.62rem;
+            opacity: 0.6;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-top: 2px;
+        }
+
+        /* --- PAREO: tarjetas arrastrables --- */
+        .match-item {
+            cursor: grab;
+            user-select: none;
+        }
+        .match-item.dragging { opacity: 0.35; }
+        .match-item.selected {
+            border-color: var(--primary-accent) !important;
+            box-shadow: 0 0 14px rgba(0,242,254,0.5);
+        }
+
+        /* --- PAREO: casillas de destino --- */
+        .match-slot {
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.03);
+            transition: all 0.2s ease;
+        }
+        .match-slot .slot-fn { font-size: 0.85rem; color: #b0b5c6; margin-bottom: 8px; }
+        .match-slot .slot-drop {
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+            text-align: center;
+            color: rgba(255,255,255,0.35);
+            transition: all 0.2s ease;
+        }
+        .match-slot.hover .slot-drop { border-color: var(--primary-accent); color: var(--primary-accent); }
+        .match-slot.correct { border-color: #7ee787; background: rgba(126,231,135,0.1); }
+        .match-slot.correct .slot-drop { border-style: solid; border-color: #7ee787; color: #7ee787; font-weight: 700; }
+        .match-slot.wrong .slot-drop { border-color: #ff7b72; color: #ff7b72; }
+        .light-theme .match-slot .slot-fn { color: #4a5568; }
+
+        #matchPool { display: none; }
+        #matchBlock .main-text { font-size: 0.88rem; }
+
+        /* --- SISTEMA DE PUNTUACIÓN --- */
+        #scoreDisplay { font-weight: 700; }
+        #scoreDisplay.negativo { color: #ff7b72; }
+        #errorsDisplay { font-weight: 700; }
+        #errorsDisplay.con-errores { color: #ff7b72; }
+
+        /* --- ALERTA DE ATAQUE HACKER --- */
+        .hacker-alarm {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            text-align: center;
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #ff2b4d, #ff7b3d);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: .3px;
+            box-shadow: 0 0 25px rgba(255,42,60,0.6);
+            animation: hackerPulse 1s infinite;
+        }
+        .hacker-alarm.activo { display: flex; }
+        .hacker-countdown {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 1.1rem;
+            background: rgba(0,0,0,0.35);
+            padding: 4px 12px;
+            border-radius: 8px;
+        }
+        @keyframes hackerPulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(255,42,60,0.5); }
+            50% { box-shadow: 0 0 35px rgba(255,42,60,0.9); }
+        }
+        .match-item.locked, .match-slot.locked { pointer-events: none; opacity: .35; }
+
+        /* --- RESUMEN DE RESULTADOS (cierre) --- */
+        .resumen-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 8px 18px;
+            margin-bottom: 22px;
+            text-align: left;
+        }
+        .resumen-fila {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            font-size: 0.82rem;
+            padding: 7px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.08);
+            color: #b0b5c6;
+        }
+        .resumen-fila:last-child { border-bottom: none; }
+        .resumen-fila b { color: var(--text-light); text-align: right; }
+        .resumen-fila.destacado b { color: var(--primary-accent); }
+        .light-theme .resumen-fila { color: #4a5568; }
+        .light-theme .resumen-fila b { color: #1a1f26; }
+
+        .progress-track { height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; margin-top: 10px; width: 100%; max-width: 340px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary-accent), var(--secondary-accent)); width: 0%; transition: width .4s ease; }
+
+        .grade-big {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--primary-accent), var(--secondary-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+
+        .mini-input {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-light);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            width: 100%;
+            max-width: 320px;
+            font-family: inherit;
+        }
+        .mini-input:focus { outline: none; border-color: var(--primary-accent); }
+        .mini-input option { color: #000000; background: #ffffff; }
+
+        /* --- CAPTURA PARA EL PROFESOR --- */
+        .capture-area { padding: 4px 2px; }
+        .capture-stamp {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255,255,255,0.15);
+            font-size: 0.72rem;
+            color: #7a8093;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        .light-theme .capture-stamp { color: #6b7280; border-top-color: rgba(0,0,0,0.12); }
+
+        /* --- BOTÓN FLOTANTE (esconde el panel de control) --- */
+        .settings-fab {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            transition: all 0.25s ease;
+        }
+        .settings-fab:hover { box-shadow: 0 0 16px rgba(0,242,254,0.6); }
+
+        /* --- PANEL DE CONTROL (idéntico al original, ahora oculto tras el botón) --- */
+        .control-panel {
+            position: absolute;
+            top: 72px;
+            right: 20px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            z-index: 20;
+            width: 260px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+        }
+        .control-panel.open { display: block; }
+
+        .control-panel h5 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-accent);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .control-group { margin-bottom: 10px; }
+        .control-group label { font-size: 0.75rem; color: #aaa; display: block; margin-bottom: 4px; }
+        .btn-panel-sm { padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; }
+
+        .light-theme { --bg-dark: #f4f6f9; --text-light: #1a1f26; --panel-bg: rgba(255, 255, 255, 0.92); }
+        .light-theme .main-title { background: linear-gradient(45deg, #1a1f26, #4a5568); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .light-theme .main-text { color: #4a5568; }
+        .light-theme .cmd-tablet { color: #1a1f26; }
+        .light-theme .quiz-opt { color: #1a1f26; }
+
+        /* Apila también en tablets grandes usadas en vertical (ej. iPad Pro 12.9", ~1024px) aunque su ancho supere 991px */
+        @media (max-width: 991px), (max-width: 1180px) and (orientation: portrait) {
+            .split-screen { flex-direction: column; height: auto; min-height: 100vh; }
+            .image-side { min-height: 50vh; flex: none; width: 100%; }
+            .content-side { flex: none; width: 100%; margin-left: 0; clip-path: none; padding: 50px 25px; height: auto; max-height: none; overflow-y: visible; }
+            .content-side > div { padding-top: 0; }
+            .content-side::before { display: none; }
+            .control-panel { position: fixed; top: auto; bottom: 76px; right: 16px; width: calc(100% - 32px); max-width: 300px; }
+            .settings-fab { top: auto; bottom: 16px; right: 16px; position: fixed; }
+        }
+
+        /* Ajustes finos para celulares pequeños (320px-480px) */
+        @media (max-width: 480px) {
+            .content-side { padding: 40px 18px; }
+            .main-title { font-size: 1.7rem; }
+            .grade-big { font-size: 2.8rem; }
+            .cmd-list-title { font-size: 0.75rem; }
+            .info-callout, .warning-callout { padding: 12px 14px; font-size: 0.8rem; }
+            .hacker-alarm { font-size: 0.72rem; padding: 10px 14px; gap: 8px; }
+            .hacker-countdown { font-size: 1rem; }
+            .btn-neon { padding: 10px 18px; font-size: 0.9rem; }
+            .settings-fab { width: 40px; height: 40px; }
+        }
+
+        /* Indicador de "seleccionado" en el pareo, visible sin necesidad de desplazarse (clave en móvil apilado) */
+        .selected-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,242,254,0.12);
+            border: 1px solid rgba(0,242,254,0.4);
+            border-radius: 8px;
+            padding: 8px 14px;
+            margin-bottom: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: var(--primary-accent);
+        }
+        .selected-indicator.visible { display: flex; }
+    </style>
+</head>
+<body>
+
+    <div class="split-screen" id="mainScreen">
+
+        <!-- LADO IZQUIERDO: tabletas de comandos -->
+        <div class="image-side" id="dynamicImage">
+            <h6 class="cmd-list-title"><i class="fa-solid fa-terminal"></i> Comandos y parámetros CMD — haz clic para ver su función</h6>
+            <div class="cmd-list" id="cmdList"></div>
+            <div class="cmd-list" id="matchPool"></div>
+        </div>
+
+        <!-- LADO DERECHO -->
+        <div class="content-side">
+
+            <!-- INTRO -->
+            <div id="introBlock">
+                <h1 class="main-title">Consola de Comandos</h1>
+                <p class="main-text">Sigue este orden para completar la práctica:</p>
+                <p class="main-text"><strong>1.</strong> Escribe tu nombre y selecciona tu sección abajo.<br>
+                <strong>2.</strong> Presiona <strong>Comenzar</strong>.<br>
+                <strong>3.</strong> Ya dentro, en el panel de la izquierda aparecerán las tabletas de comandos y parámetros: haz clic en cada una para leer su función.</p>
+
+                <div class="info-callout">
+                    <strong>💡 Al comenzar, consigue tus primeros 7 puntos fácil:</strong> en el panel de la izquierda hay 7 tabletas marcadas como <strong>Parámetros</strong> (por ejemplo <code>&gt;</code>, <code>-L</code>, <code>/f</code>). Cada una vale <strong>1 punto</strong>. Solo tienes que hacer clic sobre cada parámetro y leer su explicación corta para asegurar ese punto — no necesitas emparejar nada todavía. Esos 7 puntos ya forman parte de tu calificación final.
+                    <table>
+                        <tr><td>Leer los 7 parámetros</td><td>7 pts</td></tr>
+                        <tr><td>Emparejar los 13 comandos</td><td>13 pts</td></tr>
+                        <tr><td>Responder las 3 preguntas finales</td><td>15 pts</td></tr>
+                        <tr class="total-row"><td>Total de la práctica</td><td>35 pts</td></tr>
+                    </table>
+                </div>
+
+                <input class="mini-input" id="studentName" placeholder="Tu nombre completo">
+                <select class="mini-input" id="studentSection">
+                    <option value="">Selecciona tu sección</option>
+                    <option>8A</option><option>8B</option>
+                </select>
+                <div><button class="btn btn-neon" onclick="beginPractice()">Comenzar</button></div>
+            </div>
+
+            <!-- BARRA DE ESTADO PERSISTENTE (visible desde que inicia la práctica) -->
+            <div id="liveStatusBar" style="display:none;">
+                <p class="main-text" style="font-size:0.8rem; color:var(--primary-accent); font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;" id="levelDisplay">Nivel 1 · Repaso</p>
+                <p class="main-text" style="font-size:0.85rem;" id="scoreDisplay">Puntuación: 0 de 35 pts</p>
+                <p class="main-text" style="font-size:0.85rem;" id="errorsDisplay">Errores cometidos: 0</p>
+                <p class="main-text" style="font-size:0.85rem;" id="repasoDisplay">Parámetros leídos: 0/7 (+0.0 de 4 pts)</p>
+            </div>
+
+            <!-- DETALLE DE COMANDO -->
+            <div id="detailBlock" style="display:none;">
+                <p class="cmd-group-title" id="cmdGroup" style="margin-top:0;">Comando</p>
+                <h1 class="main-title" id="cmdTitle">cmd</h1>
+                <p class="main-text" id="cmdFunc">Función del comando...</p>
+                <div class="example-box" id="cmdExample">cmd</div>
+                <p class="main-text" style="font-size:0.85rem; margin-bottom:10px;" id="seenCounter">Revisados: 0/20</p>
+
+                <div class="success-callout" id="parametrosCompletosMsg">
+                    🎉 ¡Excelente! Ya aseguraste los 7 puntos correspondientes al repaso de parámetros.
+                </div>
+
+                <div class="warning-callout">
+                    <strong>Antes de pasar al pareo, ten en cuenta:</strong>
+                    <ul>
+                        <li>Revisa los <strong>7 parámetros</strong> aquí en la lista de la izquierda antes de continuar: haz clic en cada uno para leer su función y así asegurar <strong>1 punto por parámetro</strong> (7 pts en total). No aparecerán en la siguiente actividad, así que si no los revisas ahora, pierdes esos puntos.</li>
+                        <li>En el pareo solo aparecerán los <strong>13 comandos</strong>, que valen 1 punto cada uno al emparejarlos correctamente.</li>
+                        <li>Cada error en el pareo <strong>resta puntos</strong>, así que tómate tu tiempo antes de arrastrar.</li>
+                    </ul>
+                </div>
+
+                <div><button class="btn btn-neon" id="practiceBtn" onclick="startMatchMode()">Poner a prueba: arrastra y empareja →</button></div>
+            </div>
+
+            <!-- PAREO POR ARRASTRE -->
+            <div id="matchBlock" style="display:none;">
+                <h1 class="main-title">Arrastra cada comando a su función</h1>
+                <p class="main-text">Toma una tarjeta de comando de la izquierda y suéltala sobre la función que le corresponde. En pantallas táctiles, toca la tarjeta y luego toca la casilla. (Los parámetros ya los repasaste en la lista de la izquierda, no forman parte de este pareo).</p>
+                <p class="main-text" style="font-size:0.85rem;" id="matchCounter">0/13 emparejados</p>
+                <div class="selected-indicator" id="selectedIndicator"><i class="fa-solid fa-hand-pointer"></i> <span id="selectedIndicatorText"></span></div>
+                <div id="matchSlots"></div>
+                <div class="progress-track"><div class="progress-fill" id="matchProgress"></div></div>
+            </div>
+
+            <!-- NIVEL 2: COMPLETAR COMANDOS -->
+            <div id="completeBlock" style="display:none;">
+                <div class="success-callout visible">🎉 ¡Avanzaste al Nivel 2: Completar comandos!</div>
+                <h1 class="main-title">Completa el comando</h1>
+                <p class="main-text">Escribe la parte que falta en cada comando. La validación es automática: el campo se pone verde en cuanto la respuesta es correcta. Tienes <strong>3 minutos por ejercicio</strong> para corregirte si te equivocas: presiona <strong>Enter</strong> para comprobar tu respuesta. Un comando incorrecto cuenta como error (resta 1 punto y puede activar un ataque, igual que en el pareo), pero mientras el tiempo no se agote puedes volver a intentarlo sin penalización adicional. Si el tiempo se agota, pierdes ese punto definitivamente. Usa el botón <strong>Pista</strong> si necesitas ayuda: solo explica para qué sirve el comando, nunca lo revela. Debes resolver todos (acertados o vencidos por tiempo) para avanzar al Nivel 3.</p>
+                <p class="main-text" style="font-size:0.85rem;" id="completeCounter">0/8 completados</p>
+                <div class="progress-track"><div class="progress-fill" id="completeProgress"></div></div>
+                <div id="completeExercises" style="margin-top:20px;"></div>
+                <div><button class="btn btn-neon" id="btnContinuarNivel3" style="display:none;" onclick="avanzarANivel3()">Continuar al Nivel 3 →</button></div>
+            </div>
+
+            <!-- PREGUNTAS TEÓRICAS (3 preguntas, cada una vale 5 pts) -->
+            <div id="finalQuestionBlock" style="display:none;">
+                <div class="success-callout visible" id="nivel3Banner">🎯 ¡Nivel 3: Desafío final! Responde correctamente para completar la práctica.</div>
+                <h1 class="main-title">Pregunta teórica <span id="preguntaContador" style="font-size:1rem;">1/3</span> <span style="font-size:1rem; color:var(--primary-accent);">(vale 5 pts)</span></h1>
+                <p class="main-text" id="preguntaTexto"></p>
+                <div id="finalQuestionOptions"></div>
+                <p class="main-text" style="font-size:0.85rem;" id="finalQuestionResult"></p>
+                <div><button class="btn btn-neon" id="btnSiguientePregunta" style="display:none;" onclick="siguientePregunta()">Siguiente pregunta →</button></div>
+                <div><button class="btn btn-neon" id="btnFinalizarPractica" style="display:none;" onclick="finalizarPractica()">Finalizar práctica →</button></div>
+            </div>
+
+            <!-- RESULTADO -->
+            <div id="resultBlock" style="display:none;">
+                <div class="capture-area" id="captureResult">
+                    <h1 class="main-title">¡Bien hecho, <span id="resName"></span>!</h1>
+                    <div class="success-callout visible">🏁 ¡Has completado el Nivel 3 y finalizado la práctica de CMD!</div>
+                    <div class="grade-big" id="finalGradeDisp">0.0</div>
+                    <p class="main-text">Nota final (escala 0.0 – 5.0) · Sección <span id="resSection"></span></p>
+                    <div class="resumen-box">
+                        <div class="resumen-fila"><span>Comandos emparejados</span><b id="resComandos"></b></div>
+                        <div class="resumen-fila"><span>Puntos por comandos</span><b id="resPuntosComandos"></b></div>
+                        <div class="resumen-fila"><span>Elementos repasados</span><b id="resRepasados"></b></div>
+                        <div class="resumen-fila"><span>Puntos por repaso</span><b id="resPuntosRepaso"></b></div>
+                        <div class="resumen-fila"><span>Completa el comando (Nivel 2)</span><b id="resCompletados"></b></div>
+                        <div class="resumen-fila"><span>Preguntas teóricas</span><b id="resPreguntaFinal"></b></div>
+                        <div class="resumen-fila"><span>Puntos en preguntas teóricas</span><b id="resPuntosPregunta"></b></div>
+                        <div class="resumen-fila"><span>Errores cometidos</span><b id="resErrores"></b></div>
+                        <div class="resumen-fila destacado"><span>Puntaje total</span><b id="resPuntajeTotal"></b></div>
+                        <div class="resumen-fila destacado"><span>Calificación final</span><b id="resCalificacionFinal"></b></div>
+                        <div class="resumen-fila"><span>Tiempo empleado</span><b id="resTiempo"></b></div>
+                        <div class="resumen-fila"><span>Intentos totales</span><b id="resIntentos"></b></div>
+                    </div>
+                    <div class="capture-stamp" id="resStamp"></div>
+                </div>
+                <div>
+                    <button class="btn btn-neon" id="btnCapturaResult" onclick="generarCapturaProfesor('captureResult', this)">
+                        <i class="fa-solid fa-camera-retro"></i> Generar captura para el profesor
+                    </button>
+                </div>
+                <p class="main-text" style="font-size:0.75rem;">Se descargará una imagen con tu nombre, sección y desglose de puntaje — sirve como evidencia de que este resultado te pertenece.</p>
+            </div>
+
+            <!-- LABORATORIO COMPROMETIDO (ataque hacker no contenido a tiempo) -->
+            <div id="compromisedBlock" style="display:none;">
+                <div class="capture-area" id="captureCompromised">
+                    <h1 class="main-title" style="color:#ff7b72;">Laboratorio comprometido</h1>
+                    <p class="main-text">No lograste contener el ataque a tiempo. El sistema fue vulnerado y la práctica terminó aquí, pero tu puntuación hasta ese momento sí cuenta.</p>
+                    <div class="grade-big" id="compromisedGradeDisp">0.0</div>
+                    <p class="main-text">Nota final (escala 0.0 – 5.0) · Sección <span id="compSection"></span></p>
+                    <div class="resumen-box">
+                        <div class="resumen-fila"><span>Comandos emparejados</span><b id="compComandos"></b></div>
+                        <div class="resumen-fila"><span>Puntos por comandos</span><b id="compPuntosComandos"></b></div>
+                        <div class="resumen-fila"><span>Elementos repasados</span><b id="compRepasados"></b></div>
+                        <div class="resumen-fila"><span>Puntos por repaso</span><b id="compPuntosRepaso"></b></div>
+                        <div class="resumen-fila"><span>Completa el comando (Nivel 2)</span><b id="compCompletados"></b></div>
+                        <div class="resumen-fila"><span>Preguntas teóricas</span><b>Sin responder (laboratorio comprometido antes)</b></div>
+                        <div class="resumen-fila"><span>Errores cometidos</span><b id="compErrores"></b></div>
+                        <div class="resumen-fila destacado"><span>Puntaje total</span><b id="compPuntajeTotal"></b></div>
+                        <div class="resumen-fila destacado"><span>Calificación final</span><b id="compCalificacionFinal"></b></div>
+                        <div class="resumen-fila"><span>Tiempo empleado</span><b id="compTiempo"></b></div>
+                        <div class="resumen-fila"><span>Intentos totales</span><b id="compIntentos"></b></div>
+                    </div>
+                    <div class="capture-stamp" id="compStamp"></div>
+                </div>
+                <div>
+                    <button class="btn btn-neon" id="btnCapturaComp" onclick="generarCapturaProfesor('captureCompromised', this)">
+                        <i class="fa-solid fa-camera-retro"></i> Generar captura para el profesor
+                    </button>
+                </div>
+                <p class="main-text" style="font-size:0.75rem;">Se descargará una imagen con tu nombre, sección y desglose de puntaje — sirve como evidencia de que este resultado te pertenece.</p>
+            </div>
+
+        </div>
+
+        <!-- ALERTA DE ATAQUE HACKER -->
+        <div class="hacker-alarm" id="hackerAlarm">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>¡Alerta de seguridad! Se detectó actividad sospechosa. Empareja un comando correctamente antes de que el tiempo se agote para contener el ataque.</span>
+            <span class="hacker-countdown" id="hackerCountdown">01:00</span>
+        </div>
+
+        <!-- BOTÓN FLOTANTE Y PANEL DE CONTROL -->
+        <button class="settings-fab" id="settingsFab" onclick="toggleControlPanel()" title="Ajustes">
+            <i class="fa-solid fa-sliders"></i>
+        </button>
+        <div class="control-panel" id="controlPanel">
+            <h5><i class="fa-solid fa-sliders"></i> Panel de Control</h5>
+            <div class="control-group">
+                <label>Cambiar Fondo Estático:</label>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-dark btn-panel-sm flex-fill" onclick="changeImage('tech')">Tech</button>
+                    <button class="btn btn-dark btn-panel-sm flex-fill" onclick="changeImage('abstract')">Abstract</button>
+                    <button class="btn btn-dark btn-panel-sm flex-fill" onclick="changeImage('nature')">Minimal</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Modo de Pantalla:</label>
+                <button class="btn btn-outline-info btn-panel-sm w-100" id="themeToggle" onclick="toggleTheme()">
+                    <i class="fa-solid fa-moon"></i> Alternar Oscuro/Claro
+                </button>
+            </div>
+            <div class="control-group">
+                <label id="sizeLabel">Tamaño Texto: 1.0rem</label>
+                <input type="range" class="form-range" min="0.8" max="1.4" step="0.1" value="1" id="textSizeSlider" oninput="changeTextSize(this.value)">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    (function(){
+    "use strict";
+
+    /* ---------- DATOS: comandos de la asignación ---------- */
+    var COMMANDS = [
+        {cmd:'cmd', fn:'Abre el Símbolo del sistema (Command Prompt).', ex:'cmd', group:'Comando'},
+        {cmd:'cd', fn:'Cambia de directorio o entra a una carpeta.', ex:'cd Documents', group:'Comando'},
+        {cmd:'cd..', fn:'Regresa al directorio anterior.', ex:'cd..', group:'Comando'},
+        {cmd:'dir', fn:'Muestra los archivos y carpetas del directorio actual.', ex:'dir', group:'Comando'},
+        {cmd:'mkdir', fn:'Crea una nueva carpeta.', ex:'mkdir MiCarpeta', group:'Comando'},
+        {cmd:'echo', fn:'Escribe texto en la consola o dentro de un archivo.', ex:'echo Hola > saludo.txt', group:'Comando'},
+        {cmd:'type', fn:'Muestra el contenido de un archivo de texto.', ex:'type saludo.txt', group:'Comando'},
+        {cmd:'doskey /history', fn:'Muestra el historial de comandos ejecutados.', ex:'doskey /history', group:'Comando'},
+        {cmd:'doskey /history > archivo', fn:'Guarda el historial de comandos en un archivo.', ex:'doskey /history > historial.txt', group:'Comando'},
+        {cmd:'%USERPROFILE%', fn:'Variable de entorno que representa la carpeta personal del usuario.', ex:'cd %USERPROFILE%\\Documents', group:'Comando'},
+        {cmd:'curl -L -o', fn:'Descarga un archivo desde Internet y le asigna un nombre.', ex:'curl -L -o archivos.zip https://github.com/arquijr/lakecity/raw/refs/heads/main/archivos.zip', group:'Comando'},
+        {cmd:'tar -xf', fn:'Extrae el contenido de un archivo comprimido (.zip).', ex:'tar -xf archivos.zip', group:'Comando'},
+        {cmd:'tree /f /a', fn:'Muestra la estructura de carpetas y archivos en forma de árbol.', ex:'tree /f /a', group:'Comando'}
+    ];
+
+    /* ---------- DATOS: parámetros utilizados (para qué sirve cada uno) ---------- */
+    var PARAMS = [
+        {cmd:'>', fn:'Redirecciona la salida de un comando hacia un archivo: lo crea si no existe, o lo sobrescribe si ya existe.', ex:'echo Hola > saludo.txt', group:'Parámetro'},
+        {cmd:'-L (de curl)', fn:'Hace que curl siga las redirecciones de un enlace al momento de descargar un archivo.', ex:'curl -L -o archivos.zip https://...', group:'Parámetro'},
+        {cmd:'-o (de curl)', fn:'Le dice a curl con qué nombre debe guardar el archivo que está descargando.', ex:'curl -L -o archivos.zip https://...', group:'Parámetro'},
+        {cmd:'-x (de tar)', fn:'Le indica a tar que la acción a realizar es extraer el contenido del archivo comprimido.', ex:'tar -xf archivos.zip', group:'Parámetro'},
+        {cmd:'-f (de tar)', fn:'Especifica cuál archivo comprimido es el que se va a extraer.', ex:'tar -xf archivos.zip', group:'Parámetro'},
+        {cmd:'/f (de tree)', fn:'Hace que tree muestre también los archivos, además de las carpetas.', ex:'tree /f /a', group:'Parámetro'},
+        {cmd:'/a (de tree)', fn:'Usa caracteres ASCII simples en vez de líneas gráficas para dibujar el árbol.', ex:'tree /f /a', group:'Parámetro'}
+    ];
+
+    var ITEMS = COMMANDS.concat(PARAMS);
+    var MATCH_ITEMS = COMMANDS; // el pareo (arrastrar y soltar) es solo de comandos; los parámetros quedan como info de repaso en la lista izquierda
+    var seen = {};
+    var studentName = '', studentSection = '';
+
+    /* ---------- NIVEL 1 (extra): comandos distractores para el pareo ---------- */
+    /* Estos comandos NO se usaron en la práctica; solo sirven para que el estudiante
+       identifique cuáles sí pertenecen al contenido estudiado. No tienen casilla propia.
+       Si el estudiante arrastra uno hacia una casilla, se trata EXACTAMENTE igual que un
+       error normal de pareo (penalización, ataque, contadores): nunca se considera correcto. */
+    var DISTRACTOR_COMMANDS = ['cls', 'help', 'exit', 'color', 'ver', 'title'];
+    var activeDistractors = [];
+
+    /* ---------- NIVEL 2: ejercicios de "Completa el comando" ---------- */
+    /* Actividad adicional que no otorga ni resta puntos; solo debe completarse
+       correctamente para avanzar al Nivel 3. */
+    var COMPLETAR = [
+        {prefix: '', suffix: ' MiCarpeta', respuesta: 'mkdir', pista: 'Permite crear una nueva carpeta en la ubicación actual.'},
+        {prefix: 'echo Hola > ', suffix: '', respuesta: 'saludo.txt', pista: 'Debes indicar el nombre del archivo de texto donde se guardará el mensaje mostrado.'},
+        {prefix: 'type ', suffix: '', respuesta: 'saludo.txt', pista: 'Es el nombre del archivo de texto cuyo contenido quieres visualizar en la consola.'},
+        {prefix: 'cd ', suffix: '', respuesta: 'MiCarpeta', pista: 'Es el nombre de la carpeta a la que deseas ingresar.'},
+        {prefix: '', suffix: '..', respuesta: 'cd', pista: 'Es el comando que permite cambiar entre directorios; junto con dos puntos seguidos regresa al directorio anterior.'},
+        {prefix: '', suffix: ' /f /a', respuesta: 'tree', pista: 'Es el comando que muestra la estructura de carpetas y archivos en forma de árbol.'},
+        {prefix: 'tar -xf ', suffix: '', respuesta: 'archivos.zip', pista: 'Es el nombre del archivo comprimido que se desea extraer.'},
+        {prefix: 'doskey ', suffix: '', respuesta: '/history', pista: 'Es el parámetro que muestra el historial de comandos ejecutados anteriormente.'}
+    ];
+    var completadosCorrectos = 0;
+    var TIEMPO_CORRECCION_COMPLETAR = 180; // segundos (3 minutos) de tiempo de corrección por ejercicio, Nivel 2
+    var completarTimers = {};   // interval id por índice de ejercicio
+    var completarEstado = {};   // 'pending' | 'correct' | 'expired' por índice de ejercicio
+
+    /* ---------- DATOS: preguntas teóricas (cada una vale 5 pts) ---------- */
+    var PREGUNTAS = [
+        {
+            tipo: 'opcion',
+            pregunta: 'En el comando <code>echo Hola &gt; saludo.txt</code>, ¿qué función cumple el símbolo <b>&gt;</b>?',
+            opciones: [
+                {letra:'A', texto:'Compara el contenido de dos archivos'},
+                {letra:'B', texto:'Redirecciona la salida del comando hacia un archivo'},
+                {letra:'C', texto:'Elimina el archivo indicado'},
+                {letra:'D', texto:'Ejecuta el archivo como si fuera un programa'}
+            ],
+            correcta: 'B'
+        },
+        {
+            tipo: 'vf',
+            pregunta: 'El comando <code>cd..</code> te permite entrar directamente a una carpeta específica llamada "..", igual que <code>cd NombreCarpeta</code> entra a una carpeta con ese nombre.',
+            correcta: false
+        },
+        {
+            tipo: 'vf',
+            pregunta: 'Si ejecutas <code>tar -xf archivos.zip</code> sin haber descargado antes ese archivo con <code>curl -L -o archivos.zip ...</code>, el comando fallará porque el archivo comprimido no existe todavía en la carpeta.',
+            correcta: true
+        }
+    ];
+
+    /* ---------- SISTEMA DE PUNTUACIÓN Y ATAQUE HACKER ---------- */
+    var PUNTOS_POR_COMANDO = 1;        // puntos por cada comando emparejado correctamente (13 x 1 = 13)
+    var PUNTOS_POR_PARAMETRO = 1;      // puntos por cada parámetro leído (7 x 1 = 7)
+    var PUNTOS_POR_PREGUNTA = 5;       // puntos por cada pregunta teórica correcta (3 x 5 = 15)
+    var PENALIZACION_POR_ERROR = 1;    // puntos que se restan por cada intento fallido en el pareo
+    var ERRORES_PARA_ATAQUE = 1;       // intentos fallidos que activan la alarma de ataque
+    var TIEMPO_ALARMA_SEG = 60;        // segundos para contener el ataque antes de perder el laboratorio
+    var MAX_PUNTOS = (MATCH_ITEMS.length * PUNTOS_POR_COMANDO) + (PARAMS.length * PUNTOS_POR_PARAMETRO) + (PREGUNTAS.length * PUNTOS_POR_PREGUNTA);
+
+    var puntuacionJuego = 0;
+    var erroresConsecutivos = 0;
+    var totalErrores = 0;
+    var totalIntentos = 0;
+    var inicioTiempo = null;
+    var ataqueActivo = false;
+    var alarmaCountdownId = null;
+    var alarmaSegundosRestantes = 0;
+    var laboratorioComprometido = false;
+    var preguntaActual = 0;
+    var preguntasRespondidas = []; // true/false por índice de pregunta
+
+    function actualizarPuntuacionDisplay(){
+        var el = document.getElementById('scoreDisplay');
+        if(el){
+            var puntosLimpios = Math.round(puntuacionJuego * 100) / 100; // blindaje contra errores de redondeo binario
+            el.textContent = 'Puntuación: ' + puntosLimpios + ' de ' + MAX_PUNTOS + ' pts';
+            el.classList.toggle('negativo', puntuacionJuego < 0);
+        }
+        var errEl = document.getElementById('errorsDisplay');
+        if(errEl){
+            errEl.textContent = 'Errores cometidos: ' + totalErrores;
+            errEl.classList.toggle('con-errores', totalErrores > 0);
+        }
+    }
+
+    function contarParametrosVistos(){
+        var paramsVistos = 0;
+        PARAMS.forEach(function(p, idx){
+            var globalIdx = COMMANDS.length + idx;
+            if(seen[globalIdx]) paramsVistos++;
+        });
+        return paramsVistos;
+    }
+
+    function actualizarRepasoDisplay(){
+        var el = document.getElementById('repasoDisplay');
+        if(!el) return;
+        var paramsVistos = contarParametrosVistos();
+        var puntosGanados = paramsVistos * PUNTOS_POR_PARAMETRO;
+        el.textContent = 'Parámetros leídos: ' + paramsVistos + '/' + PARAMS.length + ' (+' + puntosGanados + ' de ' + (PARAMS.length * PUNTOS_POR_PARAMETRO) + ' pts)';
+
+        // Solo texto informativo: muestra el mensaje motivador al completar los 7 parámetros (no afecta la puntuación)
+        var msgEl = document.getElementById('parametrosCompletosMsg');
+        if(msgEl){ msgEl.classList.toggle('visible', paramsVistos === PARAMS.length); }
+    }
+
+    function calcularPuntuacion(){
+        return Math.max(0, Math.min(MAX_PUNTOS, puntuacionJuego));
+    }
+
+    var TABLA_NOTAS = {
+        35: 5.0, 34: 4.8, 33: 4.7, 32: 4.6, 31: 4.5, 30: 4.4, 29: 4.3, 28: 4.2,
+        27: 4.0, 26: 3.9, 25: 3.8, 24: 3.7, 23: 3.6, 22: 3.5, 21: 3.4, 20: 3.2,
+        19: 3.1, 18: 3.0, 17: 2.9, 16: 2.8, 15: 2.7, 14: 2.6, 13: 2.4, 12: 2.3,
+        11: 2.2, 10: 2.1, 9: 2.0, 8: 1.9, 7: 1.8, 6: 1.6, 5: 1.5, 4: 1.3,
+        3: 1.2, 2: 1.1, 1: 1.1, 0: 1.0
+    };
+
+    function obtenerNota(puntos){
+        var p = Math.round(puntos);
+        if(p < 0) p = 0;
+        if(p > MAX_PUNTOS) p = MAX_PUNTOS;
+        if(TABLA_NOTAS.hasOwnProperty(p)) return TABLA_NOTAS[p];
+        return 1.0;
+    }
+
+    function formatoTiempo(ms){
+        var totalSeg = Math.floor(ms/1000);
+        var min = String(Math.floor(totalSeg/60)).padStart(2,'0');
+        var seg = String(totalSeg%60).padStart(2,'0');
+        return min + ':' + seg;
+    }
+
+    /* ---------- RENDER TABLETAS (modo repaso) ---------- */
+    var listEl = document.getElementById('cmdList');
+    var lastGroup = null;
+    ITEMS.forEach(function(c, i){
+        if(c.group !== lastGroup){
+            var h = document.createElement('div');
+            h.className = 'cmd-group-title';
+            h.textContent = c.group === 'Comando' ? 'Comandos' : 'Parámetros utilizados';
+            listEl.appendChild(h);
+            lastGroup = c.group;
+        }
+        var b = document.createElement('button');
+        b.className = 'cmd-tablet disabled';
+        b.id = 'tablet' + i;
+        var badge = (c.group === 'Parámetro') ? '<span class="pts-badge">+pts</span>' : '';
+        b.innerHTML = badge + c.cmd + ' <i class="fa-solid fa-check check-icon"></i>';
+        b.onclick = function(){ selectCommand(i); };
+        listEl.appendChild(b);
+    });
+
+    function selectCommand(i){
+        document.querySelectorAll('#cmdList .cmd-tablet').forEach(function(t){ t.classList.remove('active'); });
+        var t = document.getElementById('tablet'+i);
+        t.classList.add('active');
+        t.classList.add('seen');
+
+        if(!seen[i]){
+            seen[i] = true;
+            if(ITEMS[i].group === 'Parámetro'){
+                puntuacionJuego += PUNTOS_POR_PARAMETRO;
+                actualizarPuntuacionDisplay();
+            }
+            actualizarRepasoDisplay();
+        }
+
+        document.getElementById('cmdGroup').textContent = ITEMS[i].group;
+        document.getElementById('cmdTitle').textContent = ITEMS[i].cmd;
+        document.getElementById('cmdFunc').textContent = ITEMS[i].fn;
+        document.getElementById('cmdExample').textContent = ITEMS[i].ex;
+        document.getElementById('seenCounter').textContent = 'Revisados: ' + Object.keys(seen).length + '/' + ITEMS.length;
+    }
+
+    /* ---------- FLUJO ---------- */
+    window.beginPractice = function(){
+        var name = document.getElementById('studentName').value.trim();
+        var section = document.getElementById('studentSection').value;
+        if(!name || !section){ alert('Escribe tu nombre y selecciona tu sección para comenzar.'); return; }
+        studentName = name; studentSection = section;
+        inicioTiempo = Date.now();
+
+        document.getElementById('introBlock').style.display = 'none';
+        document.getElementById('liveStatusBar').style.display = 'block';
+        document.getElementById('detailBlock').style.display = 'block';
+        document.querySelectorAll('.cmd-tablet').forEach(function(t){ t.classList.remove('disabled'); });
+        actualizarPuntuacionDisplay();
+        actualizarRepasoDisplay();
+        selectCommand(0);
+    };
+
+    /* ---------- MODO PAREO (arrastrar y soltar) ---------- */
+    var BATCH_SIZE = 5;
+    var pool = [];
+    var currentBatch = [];
+    var matchedInBatch = 0;
+    var matchedTotal = 0;
+    var firstTryCorrect = 0;
+    var attemptsPerSlot = {};
+    var selectedKey = null;
+
+    window.startMatchMode = function(){
+        document.getElementById('detailBlock').style.display = 'none';
+        document.getElementById('matchBlock').style.display = 'block';
+        document.getElementById('cmdList').style.display = 'none';
+        document.getElementById('matchPool').style.display = 'block';
+        document.getElementById('cmdList').querySelectorAll('.cmd-tablet').forEach(function(t){ t.classList.remove('active'); });
+
+        pool = shuffle(MATCH_ITEMS.map(function(_, i){ return i; }));
+        matchedTotal = 0; firstTryCorrect = 0; attemptsPerSlot = {}; selectedKey = null;
+        erroresConsecutivos = 0; totalErrores = 0; laboratorioComprometido = false;
+        activeDistractors = shuffle(DISTRACTOR_COMMANDS).slice(0, 3 + Math.floor(Math.random() * 3)); // entre 3 y 5
+        actualizarPuntuacionDisplay();
+        nextBatch();
+    };
+
+    function nextBatch(){
+        if(pool.length === 0){ mostrarNivel2(); return; }
+        currentBatch = pool.splice(0, Math.min(BATCH_SIZE, pool.length));
+        matchedInBatch = 0;
+        renderBatch();
+    }
+
+    function renderBatch(){
+        selectedKey = null;
+        var indReset = document.getElementById('selectedIndicator');
+        if(indReset) indReset.classList.remove('visible');
+
+        var poolEl = document.getElementById('matchPool');
+        poolEl.innerHTML = '';
+        var poolElements = [];
+        currentBatch.forEach(function(idx){
+            var it = MATCH_ITEMS[idx];
+            var b = document.createElement('div');
+            b.className = 'cmd-tablet match-item';
+            b.setAttribute('draggable', 'true');
+            b.dataset.key = idx;
+            b.innerHTML = it.cmd + '<span class="group-badge">' + it.group + '</span>';
+            b.addEventListener('dragstart', function(e){
+                e.dataTransfer.setData('text/plain', String(idx));
+                b.classList.add('dragging');
+            });
+            b.addEventListener('dragend', function(){ b.classList.remove('dragging'); });
+            b.addEventListener('click', function(){ selectPoolItem(idx, b); });
+            poolElements.push(b);
+        });
+        poolElements = poolElements.concat(buildDistractorElements());
+        shuffle(poolElements).forEach(function(el){ poolEl.appendChild(el); });
+
+        var slotsEl = document.getElementById('matchSlots');
+        slotsEl.innerHTML = '';
+        shuffle(currentBatch.slice()).forEach(function(idx){
+            var it = MATCH_ITEMS[idx];
+            var d = document.createElement('div');
+            d.className = 'match-slot';
+            d.dataset.key = idx;
+            var fn = document.createElement('div');
+            fn.className = 'slot-fn';
+            fn.textContent = it.fn;
+            var drop = document.createElement('div');
+            drop.className = 'slot-drop';
+            drop.textContent = 'Suelta aquí';
+            d.appendChild(fn);
+            d.appendChild(drop);
+
+            d.addEventListener('dragover', function(e){ e.preventDefault(); d.classList.add('hover'); });
+            d.addEventListener('dragleave', function(){ d.classList.remove('hover'); });
+            d.addEventListener('drop', function(e){
+                e.preventDefault(); d.classList.remove('hover');
+                var draggedKey = e.dataTransfer.getData('text/plain');
+                if(draggedKey !== '') attemptMatch(draggedKey, idx, d);
+            });
+            d.addEventListener('click', function(){
+                if(selectedKey !== null) attemptMatch(selectedKey, idx, d);
+            });
+            slotsEl.appendChild(d);
+        });
+
+        document.getElementById('matchCounter').textContent = matchedTotal + '/' + MATCH_ITEMS.length + ' emparejados';
+        document.getElementById('matchProgress').style.width = (matchedTotal / MATCH_ITEMS.length * 100) + '%';
+    }
+
+    function buildDistractorElements(){
+        return activeDistractors.map(function(cmd, i){
+            var b = document.createElement('div');
+            b.className = 'cmd-tablet match-item';
+            b.setAttribute('draggable', 'true');
+            var key = 'dx' + i;
+            b.dataset.key = key;
+            b.innerHTML = cmd + '<span class="group-badge">Comando</span>';
+            b.addEventListener('dragstart', function(e){
+                e.dataTransfer.setData('text/plain', key);
+                b.classList.add('dragging');
+            });
+            b.addEventListener('dragend', function(){ b.classList.remove('dragging'); });
+            b.addEventListener('click', function(){ selectPoolItem(key, b); });
+            return b;
+        });
+    }
+
+    function selectPoolItem(key, el){
+        document.querySelectorAll('.match-item').forEach(function(t){ t.classList.remove('selected'); });
+        var indicator = document.getElementById('selectedIndicator');
+        if(selectedKey === String(key)){
+            selectedKey = null;
+            if(indicator) indicator.classList.remove('visible');
+            return;
+        }
+        selectedKey = String(key);
+        el.classList.add('selected');
+        if(indicator){
+            var label;
+            if(String(key).indexOf('dx') === 0){
+                label = activeDistractors[parseInt(String(key).slice(2), 10)];
+            } else {
+                label = MATCH_ITEMS[key].cmd;
+            }
+            document.getElementById('selectedIndicatorText').textContent = 'Seleccionado: ' + label + ' — ahora toca la casilla correcta';
+            indicator.classList.add('visible');
+        }
+    }
+
+    function attemptMatch(draggedKey, slotIdx, slotEl){
+        if(laboratorioComprometido) return;
+
+        // Comando distractor: no pertenece a la práctica. Se trata EXACTAMENTE igual que un
+        // error normal de pareo: mismo conteo de intentos, misma penalización, mismo disparo
+        // de ataque y los mismos efectos visuales (nunca se considera una respuesta correcta).
+        var esDistractor = String(draggedKey).indexOf('dx') === 0;
+        var isCorrect = !esDistractor && (parseInt(draggedKey, 10) === slotIdx);
+
+        attemptsPerSlot[slotIdx] = (attemptsPerSlot[slotIdx] || 0) + 1;
+        totalIntentos++;
+
+        if(isCorrect){
+            slotEl.classList.add('correct');
+            slotEl.querySelector('.slot-drop').textContent = MATCH_ITEMS[slotIdx].cmd;
+            var poolItem = document.querySelector('.match-item[data-key="' + draggedKey + '"]');
+            if(poolItem) poolItem.remove();
+            if(attemptsPerSlot[slotIdx] === 1) firstTryCorrect++;
+            matchedInBatch++; matchedTotal++;
+            selectedKey = null;
+            var ind1 = document.getElementById('selectedIndicator');
+            if(ind1) ind1.classList.remove('visible');
+
+            erroresConsecutivos = 0;
+            desactivarAtaqueHacker();
+            puntuacionJuego += PUNTOS_POR_COMANDO;
+            actualizarPuntuacionDisplay();
+
+            document.getElementById('matchCounter').textContent = matchedTotal + '/' + MATCH_ITEMS.length + ' emparejados';
+            document.getElementById('matchProgress').style.width = (matchedTotal / MATCH_ITEMS.length * 100) + '%';
+
+            if(matchedInBatch === currentBatch.length){
+                setTimeout(nextBatch, 700);
+            }
+        } else {
+            slotEl.classList.add('wrong');
+            setTimeout(function(){ slotEl.classList.remove('wrong'); }, 500);
+            document.querySelectorAll('.match-item').forEach(function(t){ t.classList.remove('selected'); });
+            selectedKey = null;
+            var ind2 = document.getElementById('selectedIndicator');
+            if(ind2) ind2.classList.remove('visible');
+            registrarErrorPareo();
+        }
+    }
+
+    function registrarErrorPareo(){
+        erroresConsecutivos++;
+        totalErrores++;
+        puntuacionJuego -= PENALIZACION_POR_ERROR;
+        actualizarPuntuacionDisplay();
+
+        if(erroresConsecutivos >= ERRORES_PARA_ATAQUE){
+            erroresConsecutivos = 0;
+            activarAtaqueHacker();
+        }
+    }
+
+    /* ---------- ATAQUE HACKER (activado por errores consecutivos) ---------- */
+    function activarAtaqueHacker(){
+        if(laboratorioComprometido || ataqueActivo) return;
+        ataqueActivo = true;
+        document.getElementById('hackerAlarm').classList.add('activo');
+        iniciarContadorAlarma();
+    }
+
+    function desactivarAtaqueHacker(){
+        if(!ataqueActivo) return;
+        ataqueActivo = false;
+        document.getElementById('hackerAlarm').classList.remove('activo');
+        detenerContadorAlarma();
+    }
+
+    function actualizarContadorAlarma(){
+        var min = String(Math.floor(alarmaSegundosRestantes/60)).padStart(2,'0');
+        var seg = String(alarmaSegundosRestantes%60).padStart(2,'0');
+        document.getElementById('hackerCountdown').textContent = min + ':' + seg;
+    }
+
+    function iniciarContadorAlarma(){
+        alarmaSegundosRestantes = TIEMPO_ALARMA_SEG;
+        actualizarContadorAlarma();
+        detenerContadorAlarma();
+        alarmaCountdownId = setInterval(function(){
+            alarmaSegundosRestantes--;
+            if(alarmaSegundosRestantes <= 0){
+                alarmaSegundosRestantes = 0;
+                actualizarContadorAlarma();
+                detenerContadorAlarma();
+                perderLaboratorio();
+                return;
+            }
+            actualizarContadorAlarma();
+        }, 1000);
+    }
+
+    function detenerContadorAlarma(){
+        if(alarmaCountdownId){
+            clearInterval(alarmaCountdownId);
+            alarmaCountdownId = null;
+        }
+    }
+
+    function perderLaboratorio(){
+        if(laboratorioComprometido) return;
+        laboratorioComprometido = true;
+        ataqueActivo = false;
+        document.getElementById('hackerAlarm').classList.remove('activo');
+
+        document.querySelectorAll('.match-item, .match-slot').forEach(function(el){ el.classList.add('locked'); });
+
+        // Si el ataque se originó en el Nivel 2 (Completar comandos), se detienen todos sus
+        // temporizadores individuales y se bloquean sus campos, reutilizando el mismo cierre.
+        Object.keys(completarTimers).forEach(function(k){ detenerTimerCompletar(k); });
+        document.querySelectorAll('#completeExercises .complete-input').forEach(function(el){ el.disabled = true; });
+
+        var puntos = calcularPuntuacion();
+        var nota = obtenerNota(puntos);
+        var pctCalificacion = Math.round((puntos / MAX_PUNTOS) * 100);
+        var puntosComandos = matchedTotal * PUNTOS_POR_COMANDO;
+        var puntosRepaso = contarParametrosVistos() * PUNTOS_POR_PARAMETRO;
+
+        document.getElementById('matchBlock').style.display = 'none';
+        document.getElementById('completeBlock').style.display = 'none';
+        document.getElementById('compromisedBlock').style.display = 'block';
+        document.getElementById('compSection').textContent = studentSection;
+        document.getElementById('compromisedGradeDisp').textContent = nota.toFixed(1);
+
+        document.getElementById('compComandos').textContent = matchedTotal + ' de ' + MATCH_ITEMS.length;
+        document.getElementById('compPuntosComandos').textContent = puntosComandos + ' de ' + (MATCH_ITEMS.length*PUNTOS_POR_COMANDO);
+        document.getElementById('compRepasados').textContent = Object.keys(seen).length + ' de ' + ITEMS.length;
+        document.getElementById('compPuntosRepaso').textContent = puntosRepaso + ' de ' + (PARAMS.length*PUNTOS_POR_PARAMETRO);
+        document.getElementById('compCompletados').textContent = completadosCorrectos + ' de ' + COMPLETAR.length + ' completados a tiempo';
+        document.getElementById('compErrores').textContent = totalErrores;
+        document.getElementById('compPuntajeTotal').textContent = puntos.toFixed(1) + ' de ' + MAX_PUNTOS + ' pts';
+        document.getElementById('compCalificacionFinal').textContent = pctCalificacion + '% (' + nota.toFixed(1) + '/5.0)';
+        document.getElementById('compTiempo').textContent = formatoTiempo(Date.now() - inicioTiempo);
+        document.getElementById('compIntentos').textContent = totalIntentos;
+        document.getElementById('compStamp').textContent = 'Evidencia generada para: ' + studentName + ' · Sección ' + studentSection + ' · ' + new Date().toLocaleString();
+    }
+
+    /* ---------- NIVEL 2: COMPLETAR COMANDOS ---------- */
+    function mostrarNivel2(){
+        document.getElementById('matchBlock').style.display = 'none';
+        document.getElementById('completeBlock').style.display = 'block';
+        var lvl = document.getElementById('levelDisplay');
+        if(lvl) lvl.textContent = 'Nivel 2 · Completar comandos';
+        renderCompletarEjercicios();
+    }
+
+    function renderCompletarEjercicios(){
+        completadosCorrectos = 0;
+        completarEstado = {};
+        // Por si el usuario volviera a entrar a este bloque, se limpian temporizadores previos.
+        Object.keys(completarTimers).forEach(function(k){ detenerTimerCompletar(k); });
+        completarTimers = {};
+
+        var cont = document.getElementById('completeExercises');
+        cont.innerHTML = '';
+
+        COMPLETAR.forEach(function(ej, i){
+            completarEstado[i] = 'pending';
+
+            var outer = document.createElement('div');
+            outer.className = 'complete-exercise-outer';
+
+            var wrap = document.createElement('div');
+            wrap.className = 'example-box complete-exercise';
+
+            var pre = document.createElement('span');
+            pre.className = 'complete-text';
+            pre.textContent = ej.prefix;
+
+            var inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'complete-input';
+            inp.autocomplete = 'off';
+            inp.spellcheck = false;
+            inp.dataset.idx = i;
+
+            var suf = document.createElement('span');
+            suf.className = 'complete-text';
+            suf.textContent = ej.suffix;
+
+            var icon = document.createElement('i');
+            icon.className = 'fa-solid fa-circle-check complete-check';
+
+            var timerEl = document.createElement('span');
+            timerEl.className = 'hacker-countdown complete-timer';
+            timerEl.id = 'completeTimer' + i;
+
+            var hintBtn = document.createElement('button');
+            hintBtn.type = 'button';
+            hintBtn.className = 'btn-hint';
+            hintBtn.innerHTML = '<i class="fa-solid fa-lightbulb"></i> Pista';
+
+            wrap.appendChild(pre);
+            wrap.appendChild(inp);
+            wrap.appendChild(suf);
+            wrap.appendChild(icon);
+            wrap.appendChild(timerEl);
+            wrap.appendChild(hintBtn);
+
+            var hintText = document.createElement('div');
+            hintText.className = 'hint-text';
+            hintText.textContent = ej.pista;
+
+            hintBtn.addEventListener('click', function(){
+                hintText.classList.toggle('visible');
+            });
+
+            outer.appendChild(wrap);
+            outer.appendChild(hintText);
+            cont.appendChild(outer);
+
+            // Validación automática mientras escribe (no penaliza, solo confirma el acierto).
+            inp.addEventListener('input', function(){
+                if(completarEstado[i] !== 'pending') return;
+                var val = inp.value.trim().toLowerCase();
+                var esCorrecta = val === ej.respuesta.toLowerCase();
+                if(esCorrecta){
+                    marcarCompletarCorrecto(i, inp, icon);
+                } else {
+                    inp.classList.remove('correct');
+                    icon.style.opacity = '0';
+                    inp.classList.toggle('wrong', val.length > 0);
+                }
+            });
+
+            // Envío explícito (Enter): si el comando es incorrecto, se registra como un error real,
+            // reutilizando EXACTAMENTE el mismo sistema de penalización/ataque que el pareo.
+            inp.addEventListener('keydown', function(e){
+                if(e.key !== 'Enter') return;
+                e.preventDefault();
+                if(completarEstado[i] !== 'pending') return;
+                var val = inp.value.trim().toLowerCase();
+                if(val !== ej.respuesta.toLowerCase()){
+                    totalIntentos++;
+                    registrarErrorPareo();
+                    inp.classList.add('wrong');
+                }
+            });
+
+            iniciarTimerCompletar(i, timerEl, inp, outer);
+        });
+
+        actualizarProgresoCompletar();
+    }
+
+    function marcarCompletarCorrecto(i, inp, icon){
+        if(completarEstado[i] === 'correct') return;
+        completarEstado[i] = 'correct';
+        inp.classList.add('correct');
+        inp.classList.remove('wrong');
+        icon.style.opacity = '1';
+        inp.disabled = true;
+        completadosCorrectos++;
+
+        // Corregido a tiempo: el ataque desaparece y el enemigo vuelve a la normalidad,
+        // igual que al acertar en el pareo. No se aplica una segunda penalización.
+        erroresConsecutivos = 0;
+        desactivarAtaqueHacker();
+
+        detenerTimerCompletar(i);
+        actualizarProgresoCompletar();
+    }
+
+    function iniciarTimerCompletar(i, timerEl, inp, outer){
+        var restante = TIEMPO_CORRECCION_COMPLETAR;
+        actualizarTextoTimerCompletar(timerEl, restante);
+        completarTimers[i] = setInterval(function(){
+            restante--;
+            if(restante <= 0){
+                actualizarTextoTimerCompletar(timerEl, 0);
+                detenerTimerCompletar(i);
+                expirarCompletar(i, inp, outer);
+                return;
+            }
+            actualizarTextoTimerCompletar(timerEl, restante);
+        }, 1000);
+    }
+
+    function actualizarTextoTimerCompletar(el, segundos){
+        var min = String(Math.floor(segundos/60)).padStart(2,'0');
+        var seg = String(segundos%60).padStart(2,'0');
+        el.textContent = min + ':' + seg;
+    }
+
+    function detenerTimerCompletar(i){
+        if(completarTimers[i]){
+            clearInterval(completarTimers[i]);
+            completarTimers[i] = null;
+        }
+    }
+
+    function expirarCompletar(i, inp, outer){
+        if(completarEstado[i] !== 'pending') return;
+        completarEstado[i] = 'expired';
+        inp.disabled = true;
+
+        var msg = document.createElement('div');
+        msg.className = 'complete-expired-msg';
+        msg.textContent = '⏳ Tiempo agotado: ya no puedes recuperar este punto.';
+        outer.appendChild(msg);
+
+        actualizarProgresoCompletar();
+    }
+
+    function actualizarProgresoCompletar(){
+        document.getElementById('completeCounter').textContent = completadosCorrectos + '/' + COMPLETAR.length + ' completados';
+        document.getElementById('completeProgress').style.width = (completadosCorrectos / COMPLETAR.length * 100) + '%';
+
+        var resueltos = 0;
+        COMPLETAR.forEach(function(_, idx){
+            if(completarEstado[idx] && completarEstado[idx] !== 'pending') resueltos++;
+        });
+        document.getElementById('btnContinuarNivel3').style.display = (resueltos === COMPLETAR.length) ? 'block' : 'none';
+    }
+
+    window.avanzarANivel3 = function(){
+        document.getElementById('completeBlock').style.display = 'none';
+        var lvl = document.getElementById('levelDisplay');
+        if(lvl) lvl.textContent = 'Nivel 3 · Desafío final';
+        mostrarPreguntaFinal();
+    };
+
+    /* ---------- PREGUNTAS TEÓRICAS (3 preguntas, 5 pts c/u, antes del cierre) ---------- */
+    function mostrarPreguntaFinal(){
+        preguntaActual = 0;
+        preguntasRespondidas = [];
+
+        document.getElementById('matchBlock').style.display = 'none';
+        document.getElementById('finalQuestionBlock').style.display = 'block';
+        renderPregunta();
+    }
+
+    function renderPregunta(){
+        var p = PREGUNTAS[preguntaActual];
+        document.getElementById('preguntaContador').textContent = (preguntaActual + 1) + '/' + PREGUNTAS.length;
+        document.getElementById('preguntaTexto').innerHTML = p.pregunta;
+        document.getElementById('finalQuestionResult').textContent = '';
+        document.getElementById('btnSiguientePregunta').style.display = 'none';
+        document.getElementById('btnFinalizarPractica').style.display = 'none';
+
+        var optsEl = document.getElementById('finalQuestionOptions');
+        optsEl.innerHTML = '';
+
+        if(p.tipo === 'opcion'){
+            p.opciones.forEach(function(o){
+                var btn = document.createElement('button');
+                btn.className = 'quiz-opt';
+                btn.dataset.opcion = o.letra;
+                btn.textContent = o.letra + ') ' + o.texto;
+                btn.onclick = function(){ responderPregunta(o.letra, btn); };
+                optsEl.appendChild(btn);
+            });
+        } else {
+            [{txt:'Verdadero', val:true}, {txt:'Falso', val:false}].forEach(function(o){
+                var btn = document.createElement('button');
+                btn.className = 'quiz-opt';
+                btn.dataset.opcion = String(o.val);
+                btn.textContent = o.txt;
+                btn.onclick = function(){ responderPregunta(o.val, btn); };
+                optsEl.appendChild(btn);
+            });
+        }
+    }
+
+    window.responderPregunta = function(respuesta, btnClicado){
+        if(preguntasRespondidas[preguntaActual] !== undefined) return;
+
+        var p = PREGUNTAS[preguntaActual];
+        var correcta = (respuesta === p.correcta);
+        preguntasRespondidas[preguntaActual] = correcta;
+
+        var valorCorrectoStr = (p.tipo === 'opcion') ? p.correcta : String(p.correcta);
+        document.querySelectorAll('#finalQuestionOptions .quiz-opt').forEach(function(btn){
+            btn.disabled = true;
+            if(btn.dataset.opcion === valorCorrectoStr){ btn.classList.add('correct'); }
+            else if(btn === btnClicado && !correcta){ btn.classList.add('wrong'); }
+        });
+
+        var resultEl = document.getElementById('finalQuestionResult');
+        if(correcta){
+            puntuacionJuego += PUNTOS_POR_PREGUNTA;
+            actualizarPuntuacionDisplay();
+            resultEl.textContent = 'Respuesta correcta. +' + PUNTOS_POR_PREGUNTA + ' puntos.';
+        } else {
+            var textoCorrecta = (p.tipo === 'opcion') ? ('la opción ' + p.correcta) : (p.correcta ? 'Verdadero' : 'Falso');
+            resultEl.textContent = 'Respuesta incorrecta. La respuesta correcta era: ' + textoCorrecta + '.';
+        }
+
+        if(preguntaActual < PREGUNTAS.length - 1){
+            document.getElementById('btnSiguientePregunta').style.display = 'block';
+        } else {
+            document.getElementById('btnFinalizarPractica').style.display = 'block';
+        }
+    };
+
+    window.siguientePregunta = function(){
+        preguntaActual++;
+        renderPregunta();
+    };
+
+    window.finalizarPractica = function(){
+        document.getElementById('finalQuestionBlock').style.display = 'none';
+        showResult();
+    };
+
+    function showResult(){
+        desactivarAtaqueHacker();
+        document.getElementById('resultBlock').style.display = 'block';
+
+        var puntos = calcularPuntuacion();
+        var finalGrade = obtenerNota(puntos);
+        var pctCalificacion = Math.round((puntos / MAX_PUNTOS) * 100);
+        var puntosComandos = matchedTotal * PUNTOS_POR_COMANDO;
+        var puntosRepaso = contarParametrosVistos() * PUNTOS_POR_PARAMETRO;
+        var preguntasCorrectas = preguntasRespondidas.filter(Boolean).length;
+        var puntosPregunta = preguntasCorrectas * PUNTOS_POR_PREGUNTA;
+
+        document.getElementById('resName').textContent = studentName;
+        document.getElementById('resSection').textContent = studentSection;
+        document.getElementById('finalGradeDisp').textContent = finalGrade.toFixed(1);
+
+        document.getElementById('resComandos').textContent = matchedTotal + ' de ' + MATCH_ITEMS.length;
+        document.getElementById('resPuntosComandos').textContent = puntosComandos + ' de ' + (MATCH_ITEMS.length*PUNTOS_POR_COMANDO);
+        document.getElementById('resRepasados').textContent = Object.keys(seen).length + ' de ' + ITEMS.length;
+        document.getElementById('resPuntosRepaso').textContent = puntosRepaso + ' de ' + (PARAMS.length*PUNTOS_POR_PARAMETRO);
+        document.getElementById('resCompletados').textContent = completadosCorrectos + ' de ' + COMPLETAR.length + ' completados a tiempo';
+        document.getElementById('resPreguntaFinal').textContent = preguntasCorrectas + ' de ' + PREGUNTAS.length + ' correctas';
+        document.getElementById('resPuntosPregunta').textContent = puntosPregunta + ' de ' + (PREGUNTAS.length * PUNTOS_POR_PREGUNTA);
+        document.getElementById('resErrores').textContent = totalErrores;
+        document.getElementById('resPuntajeTotal').textContent = puntos + ' de ' + MAX_PUNTOS + ' pts';
+        document.getElementById('resCalificacionFinal').textContent = pctCalificacion + '% (' + finalGrade.toFixed(1) + '/5.0)';
+        document.getElementById('resTiempo').textContent = formatoTiempo(Date.now() - inicioTiempo);
+        document.getElementById('resIntentos').textContent = totalIntentos;
+        document.getElementById('resStamp').textContent = 'Evidencia generada para: ' + studentName + ' · Sección ' + studentSection + ' · ' + new Date().toLocaleString();
+
+        try{
+            localStorage.setItem('cmd8_lastRun', JSON.stringify({
+                name: studentName, section: studentSection, grade: finalGrade, date: new Date().toISOString()
+            }));
+        }catch(e){}
+    }
+
+    /* ---------- CAPTURA DE PANTALLA PARA EL PROFESOR ---------- */
+    /* Genera y descarga una imagen PNG del resumen final (nombre, sección y desglose de
+       puntaje ya capturados al inicio de la práctica), que sirve como evidencia de que
+       ese resultado pertenece al estudiante. Reemplaza el antiguo botón "Reintentar". */
+    window.generarCapturaProfesor = function(captureId, btnEl){
+        var el = document.getElementById(captureId);
+        if(!el){ return; }
+
+        if(typeof html2canvas === 'undefined'){
+            alert('No se pudo cargar la herramienta de captura. Puedes tomar una captura de pantalla manual (Ctrl+Shift+S en Windows, o el botón de imprimir pantalla) como evidencia.');
+            return;
+        }
+
+        var textoOriginal = btnEl.innerHTML;
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando captura...';
+
+        var fondo = getComputedStyle(document.documentElement).getPropertyValue('--bg-dark').trim() || '#0c0f12';
+
+        html2canvas(el, { backgroundColor: fondo, scale: 2, useCORS: true }).then(function(canvas){
+            var nombreArchivo = 'captura_cmd_' +
+                (studentName || 'estudiante').trim().replace(/\s+/g, '_') +
+                (studentSection ? ('_' + studentSection) : '') + '.png';
+            var link = document.createElement('a');
+            link.download = nombreArchivo;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            btnEl.disabled = false;
+            btnEl.innerHTML = textoOriginal;
+        }).catch(function(err){
+            console.error('Error generando la captura:', err);
+            alert('Ocurrió un error generando la captura. Intenta con una captura de pantalla manual como evidencia.');
+            btnEl.disabled = false;
+            btnEl.innerHTML = textoOriginal;
+        });
+    };
+
+    function shuffle(arr){
+        arr = arr.slice();
+        for(var i=arr.length-1;i>0;i--){
+            var j = Math.floor(Math.random()*(i+1));
+            var tmp = arr[i]; arr[i]=arr[j]; arr[j]=tmp;
+        }
+        return arr;
+    }
+
+    /* ---------- PANEL DE CONTROL (botón flotante) ---------- */
+    window.toggleControlPanel = function(){
+        document.getElementById('controlPanel').classList.toggle('open');
+    };
+    document.addEventListener('click', function(e){
+        var panel = document.getElementById('controlPanel');
+        var fab = document.getElementById('settingsFab');
+        if(panel.classList.contains('open') && !panel.contains(e.target) && e.target !== fab && !fab.contains(e.target)){
+            panel.classList.remove('open');
+        }
+    });
+
+    /* ---------- FUNCIONES ORIGINALES DEL PANEL (sin modificar su lógica) ---------- */
+    var images = {
+        tech: "url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200')",
+        abstract: "url('https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=1200')",
+        nature: "url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1200')"
+    };
+
+    window.changeImage = function(type){
+        var imgContainer = document.getElementById('dynamicImage');
+        if(images[type]){ imgContainer.style.backgroundImage = images[type]; }
+    };
+
+    window.toggleTheme = function(){
+        var screen = document.getElementById('mainScreen');
+        var toggleBtn = document.getElementById('themeToggle');
+        screen.classList.toggle('light-theme');
+        if(screen.classList.contains('light-theme')){
+            toggleBtn.innerHTML = '<i class="fa-solid fa-sun"></i> Modo Claro Activo';
+            toggleBtn.className = 'btn btn-outline-dark btn-panel-sm w-100';
+        } else {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-moon"></i> Modo Oscuro Activo';
+            toggleBtn.className = 'btn btn-outline-info btn-panel-sm w-100';
+        }
+    };
+
+    window.changeTextSize = function(val){
+        document.documentElement.style.setProperty('--content-size', val + 'rem');
+        document.getElementById('sizeLabel').innerText = 'Tamaño Texto: ' + val + 'rem';
+    };
+
+    })();
+    </script>
+</body>
+</html>
