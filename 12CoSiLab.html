@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>co_silab · Examen de Comandos y Siglas</title>
+<style>
+
+:root {
+--bg: #070f1a;
+--bg-panel: #0e1926;
+--bg-panel-2: #142536;
+--line: #1f3b5c;
+--line-soft: #142a44;
+--cyan: #22c3e6;
+--cyan-dim: #0d7d94;
+--amber: #ffb020;
+--green: #22e08f;
+--red: #ff5470;
+--text: #d9e7f7;
+--text-dim: #7d93b0;
+--mono: 'Consolas', 'Courier New', monospace;
+--sans: 'Segoe UI', Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: 
+radial-gradient(ellipse at 20% -10%, rgba(34,195,230,0.08), transparent 45%),
+radial-gradient(ellipse at 80% 110%, rgba(34,224,143,0.06), transparent 45%),
+var(--bg);
+color: var(--text);
+font-family: var(--sans);
+min-height: 100vh;
+padding: 20px;
+}
+
+:focus-visible {
+outline: 2px solid var(--cyan);
+outline-offset: 2px;
+}
+
+/* ---------------- Topbar ---------------- */
+
+.topbar {
+max-width: 1200px;
+margin: 0 auto 20px auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 12px;
+padding: 16px 24px;
+background: var(--bg-panel);
+border: 1px solid var(--line);
+border-radius: 12px;
+}
+
+.brand {
+display: flex;
+align-items: center;
+gap: 10px;
+font-weight: 700;
+font-size: 1.15em;
+letter-spacing: 0.3px;
+}
+
+.brand .tag { color: var(--cyan); }
+.brand .sub {
+font-weight: 400;
+color: var(--text-dim);
+font-size: 0.72em;
+display: block;
+margin-top: 2px;
+}
+
+.stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.stat {
+display: flex;
+align-items: center;
+gap: 6px;
+background: var(--bg-panel-2);
+border: 1px solid var(--line-soft);
+border-radius: 8px;
+padding: 8px 14px;
+font-size: 0.82em;
+font-family: var(--mono);
+color: var(--text-dim);
+}
+.stat span { color: var(--cyan); font-weight: 700; }
+.stat.aciertos span { color: var(--green); }
+.stat.errores span { color: var(--red); }
+.stat.nota span { color: var(--amber); }
+
+/* ---------------- Layout Principal ---------------- */
+
+.layout {
+max-width: 1200px;
+margin: 0 auto;
+display: grid;
+grid-template-columns: 1.2fr 0.8fr;
+gap: 20px;
+align-items: start;
+}
+
+@media (max-width: 950px) {
+.layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+background: var(--bg-panel);
+border: 1px solid var(--line);
+border-radius: 14px;
+padding: 24px;
+}
+
+.panel-titulo {
+font-size: 0.78em;
+letter-spacing: 1.5px;
+text-transform: uppercase;
+color: var(--text-dim);
+margin-bottom: 16px;
+font-family: var(--mono);
+border-bottom: 1px solid var(--line-soft);
+padding-bottom: 8px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+/* ---------------- Zona de Examen / Simulador ---------------- */
+
+.progreso-contenedor {
+margin-bottom: 20px;
+}
+.progreso-texto {
+display: flex;
+justify-content: space-between;
+font-size: 0.8em;
+color: var(--text-dim);
+margin-bottom: 6px;
+font-family: var(--mono);
+}
+.barra-progreso-bg {
+background: var(--bg-panel-2);
+height: 8px;
+border-radius: 4px;
+overflow: hidden;
+border: 1px solid var(--line-soft);
+}
+.barra-progreso-filtro {
+background: linear-gradient(90deg, var(--cyan), var(--green));
+width: 0%;
+height: 100%;
+transition: width 0.4s ease;
+}
+
+.pregunta-card {
+background: var(--bg-panel-2);
+border: 1px solid var(--line-soft);
+border-radius: 10px;
+padding: 20px;
+margin-bottom: 20px;
+}
+
+.pregunta-tipo {
+display: inline-block;
+font-size: 0.72em;
+font-family: var(--mono);
+color: var(--cyan);
+background: rgba(34,195,230,0.1);
+padding: 3px 8px;
+border-radius: 4px;
+margin-bottom: 10px;
+text-transform: uppercase;
+}
+
+.pregunta-enunciado {
+font-size: 1em;
+line-height: 1.55;
+color: var(--text);
+margin-bottom: 10px;
+}
+
+/* --- Terminal de Comandos Virtual --- */
+.terminal-contenedor {
+background: #050a12;
+border: 1px solid #14253d;
+border-radius: 10px;
+overflow: hidden;
+margin-top: 15px;
+}
+.terminal-cabecera {
+background: #0b1420;
+padding: 8px 14px;
+display: flex;
+align-items: center;
+gap: 6px;
+border-bottom: 1px solid #142a44;
+}
+.terminal-punto { width: 9px; height: 9px; border-radius: 50%; }
+.terminal-punto.red { background: #ff5f56; }
+.terminal-punto.yellow { background: #ffbd2e; }
+.terminal-punto.green { background: #27c93f; }
+.terminal-titulo {
+margin-left: 6px;
+color: #4f708c;
+font-size: 0.72em;
+font-family: var(--mono);
+}
+
+/* Alerta de seguridad (simulación de ataque hacker) */
+.terminal-alarma {
+display: none;
+align-items: center;
+gap: 8px;
+padding: 9px 16px;
+background: #2a0000;
+color: #ff9aa2;
+font-family: var(--mono);
+font-size: 0.78em;
+line-height: 1.5;
+border-bottom: 1px solid #ff1f3d;
+}
+.terminal-alarma.activo {
+display: flex;
+animation: alarmaFranjaParpadeo 0.8s infinite;
+}
+@keyframes alarmaFranjaParpadeo {
+0%,100% { background: #2a0000; }
+50% { background: #4d0000; }
+}
+.terminal-alarma .icono-alarma {
+font-size: 1.1em;
+animation: hackerParpadeo 0.6s infinite;
+}
+@keyframes hackerParpadeo {
+0%,100% { opacity: 1; }
+50% { opacity: 0.3; }
+}
+.terminal-alarma .alarma-contador {
+margin-left: auto;
+flex-shrink: 0;
+font-weight: 800;
+font-size: 1.05em;
+color: #fff;
+background: #ff1f3d;
+padding: 3px 10px;
+border-radius: 6px;
+letter-spacing: 0.5px;
+white-space: nowrap;
+font-family: var(--mono);
+}
+
+.terminal-contenedor.alarma-activa {
+animation: panelBordeAlarma 0.8s infinite;
+}
+@keyframes panelBordeAlarma {
+0%,100% { border-color: #14253d; box-shadow: 0 0 0 rgba(255,31,61,0); }
+50% { border-color: #ff1f3d; box-shadow: 0 0 20px rgba(255,31,61,0.4); }
+}
+
+.terminal-pantalla {
+padding: 16px;
+font-family: var(--mono);
+font-size: 0.88em;
+line-height: 1.5;
+color: #3ee06f;
+min-height: 150px;
+max-height: 250px;
+overflow-y: auto;
+white-space: pre-wrap;
+}
+.terminal-input-fila {
+display: flex;
+align-items: center;
+background: #03070d;
+border-top: 1px solid #0f1c2b;
+padding: 10px 16px;
+}
+.terminal-prompt {
+color: #3ee06f;
+font-family: var(--mono);
+font-size: 0.88em;
+margin-right: 8px;
+white-space: nowrap;
+}
+.terminal-input {
+flex: 1;
+background: transparent;
+border: none;
+outline: none;
+color: #ffffff;
+font-family: var(--mono);
+font-size: 0.88em;
+caret-color: #3ee06f;
+}
+
+/* --- Opciones de Selección Múltiple (Siglas) --- */
+.opciones-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 10px;
+margin-top: 15px;
+}
+.btn-opcion {
+background: var(--bg-panel-2);
+border: 1px solid var(--line-soft);
+color: var(--text);
+padding: 14px 18px;
+border-radius: 8px;
+cursor: pointer;
+font-family: var(--sans);
+font-size: 0.9em;
+text-align: left;
+transition: all 0.2s ease;
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.btn-opcion:hover:not(:disabled) {
+border-color: var(--cyan);
+background: rgba(34,195,230,0.03);
+}
+.btn-opcion:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-opcion.correcta {
+border-color: var(--green);
+color: var(--green);
+background: rgba(34,224,143,0.05);
+font-weight: bold;
+}
+.btn-opcion.incorrecta {
+border-color: var(--red);
+color: var(--red);
+background: rgba(255,84,112,0.05);
+}
+.opcion-letra {
+background: var(--bg-panel);
+border: 1px solid var(--line-soft);
+border-radius: 4px;
+width: 24px;
+height: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-family: var(--mono);
+font-size: 0.8em;
+font-weight: bold;
+color: var(--cyan);
+flex-shrink: 0;
+}
+
+/* ---------------- Zona de Apoyo Teórico (Acordeones) ---------------- */
+
+.modo-estudio-controles {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 16px;
+background: var(--bg-panel-2);
+border: 1px solid var(--line-soft);
+padding: 12px 16px;
+border-radius: 10px;
+}
+.modo-estudio-titulo {
+font-size: 0.82em;
+font-weight: bold;
+color: var(--text);
+}
+.switch-estudio {
+position: relative;
+display: inline-block;
+width: 44px;
+height: 24px;
+}
+.switch-estudio input { opacity: 0; width: 0; height: 0; }
+.slider {
+position: absolute;
+cursor: pointer;
+inset: 0;
+background-color: var(--line-soft);
+transition: .3s;
+border-radius: 24px;
+border: 1px solid var(--line);
+}
+.slider:before {
+position: absolute;
+content: "";
+height: 16px;
+width: 16px;
+left: 3px;
+bottom: 3px;
+background-color: var(--text-dim);
+transition: .3s;
+border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--cyan-dim); }
+input:checked + .slider:before {
+transform: translateX(20px);
+background-color: var(--cyan);
+}
+
+.acordeon-grupo {
+display: flex;
+flex-direction: column;
+gap: 10px;
+transition: opacity 0.3s ease;
+}
+.acordeon-grupo.oculto {
+opacity: 0.15;
+pointer-events: none;
+filter: blur(4px);
+}
+
+.acordeon-item {
+border: 1px solid var(--line-soft);
+border-radius: 8px;
+overflow: hidden;
+background: var(--bg-panel-2);
+}
+.acordeon-header {
+background: var(--bg-panel-2);
+padding: 12px 16px;
+cursor: pointer;
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-size: 0.88em;
+font-weight: 600;
+user-select: none;
+transition: background 0.2s;
+}
+.acordeon-header:hover { background: rgba(255,255,255,0.01); }
+.acordeon-header .flecha {
+transition: transform 0.2s;
+font-size: 0.7em;
+color: var(--cyan);
+}
+.acordeon-item.abierto .acordeon-header .flecha {
+transform: rotate(180deg);
+}
+.acordeon-body {
+display: none;
+padding: 14px 16px;
+background: rgba(5,10,18,0.4);
+border-top: 1px solid var(--line-soft);
+font-size: 0.85em;
+line-height: 1.55;
+color: var(--text-dim);
+}
+.acordeon-item.abierto .acordeon-body { display: block; }
+
+.comando-estudio-lista { display: flex; flex-direction: column; gap: 8px; }
+.comando-estudio-row {
+display: flex;
+gap: 8px;
+border-bottom: 1px dashed var(--line-soft);
+padding-bottom: 6px;
+}
+.comando-estudio-row:last-child { border: none; padding-bottom: 0; }
+.comando-estudio-row code {
+font-family: var(--mono);
+color: var(--cyan);
+background: var(--bg-panel);
+padding: 2px 6px;
+border-radius: 4px;
+font-size: 0.95em;
+white-space: nowrap;
+align-self: flex-start;
+border: 1px solid var(--line-soft);
+}
+
+.sigla-estudio-row {
+display: flex;
+flex-direction: column;
+gap: 2px;
+border-bottom: 1px dashed var(--line-soft);
+padding-bottom: 6px;
+margin-bottom: 6px;
+}
+.sigla-estudio-row:last-child { border: none; padding-bottom: 0; margin-bottom: 0; }
+.sigla-estudio-row span.sigla {
+font-family: var(--mono);
+color: var(--amber);
+font-weight: bold;
+font-size: 1em;
+}
+
+/* ---------------- Overlays y Finalización ---------------- */
+
+.overlay-resultado {
+position: fixed;
+inset: 0;
+background: rgba(4,10,18,0.9);
+display: none;
+align-items: center;
+justify-content: center;
+z-index: 100;
+padding: 20px;
+}
+.overlay-resultado.activo { display: flex; }
+
+.caja-resultado {
+background: var(--bg-panel);
+border: 2px solid var(--line);
+border-radius: 14px;
+max-width: 520px;
+width: 100%;
+padding: 32px;
+text-align: center;
+box-shadow: 0 0 50px rgba(34,195,230,0.15);
+}
+
+.caja-resultado.aprobado { border-color: var(--green); box-shadow: 0 0 50px rgba(34,224,143,0.15); }
+.caja-resultado.reprobado { border-color: var(--red); box-shadow: 0 0 50px rgba(255,84,112,0.15); }
+
+.resultado-banner {
+font-family: var(--mono);
+font-size: 0.72em;
+line-height: 1.45;
+margin-bottom: 18px;
+color: var(--cyan);
+white-space: pre;
+overflow-x: auto;
+}
+.caja-resultado.aprobado .resultado-banner { color: var(--green); }
+.caja-resultado.reprobado .resultado-banner { color: var(--red); }
+
+.nota-final-titulo { font-size: 1em; color: var(--text-dim); margin-bottom: 6px; }
+.nota-final-valor {
+font-size: 3.5em;
+font-weight: 800;
+color: var(--amber);
+font-family: var(--mono);
+margin-bottom: 12px;
+text-shadow: 0 0 10px rgba(255,176,32,0.2);
+}
+.caja-resultado.aprobado .nota-final-valor { color: var(--green); }
+.caja-resultado.reprobado .nota-final-valor { color: var(--red); }
+
+.feedback-mensaje {
+font-size: 0.92em;
+color: var(--text-dim);
+line-height: 1.6;
+margin-bottom: 24px;
+}
+
+.resumen-tabla {
+width: 100%;
+margin-bottom: 24px;
+border-collapse: collapse;
+font-size: 0.88em;
+}
+.resumen-tabla td {
+padding: 8px 10px;
+border-bottom: 1px solid var(--line-soft);
+color: var(--text-dim);
+text-align: left;
+}
+.resumen-tabla td:last-child {
+text-align: right;
+color: var(--text);
+font-family: var(--mono);
+font-weight: bold;
+}
+
+.btn-reintentar {
+background: linear-gradient(135deg, var(--cyan), var(--cyan-dim));
+color: #04141c;
+border: none;
+padding: 12px 28px;
+border-radius: 8px;
+font-weight: 700;
+cursor: pointer;
+transition: filter 0.2s;
+}
+.btn-reintentar:hover { filter: brightness(1.1); }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+<div class="brand">
+🔬 <span class="tag">co_silab</span> — Examen de Comandos y Siglas
+<span class="sub">Validación de comandos CMD y glosario rápido de redes</span>
+</div>
+<div class="stats">
+<div class="stat aciertos">✔ Aciertos: <span id="statAciertos">0</span></div>
+<div class="stat errores">✖ Errores: <span id="statErrores">0</span></div>
+<div class="stat">🏆 Puntuación: <span id="statPuntuacion">0</span> puntos</div>
+<div class="stat nota">🎯 Nota Estimada: <span id="statNota">1.0</span></div>
+</div>
+</div>
+
+<div class="layout">
+
+<!-- ==================== COLUMNA IZQUIERDA: ESCENARIOS EXAMEN ==================== -->
+<section class="panel">
+<div class="panel-titulo">
+<span>Escenario de Evaluación Activa</span>
+<span id="contadorPregunta">Pregunta 1 de 25</span>
+</div>
+
+<div class="progreso-contenedor">
+<div class="progreso-texto">
+<span>Avance del Examen</span>
+<span id="progresoPorcentaje">0%</span>
+</div>
+<div class="barra-progreso-bg">
+<div class="barra-progreso-filtro" id="progresoBarra"></div>
+</div>
+</div>
+
+<div class="pregunta-card" id="preguntaCard">
+<span class="pregunta-tipo" id="preguntaTipoLabel">Simulador CMD</span>
+<div class="pregunta-enunciado" id="preguntaTexto">Cargando escenario...</div>
+
+<!-- Contenedor dinámico de respuesta tipo Terminal (para comandos) -->
+<div class="terminal-contenedor" id="contenedorTerminal" style="display: none;">
+<div class="terminal-alarma" id="terminalAlarma">
+<span class="icono-alarma">🚨</span>
+<span>ATAQUE DE SEGURIDAD EN CURSO: El sistema ha sido vulnerado. Responde correctamente para mitigar la intrusión.</span>
+<span class="alarma-contador" id="alarmaContador">02:00</span>
+</div>
+<div class="terminal-cabecera">
+<span class="terminal-punto red"></span>
+<span class="terminal-punto yellow"></span>
+<span class="terminal-punto green"></span>
+<span class="terminal-titulo">C:\Windows\System32\cmd.exe</span>
+</div>
+<div class="terminal-pantalla" id="terminalPantalla">Microsoft Windows [Versión 10.0.22631.3007]
+(c) Microsoft Corporation. Todos los derechos reservados.
+
+Escribe el comando correcto y presiona Enter para validar.</div>
+<div class="terminal-input-fila">
+<span class="terminal-prompt">C:\&gt;</span>
+<input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+</div>
+</div>
+
+<!-- Contenedor dinámico de respuesta tipo Selección Múltiple (para siglas) -->
+<div class="opciones-grid" id="contenedorOpciones" style="display: none;">
+<button class="btn-opcion" data-opcion="A"><span class="opcion-letra">A</span><span class="opcion-texto">Cargando...</span></button>
+<button class="btn-opcion" data-opcion="B"><span class="opcion-letra">B</span><span class="opcion-texto">Cargando...</span></button>
+<button class="btn-opcion" data-opcion="C"><span class="opcion-letra">C</span><span class="opcion-texto">Cargando...</span></button>
+<button class="btn-opcion" data-opcion="D"><span class="opcion-letra">D</span><span class="opcion-texto">Cargando...</span></button>
+</div>
+</div>
+</section>
+
+<!-- ==================== COLUMNA DERECHA: APOCALIPSIS DE APOYO ==================== -->
+<aside class="panel">
+<div class="panel-titulo">Material de Consulta</div>
+
+<div class="modo-estudio-controles">
+<div class="modo-estudio-titulo">💡 Habilitar Ayuda (Modo Estudio)</div>
+<label class="switch-estudio">
+<input type="checkbox" id="toggleModoEstudio" checked>
+<span class="slider"></span>
+</label>
+</div>
+
+<div class="acordeon-grupo" id="acordeonGrupo">
+<!-- Acordeón 1: Comandos -->
+<div class="acordeon-item abierto" id="acordeonComandos">
+<div class="acordeon-header" onclick="toggleAcordeon('acordeonComandos')">
+📂 13 Comandos de Red <span class="flecha">▼</span>
+</div>
+<div class="acordeon-body">
+<div class="comando-estudio-lista">
+<div class="comando-estudio-row"><code>ping</code><span>Verifica si un equipo está disponible en la red.</span></div>
+<div class="comando-estudio-row"><code>ipconfig</code><span>Muestra la información básica de red del equipo.</span></div>
+<div class="comando-estudio-row"><code>ipconfig /all</code><span>Muestra la información completa y detallada de red.</span></div>
+<div class="comando-estudio-row"><code>arp -a</code><span>Muestra la tabla de direcciones IP y MAC conocidas.</span></div>
+<div class="comando-estudio-row"><code>arp -d *</code><span>Limpia la caché ARP del equipo.</span></div>
+<div class="comando-estudio-row"><code>nbtstat -A</code><span>Obtiene el nombre del equipo dentro de la red.</span></div>
+<div class="comando-estudio-row"><code>tracert</code><span>Muestra la ruta de routers hasta un destino.</span></div>
+<div class="comando-estudio-row"><code>netstat -an</code><span>Muestra las conexiones y puertos activos.</span></div>
+<div class="comando-estudio-row"><code>nslookup</code><span>Resuelve un nombre de dominio a su dirección IP.</span></div>
+<div class="comando-estudio-row"><code>ftp</code><span>Conecta a un servidor para transferir archivos.</span></div>
+<div class="comando-estudio-row"><code>ssh</code><span>Conecta de forma segura a otro equipo por terminal.</span></div>
+<div class="comando-estudio-row"><code>telnet</code><span>Conecta a otro equipo mediante texto sin cifrar.</span></div>
+<div class="comando-estudio-row"><code>mstsc</code><span>Abre el cliente de Escritorio Remoto (RDP).</span></div>
+</div>
+</div>
+</div>
+
+<!-- Acordeón 2: Siglas -->
+<div class="acordeon-item" id="acordeonSiglas">
+<div class="acordeon-header" onclick="toggleAcordeon('acordeonSiglas')">
+📋 Glosario rápido de siglas <span class="flecha">▼</span>
+</div>
+<div class="acordeon-body">
+<div class="sigla-estudio-row"><span class="sigla">CMD</span><span>Command Prompt — intérprete de comandos de Windows</span></div>
+<div class="sigla-estudio-row"><span class="sigla">CLI</span><span>Command Line Interface — interfaz de línea de comandos</span></div>
+<div class="sigla-estudio-row"><span class="sigla">IP</span><span>Internet Protocol — dirección de identificación de red</span></div>
+<div class="sigla-estudio-row"><span class="sigla">TTL</span><span>Time To Live — tiempo/saltos de vida de un paquete</span></div>
+<div class="sigla-estudio-row"><span class="sigla">MAC</span><span>Media Access Control — identificador físico de tarjeta</span></div>
+<div class="sigla-estudio-row"><span class="sigla">ARP</span><span>Address Resolution Protocol — asocia IP con MAC</span></div>
+<div class="sigla-estudio-row"><span class="sigla">DNS</span><span>Domain Name System — traduce nombres de dominio a IP</span></div>
+<div class="sigla-estudio-row"><span class="sigla">DHCP</span><span>Dynamic Host Configuration Protocol — asigna IP automáticamente</span></div>
+<div class="sigla-estudio-row"><span class="sigla">SSH</span><span>Secure Shell — acceso remoto seguro por terminal</span></div>
+<div class="sigla-estudio-row"><span class="sigla">RDP</span><span>Remote Desktop Protocol — acceso remoto de escritorio</span></div>
+<div class="sigla-estudio-row"><span class="sigla">FTP</span><span>File Transfer Protocol — transferencia de archivos</span></div>
+<div class="sigla-estudio-row"><span class="sigla">SMB</span><span>Server Message Block — protocolo de Samba para compartir</span></div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+
+</div>
+
+<!-- ==================== OVERLAY: RESULTADO FINAL ==================== -->
+<div class="overlay-resultado" id="overlayResultado">
+<div class="caja-resultado" id="cajaResultado">
+<div class="resultado-banner" id="resultadoBanner"></div>
+<h2 id="resultadoTitulo">Examen Finalizado</h2>
+<p class="nota-final-titulo">Tu calificación final es:</p>
+<div class="nota-final-valor" id="notaFinal">1.0</div>
+<p class="feedback-mensaje" id="feedbackMensaje">Has completado todos los escenarios teóricos e interactivos.</p>
+
+<table class="resumen-tabla">
+<tbody>
+<tr><td>Aciertos totales</td><td id="resAciertos">0</td></tr>
+<tr><td>Errores totales</td><td id="resErrores">0</td></tr>
+<tr><td>Puntuación final</td><td id="resPuntuacion">0</td></tr>
+<tr><td>Ayuda utilizada</td><td id="resAyuda">No</td></tr>
+</tbody>
+</table>
+
+<button class="btn-reintentar" id="btnReintentar">🔄 Intentar de nuevo</button>
+</div>
+</div>
+
+<script>
+(function(){
+
+/* ==================== Base de Datos de Preguntas ==================== */
+
+const ESCENARIOS = [
+// --- Comandos de Red (13 Escenarios Interactivos) ---
+{
+id: 1,
+tipo: "comando",
+enunciado: "Escenario: Necesitas verificar de forma rápida y sencilla si el servidor remoto de producción con IP 10.0.0.1 está encendido y disponible para comunicaciones en la red local. ¿Qué comando ejecutas?",
+comandoCorrecto: "ping 10.0.0.1",
+comandoBase: "ping", 
+ejemploSalida: "Haciendo ping a 10.0.0.1 con 32 bytes de datos:\nRespuesta desde 10.0.0.1: bytes=32 tiempo<1ms TTL=128\nRespuesta desde 10.0.0.1: bytes=32 tiempo<1ms TTL=128\n\nEstadísticas de ping para 10.0.0.1: Paquetes: enviados = 2, recibidos = 2, perdidos = 0 (0% perdidos)."
+},
+{
+id: 2,
+tipo: "comando",
+enunciado: "Escenario: Un usuario de soporte solicita conocer su dirección IPv4, su máscara de subred y la puerta de enlace predeterminada. Deseas mostrar únicamente la información básica del adaptador activo. ¿Qué comando usas?",
+comandoCorrecto: "ipconfig",
+comandoBase: "ipconfig",
+ejemploSalida: "Adaptador de Ethernet Ethernet0:\n   Sufijo DNS específico para la conexión. . : local\n   Dirección IPv4. . . . . . . . . . . . . . : 192.168.1.15\n   Máscara de subred . . . . . . . . . . . . : 255.255.255.0\n   Puerta de enlace predeterminada . . . . . : 192.168.1.1"
+},
+{
+id: 3,
+tipo: "comando",
+enunciado: "Escenario: Requieres diagnosticar el adaptador físico de red para conocer la información completa y detallada de red del equipo local, incluyendo servidores DNS, DHCP y la dirección física MAC del hardware. ¿Qué comando ejecutas?",
+comandoCorrecto: "ipconfig /all",
+comandoBase: "ipconfig /all",
+ejemploSalida: "Configuración IP de Windows\n   Nombre de host . . . . . . . . . . . . . : PC-Estudiante\n   Sufijo DNS principal . . . . . . . . . . : netlab.local\n\nAdaptador de Ethernet Ethernet0:\n   Dirección física. . . . . . . . . . . . . : 00-15-5D-01-CA-11\n   DHCP habilitado. . . . . . . . . . . . . : Sí\n   Dirección IPv4. . . . . . . . . . . . . . : 192.168.1.15(Preferido)\n   Servidores DNS . . . . . . . . . . . . . : 8.8.8.8"
+},
+{
+id: 4,
+tipo: "comando",
+enunciado: "Escenario: Necesitas verificar la caché local para inspeccionar la tabla de direcciones IP asociadas con sus respectivas direcciones físicas MAC que el equipo ha resuelto recientemente. ¿Qué comando utilizas?",
+comandoCorrecto: "arp -a",
+comandoBase: "arp -a",
+ejemploSalida: "Interfaz: 192.168.1.15 --- 0x2\n  Dirección de Internet          Dirección física      Tipo\n  192.168.1.1                   00-11-22-33-44-55     dinámico\n  192.168.1.254                 00-aa-bb-cc-dd-ee     dinámico"
+},
+{
+id: 5,
+tipo: "comando",
+enunciado: "Escenario: Tras realizar un cambio físico de router en el rack corporativo, sospechas de una colisión de MAC. Necesitas limpiar por completo la tabla de direcciones ARP conocidas en caché. ¿Qué comando ejecutas?",
+comandoCorrecto: "arp -d *",
+comandoBase: "arp -d *",
+ejemploSalida: "La caché de direcciones ARP del adaptador local ha sido limpiada con éxito."
+},
+{
+id: 6,
+tipo: "comando",
+enunciado: "Escenario: Estás diagnosticando una red local de Windows y necesitas obtener de manera urgente el nombre de host de un equipo que tiene asignada la dirección IP 192.168.1.50 mediante NetBIOS. ¿Qué comando empleas?",
+comandoCorrecto: "nbtstat -A 192.168.1.50",
+comandoBase: "nbtstat -A",
+ejemploSalida: "Conexiones locales de NetBIOS:\n    Nombre                 Tipo         Estado\n    ---------------------------------------------\n    CONTABLE-PC    <00>  ÚNICO       Registrado\n    GRUPO-TRABAJO  <00>  GRUPO       Registrado"
+},
+{
+id: 7,
+tipo: "comando",
+enunciado: "Escenario: Estás diagnosticando lentitud hacia un servidor de correo corporativo ubicado en la nube y requieres visualizar la ruta exacta de routers (saltos) intermedios hasta alcanzar el destino 'correo.empresa.com'. ¿Qué comando ejecutas?",
+comandoCorrecto: "tracert correo.empresa.com",
+comandoBase: "tracert",
+ejemploSalida: "Traza a la dirección correo.empresa.com [104.244.42.1] sobre un máximo de 30 saltos:\n  1    <1 ms    <1 ms    <1 ms  192.168.1.1\n  2     4 ms     5 ms     4 ms  10.0.0.1\n  3    12 ms    12 ms    14 ms  104.244.42.1\nTraza completa."
+},
+{
+id: 8,
+tipo: "comando",
+enunciado: "Escenario: Sospechas de la presencia de un software espía en el equipo. Deseas examinar de forma numérica todas las conexiones de red TCP/UDP activas y puertos que estén actualmente escuchando en segundo plano. ¿Qué comando ejecutas?",
+comandoCorrecto: "netstat -an",
+comandoBase: "netstat -an",
+ejemploSalida: "Conexiones activas\n  Proto  Dirección local        Dirección remota       Estado\n  TCP    0.0.0.0:80             0.0.0.0:0              LISTENING\n  TCP    192.168.1.15:443       104.244.42.1:53211     ESTABLISHED"
+},
+{
+id: 9,
+tipo: "comando",
+enunciado: "Escenario: Necesitas comprobar manualmente la resolución de nombres DNS para averiguar de forma directa la dirección IP que corresponde a un servidor remoto con nombre de dominio 'srv-net.local'. ¿Qué comando ejecutas?",
+comandoCorrecto: "nslookup srv-net.local",
+comandoBase: "nslookup",
+ejemploSalida: "Servidor predeterminado: google-public-dns-a.google.com\nAddress:  8.8.8.8\n\nNombre:    srv-net.local\nAddress:   10.0.0.25"
+},
+{
+id: 10,
+tipo: "comando",
+enunciado: "Escenario: Necesitas conectarte interactivamente a un servidor corporativo tradicional para transferir archivos (subir o descargar carpetas) mediante comandos de consola de servidor dedicados. ¿Qué comando ejecutas?",
+comandoCorrecto: "ftp 192.168.1.200",
+comandoBase: "ftp",
+ejemploSalida: "Conectado a 192.168.1.200.\n220 Microsoft FTP Service\nUsuario (192.168.1.200:(none)): "
+},
+{
+id: 11,
+tipo: "comando",
+enunciado: "Escenario: Requieres abrir una conexión remota interactiva totalmente cifrada y segura para gestionar por terminal una máquina Linux remota alojada en la IP 10.0.0.50. ¿Qué comando básico ejecutas?",
+comandoCorrecto: "ssh admin@10.0.0.50",
+comandoBase: "ssh",
+ejemploSalida: "admin@10.0.0.50's password:\nLinux srv-linux 5.15.0-88-generic #85-Ubuntu SMP\nadmin@srv-linux:~$ "
+},
+{
+id: 12,
+tipo: "comando",
+enunciado: "Escenario: Te solicitan realizar una prueba rápida de conexión manual por texto sin cifrar a un dispositivo antiguo o auditar la apertura de un puerto TCP básico. ¿Qué comando utilizas?",
+comandoCorrecto: "telnet 192.168.1.1",
+comandoBase: "telnet",
+ejemploSalida: "Connecting To 192.168.1.1...\nWelcome to Router Console\nPassword: "
+},
+{
+id: 13,
+tipo: "comando",
+enunciado: "Escenario: Un administrador requiere administrar de forma gráfica e interactiva un servidor Windows Server de Active Directory. Debe abrir el cliente de Escritorio Remoto (RDP) nativo del sistema. ¿Qué comando ejecuta?",
+comandoCorrecto: "mstsc",
+comandoBase: "mstsc",
+ejemploSalida: "[Consola] Abriendo interfaz de cliente de Escritorio Remoto de Microsoft (MSTSC)..."
+},
+
+// --- Glosario de Siglas (12 Escenarios Teóricos Opción Múltiple) ---
+{
+id: 14,
+tipo: "sigla",
+sigla: "CMD",
+enunciado: "¿Cuál es el significado correcto y contexto técnico de la sigla CMD en los sistemas operativos de Microsoft?",
+opciones: {
+A: "Command Line Interface — Interfaz básica que sustituye al menú de Windows.",
+B: "Command Prompt — Intérprete de comandos o consola nativa de Windows.",
+C: "Control Message Directory — Protocolo encargado de indexar archivos temporales.",
+D: "Central Micro Device — Controlador físico de la placa base del equipo."
+},
+correcta: "B"
+},
+{
+id: 15,
+tipo: "sigla",
+sigla: "CLI",
+enunciado: "¿A qué hace referencia el término CLI en el ámbito del software y la administración de sistemas?",
+opciones: {
+A: "Command Line Interface — Tipo de interfaz de usuario basada enteramente en texto y comandos.",
+B: "Computer Link Infrastructure — Cableado que interconecta switches core.",
+C: "Connection Locator Identifier — Registro IP asignado por DHCP.",
+D: "Client Logic Integration — Protocolo de comunicación para arquitectura de dos capas."
+},
+correcta: "A"
+},
+{
+id: 16,
+tipo: "sigla",
+sigla: "IP",
+enunciado: "Dentro del esquema de redes TCP/IP, ¿qué representa la sigla IP?",
+opciones: {
+A: "Information Protocol — Servicio que notifica cambios de hardware en terminales.",
+B: "Internet Protocol — Dirección de software lógica y única encargada de identificar un equipo en la red.",
+C: "Internal Port — Identificador numérico del servicio de socket local.",
+D: "Intranet Process — Cola de ejecución del núcleo del sistema operativo."
+},
+correcta: "B"
+},
+{
+id: 17,
+tipo: "sigla",
+sigla: "TTL",
+enunciado: "¿A qué se refiere la sigla TTL cuando se analiza la salida de una consulta ping?",
+opciones: {
+A: "Terminal Transfer Log — Tiempo que tarda una trama física en cruzar un switch.",
+B: "Time To Live — Cantidad máxima de tiempo o saltos de router permitidos para un paquete antes de ser descartado.",
+C: "Table Translation Locator — Registro encargado de la caché de direcciones de un servidor.",
+D: "Trace Traffic Limit — Límite de ancho de banda permitido para ráfagas de datos."
+},
+correcta: "B"
+},
+{
+id: 18,
+tipo: "sigla",
+sigla: "MAC",
+enunciado: "¿Qué define el identificador conocido bajo las siglas de dirección MAC?",
+opciones: {
+A: "Media Access Control — Identificador físico único grabado de fábrica por el fabricante de la tarjeta de red.",
+B: "Memory Allocation Center — Segmento del disco duro reservado para swap.",
+C: "Microsoft Access Command — Base de comandos del Program Manager legacy.",
+D: "Main Area Controller — Router principal configurado como gateway."
+},
+correcta: "A"
+},
+{
+id: 19,
+tipo: "sigla",
+sigla: "ARP",
+enunciado: "A nivel de red local, ¿cuál es el objetivo primordial del protocolo ARP?",
+opciones: {
+A: "Address Resolution Protocol — Asociar direcciones IP de nivel lógico con direcciones físicas MAC.",
+B: "Adapter Routing Protocol — Enrutar dinámicamente paquetes entre subredes.",
+C: "Access Registry Provider — Administrar permisos en servidores Windows NT.",
+D: "Active Resolution Parameter — Métrica utilizada por tracert."
+},
+correcta: "A"
+},
+{
+id: 20,
+tipo: "sigla",
+sigla: "DNS",
+enunciado: "¿Cuál es la función del servicio estructurado conocido como DNS?",
+opciones: {
+A: "Dynamic Network Service — Sincronizar perfiles de usuario en Active Directory.",
+B: "Domain Name System — Traducir nombres de dominios legibles a direcciones IP numéricas.",
+C: "Device Name System — Asignar nombres físicos a tarjetas controladoras.",
+D: "Data Network Security — Firewall básico integrado en Windows Vista."
+},
+correcta: "B"
+},
+{
+id: 21,
+tipo: "sigla",
+sigla: "DHCP",
+enunciado: "¿Cómo facilita la administración de red el uso de un servidor configurado con DHCP?",
+opciones: {
+A: "Direct Host Connection Protocol — Permite mapear puertos SSH por defecto.",
+B: "Dynamic Host Configuration Protocol — Asigna de manera automática direcciones IP y parámetros de red a los clientes.",
+C: "Distributed Hash Control Protocol — Mantiene la integridad en compartición de archivos Samba.",
+D: "Domain Hierarchy Control Policy — Regla de seguridad de Windows Server."
+},
+correcta: "B"
+},
+{
+id: 22,
+tipo: "sigla",
+sigla: "SSH",
+enunciado: "¿Por qué se prefiere el protocolo SSH frente a herramientas legadas como Telnet?",
+opciones: {
+A: "Simple Shell Host — Posee menor latencia en conexiones transatlánticas.",
+B: "Secure Shell — Ofrece acceso remoto cifrado y seguro por terminal a otros equipos de la red.",
+C: "System Server Hierarchy — Facilita el control de dominios de Active Directory.",
+D: "Samba Security Host — Encripta las peticiones del protocolo SMB."
+},
+correcta: "B"
+},
+{
+id: 23,
+tipo: "sigla",
+sigla: "RDP",
+enunciado: "¿Cuál es la función técnica de la especificación RDP?",
+opciones: {
+A: "Router Discovery Protocol — Protocolo de ruteo para tráficos locales.",
+B: "Remote Desktop Protocol — Ofrecer acceso remoto visual e interactivo de escritorio completo.",
+C: "Registry Data Provider — Enlace del registro interno del núcleo NT.",
+D: "Redundant Data Path — Control de fallos físicos de tarjetas ethernet en servidores."
+},
+correcta: "B"
+},
+{
+id: 24,
+tipo: "sigla",
+sigla: "FTP",
+enunciado: "¿Cuál es el propósito del clásico protocolo FTP?",
+opciones: {
+A: "File Transfer Protocol — Facilitar la transferencia e intercambio interactivo de archivos entre sistemas.",
+B: "Fast Transmission Protocol — Controlar tráficos multimedia de tiempo real.",
+C: "Frame Transit Policy — Regla de mitigación de colisiones ethernet.",
+D: "Folder Translation Protocol — Sistema de compartición remota de Samba."
+},
+correcta: "A"
+},
+{
+id: 25,
+tipo: "sigla",
+sigla: "SMB",
+enunciado: "¿En qué consiste el protocolo SMB, comúnmente asociado con soluciones Samba en Linux?",
+opciones: {
+A: "Server Message Block — Protocolo para compartir archivos, impresoras y recursos entre sistemas de red.",
+B: "System Memory Bus — Bus interno de transferencia de RAM del procesador.",
+C: "Simple Mail Box — Protocolo de correo primitivo utilizado por MS-DOS.",
+D: "Samba Managed Bridge — Interfaz virtual que une adaptadores de red."
+},
+correcta: "A"
+}
+];
+
+/* ==================== Estado del Examen ==================== */
+
+let preguntaActualIdx = 0;
+let aciertos = 0;
+let errores = 0;
+let puntuacionJuego = 0; // Se incrementa con aciertos, penaliza -1 con errores
+let inicioTiempo = Date.now();
+let examenFinalizado = false;
+let ayudaUtilizada = false;
+
+/* --- Variables de Ataque de Seguridad (Hacker) --- */
+let ataqueActivo = false;
+let alarmaSegundosRestantes = 0;
+let alarmaCountdownId = null;
+let hackerBeepIntervalId = null;
+const TIEMPO_ALARMA_SEG = 120; // 2 minutos límite
+
+/* ==================== Elementos del DOM ==================== */
+
+const elAciertos = document.getElementById("statAciertos");
+const elErrores = document.getElementById("statErrores");
+const elPuntuacion = document.getElementById("statPuntuacion");
+const elNota = document.getElementById("statNota");
+const elContadorPregunta = document.getElementById("contadorPregunta");
+const elProgresoPorcentaje = document.getElementById("progresoPorcentaje");
+const elProgresoBarra = document.getElementById("progresoBarra");
+
+const elPreguntaCard = document.getElementById("preguntaCard");
+const elPreguntaTipo = document.getElementById("preguntaTipoLabel");
+const elPreguntaTexto = document.getElementById("preguntaTexto");
+
+const elContenedorTerminal = document.getElementById("contenedorTerminal");
+const elTerminalPantalla = document.getElementById("terminalPantalla");
+const elTerminalInput = document.getElementById("terminalInput");
+const elTerminalAlarma = document.getElementById("terminalAlarma");
+const elAlarmaContador = document.getElementById("alarmaContador");
+
+const elContenedorOpciones = document.getElementById("contenedorOpciones");
+const elBotonesOpcion = document.querySelectorAll("#contenedorOpciones .btn-opcion");
+
+const elToggleEstudio = document.getElementById("toggleModoEstudio");
+const elAcordeonGrupo = document.getElementById("acordeonGrupo");
+
+// Resultados modal
+const elOverlayResultado = document.getElementById("overlayResultado");
+const elCajaResultado = document.getElementById("cajaResultado");
+const elResultadoBanner = document.getElementById("resultadoBanner");
+const elResultadoTitulo = document.getElementById("resultadoTitulo");
+const elNotaFinal = document.getElementById("notaFinal");
+const elFeedbackMensaje = document.getElementById("feedbackMensaje");
+const elResAciertos = document.getElementById("resAciertos");
+const elResErrores = document.getElementById("resErrores");
+const elResPuntuacion = document.getElementById("resPuntuacion");
+const elResAyuda = document.getElementById("resAyuda");
+const elBtnReintentar = document.getElementById("btnReintentar");
+
+/* ==================== Calificación y Avance ==================== */
+
+function calcularNota(){
+// Escala lineal colombiana/latam (1.0 a 5.0) basada en la puntuación neta sobre el total de preguntas (25)
+const base = 1.0;
+const maximaVariacion = 4.0;
+const total = ESCENARIOS.length;
+
+let nota = base + ((Math.max(0, puntuacionJuego) / total) * maximaVariacion);
+nota = Math.max(1.0, Math.min(5.0, nota));
+return nota.toFixed(1);
+}
+
+function actualizarStats() {
+elAciertos.textContent = aciertos;
+elErrores.textContent = errores;
+elPuntuacion.textContent = puntuacionJuego;
+elNota.textContent = calcularNota();
+
+const total = ESCENARIOS.length;
+const porcentaje = Math.round((preguntaActualIdx / total) * 100);
+elProgresoPorcentaje.textContent = porcentaje + "%";
+elProgresoBarra.style.width = porcentaje + "%";
+elContadorPregunta.textContent = "Pregunta " + (preguntaActualIdx + 1) + " de " + total;
+}
+
+/* ==================== Carga de Preguntas (Instantánea sin esperas) ==================== */
+
+function cargarPregunta(idx) {
+if(idx >= ESCENARIOS.length) {
+finalizarExamen();
+return;
+}
+
+preguntaActualIdx = idx;
+actualizarStats();
+
+const q = ESCENARIOS[idx];
+elPreguntaTexto.textContent = q.enunciado;
+
+if(q.tipo === "comando") {
+elPreguntaTipo.textContent = "Simulador CMD — Escribe el comando";
+elPreguntaTipo.style.background = "rgba(34,195,230,0.1)";
+elPreguntaTipo.style.color = "var(--cyan)";
+
+elContenedorOpciones.style.display = "none";
+elContenedorTerminal.style.display = "block";
+
+// Reseteamos pantalla terminal
+elTerminalPantalla.innerHTML = "Microsoft Windows [Versión 10.0.22631.3007]\n(c) Microsoft Corporation. Todos los derechos reservados.\n\nEscribe el comando correcto y presiona Enter para validar.";
+elTerminalInput.value = "";
+elTerminalInput.disabled = false;
+elTerminalInput.focus();
+} else {
+elPreguntaTipo.textContent = "Glosario Teórico — Opción Múltiple";
+elPreguntaTipo.style.background = "rgba(255,176,32,0.1)";
+elPreguntaTipo.style.color = "var(--amber)";
+
+elContenedorTerminal.style.display = "none";
+elContenedorOpciones.style.display = "grid";
+
+elBotonesOpcion.forEach(function(btn){
+const letra = btn.getAttribute("data-opcion");
+btn.querySelector(".opcion-texto").textContent = q.opciones[letra];
+btn.className = "btn-opcion"; // Reset color
+btn.disabled = false;
+});
+}
+}
+
+/* ==================== Validación de Comandos (CMD) ==================== */
+
+function validarComando(inputTexto) {
+const q = ESCENARIOS[preguntaActualIdx];
+const textoNormalizado = inputTexto.trim().toLowerCase().replace(/\s+/g, " ");
+const correctoNormalizado = q.comandoCorrecto.toLowerCase();
+
+const comandoPalabras = textoNormalizado.split(" ");
+const comandoBaseUsuario = comandoPalabras[0];
+
+let esCorrecto = (textoNormalizado === correctoNormalizado);
+
+// Tolerancias lógicas de parámetros
+if(!esCorrecto) {
+if(q.comandoBase === "ping" && comandoBaseUsuario === "ping" && comandoPalabras.length > 1) {
+esCorrecto = true;
+} else if(q.comandoBase === "tracert" && comandoBaseUsuario === "tracert" && comandoPalabras.length > 1) {
+esCorrecto = true;
+} else if(q.comandoBase === "nslookup" && comandoBaseUsuario === "nslookup" && comandoPalabras.length > 1) {
+esCorrecto = true;
+} else if(q.comandoBase === "nbtstat -A" && textoNormalizado.startsWith("nbtstat -a") && comandoPalabras.length > 2) {
+esCorrecto = true;
+} else if(q.comandoBase === "ssh" && comandoBaseUsuario === "ssh" && comandoPalabras.length > 1) {
+esCorrecto = true;
+} else if(q.comandoBase === "telnet" && comandoBaseUsuario === "telnet" && comandoPalabras.length > 1) {
+esCorrecto = true;
+} else if(q.comandoBase === "ftp" && comandoBaseUsuario === "ftp") {
+esCorrecto = true;
+}
+}
+
+if(esCorrecto) {
+aciertos++;
+puntuacionJuego++;
+desactivarAtaqueHacker();
+// Avance instantáneo sin retardos
+cargarPregunta(preguntaActualIdx + 1);
+} else {
+errores++;
+puntuacionJuego--; // Penalización directa de -1 punto
+activarAtaqueHacker();
+elTerminalPantalla.innerHTML += "\n\nC:\\&gt;" + inputTexto + "\n\n[ERROR] '" + comandoBaseUsuario + "' o la sintaxis de parámetros no coincide con el escenario solicitado.\nSistemas comprometidos. Mitiga respondiendo correctamente.";
+elTerminalInput.value = "";
+elTerminalInput.focus();
+actualizarStats();
+}
+}
+
+elTerminalInput.addEventListener("keydown", function(e){
+if(e.key === "Enter") {
+validarComando(elTerminalInput.value);
+}
+});
+
+/* ==================== Validación de Siglas (Opción Múltiple) ==================== */
+
+elBotonesOpcion.forEach(function(btn){
+btn.addEventListener("click", function(){
+const q = ESCENARIOS[preguntaActualIdx];
+const seleccionada = btn.getAttribute("data-opcion");
+const correcta = q.correcta;
+
+if(seleccionada === correcta) {
+aciertos++;
+puntuacionJuego++;
+desactivarAtaqueHacker();
+// Avance instantáneo
+cargarPregunta(preguntaActualIdx + 1);
+} else {
+errores++;
+puntuacionJuego--; // Penalización directa de -1 punto
+activarAtaqueHacker();
+btn.classList.add("incorrecta");
+btn.disabled = true; // Deshabilita solo la opción incorrecta elegida para permitir mitigar reintentando
+actualizarStats();
+}
+});
+});
+
+/* ==================== Simulación de Ataque Hacker ==================== */
+
+function reproducirBeepAlarma(){
+try{
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+if(!AudioCtx) return;
+const ctxAudio = new AudioCtx();
+const osc = ctxAudio.createOscillator();
+const gain = ctxAudio.createGain();
+osc.type = "square";
+osc.frequency.value = 880;
+gain.gain.value = 0.04;
+osc.connect(gain);
+gain.connect(ctxAudio.destination);
+osc.start();
+osc.stop(ctxAudio.currentTime + 0.18);
+}catch(e){ }
+}
+
+function activarAtaqueHacker(){
+if(examenFinalizado) return;
+
+if(ataqueActivo) return; // Ya está corriendo el temporizador de alerta
+ataqueActivo = true;
+
+elTerminalAlarma.classList.add("activo");
+elContenedorTerminal.classList.add("alarma-activa");
+
+reproducirBeepAlarma();
+hackerBeepIntervalId = setInterval(reproducirBeepAlarma, 950);
+
+alarmaSegundosRestantes = TIEMPO_ALARMA_SEG;
+actualizarContadorAlarma();
+detenerContadorAlarma();
+alarmaCountdownId = setInterval(function(){
+alarmaSegundosRestantes--;
+if(alarmaSegundosRestantes <= 0){
+alarmaSegundosRestantes = 0;
+actualizarContadorAlarma();
+detenerContadorAlarma();
+perderPorAtaqueHacker();
+return;
+}
+actualizarContadorAlarma();
+}, 1000);
+}
+
+function actualizarContadorAlarma(){
+const min = String(Math.floor(alarmaSegundosRestantes/60)).padStart(2,"0");
+const seg = String(alarmaSegundosRestantes%60).padStart(2,"0");
+elAlarmaContador.textContent = min + ":" + seg;
+}
+
+function detenerContadorAlarma(){
+if(alarmaCountdownId){
+clearInterval(alarmaCountdownId);
+alarmaCountdownId = null;
+}
+}
+
+function desactivarAtaqueHacker(){
+if(!ataqueActivo) return;
+ataqueActivo = false;
+
+elTerminalAlarma.classList.remove("activo");
+elContenedorTerminal.classList.remove("alarma-activa");
+
+if(hackerBeepIntervalId){
+clearInterval(hackerBeepIntervalId);
+hackerBeepIntervalId = null;
+}
+detenerContadorAlarma();
+}
+
+function perderPorAtaqueHacker(){
+if(examenFinalizado) return;
+examenFinalizado = true;
+ataqueActivo = false;
+
+if(hackerBeepIntervalId){
+clearInterval(hackerBeepIntervalId);
+hackerBeepIntervalId = null;
+}
+detenerContadorAlarma();
+
+elTerminalAlarma.classList.remove("activo");
+elContenedorTerminal.classList.remove("alarma-activa");
+elTerminalInput.disabled = true;
+
+const nota = 1.0; // Pérdida inmediata de la prueba
+
+elResAciertos.textContent = aciertos + " de " + ESCENARIOS.length;
+elResErrores.textContent = errores;
+elResPuntuacion.textContent = puntuacionJuego + " (Pérdida por intrusión)";
+elResAyuda.textContent = ayudaUtilizada ? "Sí" : "No";
+elNotaFinal.textContent = nota.toFixed(1);
+
+elCajaResultado.className = "caja-resultado reprobado";
+elResultadoTitulo.textContent = "☠ Bloqueo Permanente";
+elFeedbackMensaje.textContent = "No lograste mitigar el ataque cibernético a tiempo. Los terminales virtuales se han cerrado de forma preventiva.";
+elResultadoBanner.textContent = 
+"####################################\n" +
+"      BLOQUEO POR INTRUSIÓN\n" +
+"      Sistema comprometido al 100%\n" +
+"####################################";
+
+elOverlayResultado.classList.add("activo");
+}
+
+/* ==================== Soporte de Acordeón y Modo Estudio ==================== */
+
+function toggleAcordeon(id) {
+const item = document.getElementById(id);
+const isOpen = item.classList.contains("abierto");
+
+document.querySelectorAll(".acordeon-item").forEach(i => i.classList.remove("abierto"));
+
+if(!isOpen) {
+item.classList.add("abierto");
+}
+}
+
+elToggleEstudio.addEventListener("change", function(){
+const activo = elToggleEstudio.checked;
+if(activo) {
+elAcordeonGrupo.classList.remove("oculto");
+} else {
+elAcordeonGrupo.classList.add("oculto");
+ayudaUtilizada = true; 
+}
+});
+
+if(!elToggleEstudio.checked) {
+elAcordeonGrupo.classList.add("oculto");
+ayudaUtilizada = true;
+}
+
+/* ==================== Finalización del Examen ==================== */
+
+function finalizarExamen() {
+examenFinalizado = true;
+desactivarAtaqueHacker();
+const nota = parseFloat(calcularNota());
+
+elResAciertos.textContent = aciertos + " de " + ESCENARIOS.length;
+elResErrores.textContent = errores;
+elResPuntuacion.textContent = puntuacionJuego;
+elResAyuda.textContent = ayudaUtilizada ? "Sí (Modo Estudio activado en sesión)" : "No (Modo Examen estricto)";
+elNotaFinal.textContent = nota.toFixed(1);
+
+elCajaResultado.className = "caja-resultado " + (nota >= 3.0 ? "aprobado" : "reprobado");
+
+if(nota >= 4.5) {
+elResultadoTitulo.textContent = "🏆 ¡Excelente Desempeño!";
+elFeedbackMensaje.textContent = "Has demostrado un dominio sobresaliente y mitigado todas las amenazas eficientemente. Estás totalmente listo para el examen de infraestructura real.";
+elResultadoBanner.textContent = 
+"####################################\n" +
+"      EXAMEN COMPLETADO - NOTA A+\n" +
+"      co_silab: Validación Óptima\n" +
+"####################################";
+} else if(nota >= 3.0) {
+elResultadoTitulo.textContent = "✔ Examen Aprobado";
+elFeedbackMensaje.textContent = "Conocimientos operativos validados. Lograste contener los incidentes y mantener la estabilidad de los servicios de red.";
+elResultadoBanner.textContent = 
+"####################################\n" +
+"      EXAMEN APROBADO - SATISFACTORIO\n" +
+"      co_silab: Certificación Básica\n" +
+"####################################";
+} else {
+elResultadoTitulo.textContent = "❌ Examen Reprobado";
+elFeedbackMensaje.textContent = "La puntuación final resultante se sitúa por debajo del umbral mínimo de suficiencia (3.0). Repasa los comandos utilizando el material de apoyo.";
+elResultadoBanner.textContent = 
+"####################################\n" +
+"      EXAMEN REPROBADO - REPASAR\n" +
+"      co_silab: Nivel No Alcanzado\n" +
+"####################################";
+}
+
+elOverlayResultado.classList.add("activo");
+}
+
+elBtnReintentar.addEventListener("click", function(){
+preguntaActualIdx = 0;
+aciertos = 0;
+errores = 0;
+puntuacionJuego = 0;
+inicioTiempo = Date.now();
+examenFinalizado = false;
+ayudaUtilizada = elToggleEstudio.checked ? ayudaUtilizada : false;
+
+desactivarAtaqueHacker();
+elOverlayResultado.classList.remove("activo");
+actualizarStats();
+cargarPregunta(0);
+});
+
+/* ==================== Inicialización ==================== */
+
+cargarPregunta(0);
+window.toggleAcordeon = toggleAcordeon;
+
+})();
+</script>
+
+</body>
+</html>
