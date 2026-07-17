@@ -129,6 +129,14 @@ justify-content: space-between;
 align-items: center;
 }
 
+/* Estado Bloqueado antes de comenzar */
+.panel-evaluacion-bloqueado {
+pointer-events: none;
+opacity: 0.25;
+filter: blur(2px);
+transition: all 0.4s ease;
+}
+
 /* ---------------- Zona de Examen / Simulador ---------------- */
 
 .progreso-contenedor {
@@ -353,6 +361,70 @@ flex-shrink: 0;
 
 /* ---------------- Zona de Apoyo Teórico (Acordeones) ---------------- */
 
+.panel-registro {
+display: flex;
+flex-direction: column;
+gap: 12px;
+background: var(--bg-panel-2);
+border: 1px solid var(--cyan);
+border-radius: 12px;
+padding: 18px;
+margin-bottom: 20px;
+box-shadow: 0 0 15px rgba(34,195,230,0.08);
+}
+.registro-campo {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+.registro-campo label {
+font-size: 0.78em;
+font-family: var(--mono);
+color: var(--text-dim);
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+.registro-input {
+background: var(--bg-panel);
+border: 1px solid var(--line-soft);
+padding: 10px 12px;
+border-radius: 6px;
+color: var(--text);
+font-size: 0.88em;
+outline: none;
+transition: border 0.2s;
+}
+.registro-input:focus { border-color: var(--cyan); }
+.registro-select {
+background: var(--bg-panel);
+border: 1px solid var(--line-soft);
+padding: 10px 12px;
+border-radius: 6px;
+color: var(--text);
+font-size: 0.88em;
+outline: none;
+cursor: pointer;
+}
+.registro-select option {
+background: var(--bg-panel);
+color: var(--text);
+}
+.btn-comenzar {
+background: linear-gradient(135deg, var(--green), #0d9d67);
+color: #04140c;
+border: none;
+padding: 12px;
+border-radius: 8px;
+font-weight: 800;
+font-size: 0.9em;
+cursor: pointer;
+transition: filter 0.2s;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+margin-top: 6px;
+}
+.btn-comenzar:hover { filter: brightness(1.1); }
+
 .modo-estudio-controles {
 display: flex;
 justify-content: space-between;
@@ -561,7 +633,7 @@ text-align: left;
 .resumen-tabla td:last-child {
 text-align: right;
 color: var(--text);
-font-family: var(--mono);
+font-family: var(--sans);
 font-weight: bold;
 }
 
@@ -597,7 +669,7 @@ transition: filter 0.2s;
 <div class="layout">
 
 <!-- ==================== COLUMNA IZQUIERDA: ESCENARIOS EXAMEN ==================== -->
-<section class="panel">
+<section class="panel panel-evaluacion-bloqueado" id="panelEvaluacion">
 <div class="panel-titulo">
 <span>Escenario de Evaluación Activa</span>
 <span id="contadorPregunta">Pregunta 1 de 25</span>
@@ -615,7 +687,7 @@ transition: filter 0.2s;
 
 <div class="pregunta-card" id="preguntaCard">
 <span class="pregunta-tipo" id="preguntaTipoLabel">Simulador CMD</span>
-<div class="pregunta-enunciado" id="preguntaTexto">Cargando escenario...</div>
+<div class="pregunta-enunciado" id="preguntaTexto">Completa primero tu registro en el panel de la derecha para desbloquear el examen.</div>
 
 <!-- Contenedor dinámico de respuesta tipo Terminal (para comandos) -->
 <div class="terminal-contenedor" id="contenedorTerminal" style="display: none;">
@@ -636,22 +708,41 @@ transition: filter 0.2s;
 Escribe el comando correcto y presiona Enter para validar.</div>
 <div class="terminal-input-fila">
 <span class="terminal-prompt">C:\&gt;</span>
-<input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+<input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" disabled>
 </div>
 </div>
 
 <!-- Contenedor dinámico de respuesta tipo Selección Múltiple (para siglas) -->
 <div class="opciones-grid" id="contenedorOpciones" style="display: none;">
-<button class="btn-opcion" data-opcion="A"><span class="opcion-letra">A</span><span class="opcion-texto">Cargando...</span></button>
-<button class="btn-opcion" data-opcion="B"><span class="opcion-letra">B</span><span class="opcion-texto">Cargando...</span></button>
-<button class="btn-opcion" data-opcion="C"><span class="opcion-letra">C</span><span class="opcion-texto">Cargando...</span></button>
-<button class="btn-opcion" data-opcion="D"><span class="opcion-letra">D</span><span class="opcion-texto">Cargando...</span></button>
+<button class="btn-opcion" data-opcion="A" disabled><span class="opcion-letra">A</span><span class="opcion-texto">Cargando...</span></button>
+<button class="btn-opcion" data-opcion="B" disabled><span class="opcion-letra">B</span><span class="opcion-texto">Cargando...</span></button>
+<button class="btn-opcion" data-opcion="C" disabled><span class="opcion-letra">C</span><span class="opcion-texto">Cargando...</span></button>
+<button class="btn-opcion" data-opcion="D" disabled><span class="opcion-letra">D</span><span class="opcion-texto">Cargando...</span></button>
 </div>
 </div>
 </section>
 
-<!-- ==================== COLUMNA DERECHA: APOCALIPSIS DE APOYO ==================== -->
+<!-- ==================== COLUMNA DERECHA: REGISTRO Y APOYO ==================== -->
 <aside class="panel">
+
+<!-- Tarjeta de Registro de Estudiante -->
+<div class="panel-registro" id="panelRegistro">
+<div class="panel-titulo" style="margin-bottom:8px; border-bottom:none; padding-bottom:0;">📝 Registro de Estudiante</div>
+<div class="registro-campo">
+<label for="regNombre">Nombre Completo</label>
+<input type="text" id="regNombre" class="registro-input" placeholder="Ingresa tu nombre">
+</div>
+<div class="registro-campo">
+<label for="regGrado">Grado</label>
+<select id="regGrado" class="registro-select">
+<option value="">-- Selecciona --</option>
+<option value="12 A">12 A</option>
+<option value="12 B">12 B</option>
+</select>
+</div>
+<button class="btn-comenzar" id="btnComenzar">Comenzar Prueba</button>
+</div>
+
 <div class="panel-titulo">Material de Consulta</div>
 
 <div class="modo-estudio-controles">
@@ -708,7 +799,6 @@ Escribe el comando correcto y presiona Enter para validar.</div>
 </div>
 </div>
 </div>
-</div>
 </aside>
 
 </div>
@@ -718,12 +808,16 @@ Escribe el comando correcto y presiona Enter para validar.</div>
 <div class="caja-resultado" id="cajaResultado">
 <div class="resultado-banner" id="resultadoBanner"></div>
 <h2 id="resultadoTitulo">Examen Finalizado</h2>
-<p class="nota-final-titulo">Tu calificación final es:</p>
+<p class="nota-final-titulo">Calificación final de co_silab:</p>
 <div class="nota-final-valor" id="notaFinal">1.0</div>
 <p class="feedback-mensaje" id="feedbackMensaje">Has completado todos los escenarios teóricos e interactivos.</p>
 
 <table class="resumen-tabla">
 <tbody>
+<tr><td>Estudiante</td><td id="resNombre">---</td></tr>
+<tr><td>Grado asignado</td><td id="resGrado">---</td></tr>
+<tr><td>Fecha de finalización</td><td id="resFecha">---</td></tr>
+<tr><td>Hora de finalización</td><td id="resHora">---</td></tr>
 <tr><td>Aciertos totales</td><td id="resAciertos">0</td></tr>
 <tr><td>Errores totales</td><td id="resErrores">0</td></tr>
 <tr><td>Puntuación final</td><td id="resPuntuacion">0</td></tr>
@@ -1008,11 +1102,15 @@ correcta: "A"
 
 /* ==================== Estado del Examen ==================== */
 
+let pruebaIniciada = false;
+let nombreEstudiante = "";
+let gradoEstudiante = "";
+
 let preguntaActualIdx = 0;
 let aciertos = 0;
 let errores = 0;
-let puntuacionJuego = 0; // Se incrementa con aciertos, penaliza -1 con errores
-let inicioTiempo = Date.now();
+let puntuacionJuego = 0; 
+let inicioTiempo = 0;
 let examenFinalizado = false;
 let ayudaUtilizada = false;
 
@@ -1021,7 +1119,7 @@ let ataqueActivo = false;
 let alarmaSegundosRestantes = 0;
 let alarmaCountdownId = null;
 let hackerBeepIntervalId = null;
-const TIEMPO_ALARMA_SEG = 120; // 2 minutos límite
+const TIEMPO_ALARMA_SEG = 120; 
 
 /* ==================== Elementos del DOM ==================== */
 
@@ -1033,6 +1131,7 @@ const elContadorPregunta = document.getElementById("contadorPregunta");
 const elProgresoPorcentaje = document.getElementById("progresoPorcentaje");
 const elProgresoBarra = document.getElementById("progresoBarra");
 
+const elPanelEvaluacion = document.getElementById("panelEvaluacion");
 const elPreguntaCard = document.getElementById("preguntaCard");
 const elPreguntaTipo = document.getElementById("preguntaTipoLabel");
 const elPreguntaTexto = document.getElementById("preguntaTexto");
@@ -1049,6 +1148,12 @@ const elBotonesOpcion = document.querySelectorAll("#contenedorOpciones .btn-opci
 const elToggleEstudio = document.getElementById("toggleModoEstudio");
 const elAcordeonGrupo = document.getElementById("acordeonGrupo");
 
+// Elementos de Registro
+const elPanelRegistro = document.getElementById("panelRegistro");
+const elRegNombre = document.getElementById("regNombre");
+const elRegGrado = document.getElementById("regGrado");
+const elBtnComenzar = document.getElementById("btnComenzar");
+
 // Resultados modal
 const elOverlayResultado = document.getElementById("overlayResultado");
 const elCajaResultado = document.getElementById("cajaResultado");
@@ -1056,16 +1161,50 @@ const elResultadoBanner = document.getElementById("resultadoBanner");
 const elResultadoTitulo = document.getElementById("resultadoTitulo");
 const elNotaFinal = document.getElementById("notaFinal");
 const elFeedbackMensaje = document.getElementById("feedbackMensaje");
+
+const elResNombre = document.getElementById("resNombre");
+const elResGrado = document.getElementById("resGrado");
+const elResFecha = document.getElementById("resFecha");
+const elResHora = document.getElementById("resHora");
 const elResAciertos = document.getElementById("resAciertos");
 const elResErrores = document.getElementById("resErrores");
 const elResPuntuacion = document.getElementById("resPuntuacion");
 const elResAyuda = document.getElementById("resAyuda");
 const elBtnReintentar = document.getElementById("btnReintentar");
 
+/* ==================== Lógica de Registro y Activación ==================== */
+
+elBtnComenzar.addEventListener("click", function(){
+const nombre = elRegNombre.value.trim();
+const grado = elRegGrado.value;
+
+if(nombre === "" || grado === "") {
+alert("Por favor, ingresa tu nombre completo y selecciona un grado para comenzar.");
+return;
+}
+
+nombreEstudiante = nombre;
+gradoEstudiante = grado;
+pruebaIniciada = true;
+
+// Bloquear campos de registro
+elRegNombre.disabled = true;
+elRegGrado.disabled = true;
+elBtnComenzar.disabled = true;
+elBtnComenzar.style.opacity = "0.5";
+elBtnComenzar.textContent = "Examen en Curso";
+
+// Desbloquear panel de evaluación
+elPanelEvaluacion.classList.remove("panel-evaluacion-bloqueado");
+
+// Inicializar estado del juego
+inicioTiempo = Date.now();
+cargarPregunta(0);
+});
+
 /* ==================== Calificación y Avance ==================== */
 
 function calcularNota(){
-// Escala lineal colombiana/latam (1.0 a 5.0) basada en la puntuación neta sobre el total de preguntas (25)
 const base = 1.0;
 const maximaVariacion = 4.0;
 const total = ESCENARIOS.length;
@@ -1088,9 +1227,11 @@ elProgresoBarra.style.width = porcentaje + "%";
 elContadorPregunta.textContent = "Pregunta " + (preguntaActualIdx + 1) + " de " + total;
 }
 
-/* ==================== Carga de Preguntas (Instantánea sin esperas) ==================== */
+/* ==================== Carga de Preguntas ==================== */
 
 function cargarPregunta(idx) {
+if(!pruebaIniciada) return;
+
 if(idx >= ESCENARIOS.length) {
 finalizarExamen();
 return;
@@ -1144,7 +1285,6 @@ const comandoBaseUsuario = comandoPalabras[0];
 
 let esCorrecto = (textoNormalizado === correctoNormalizado);
 
-// Tolerancias lógicas de parámetros
 if(!esCorrecto) {
 if(q.comandoBase === "ping" && comandoBaseUsuario === "ping" && comandoPalabras.length > 1) {
 esCorrecto = true;
@@ -1233,7 +1373,7 @@ osc.stop(ctxAudio.currentTime + 0.18);
 function activarAtaqueHacker(){
 if(examenFinalizado) return;
 
-if(ataqueActivo) return; // Ya está corriendo el temporizador de alerta
+if(ataqueActivo) return; 
 ataqueActivo = true;
 
 elTerminalAlarma.classList.add("activo");
@@ -1300,7 +1440,13 @@ elTerminalAlarma.classList.remove("activo");
 elContenedorTerminal.classList.remove("alarma-activa");
 elTerminalInput.disabled = true;
 
-const nota = 1.0; // Pérdida inmediata de la prueba
+const nota = 1.0; 
+
+const ahora = new Date();
+elResNombre.textContent = nombreEstudiante;
+elResGrado.textContent = gradoEstudiante;
+elResFecha.textContent = ahora.toLocaleDateString('es-ES');
+elResHora.textContent = ahora.toLocaleTimeString('es-ES');
 
 elResAciertos.textContent = aciertos + " de " + ESCENARIOS.length;
 elResErrores.textContent = errores;
@@ -1355,17 +1501,23 @@ examenFinalizado = true;
 desactivarAtaqueHacker();
 const nota = parseFloat(calcularNota());
 
+const ahora = new Date();
+elResNombre.textContent = nombreEstudiante;
+elResGrado.textContent = gradoEstudiante;
+elResFecha.textContent = ahora.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+elResHora.textContent = ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
 elResAciertos.textContent = aciertos + " de " + ESCENARIOS.length;
 elResErrores.textContent = errores;
-elResPuntuacion.textContent = puntuacionJuego;
-elResAyuda.textContent = ayudaUtilizada ? "Sí (Modo Estudio activado en sesión)" : "No (Modo Examen estricto)";
+elResPuntuacion.textContent = puntuacionJuego + " puntos";
+elResAyuda.textContent = ayudaUtilizada ? "Sí" : "No";
 elNotaFinal.textContent = nota.toFixed(1);
 
 elCajaResultado.className = "caja-resultado " + (nota >= 3.0 ? "aprobado" : "reprobado");
 
 if(nota >= 4.5) {
 elResultadoTitulo.textContent = "🏆 ¡Excelente Desempeño!";
-elFeedbackMensaje.textContent = "Has demostrado un dominio sobresaliente y mitigado todas las amenazas eficientemente. Estás totalmente listo para el examen de infraestructura real.";
+elFeedbackMensaje.textContent = "¡Felicitaciones! Has demostrado un dominio sobresaliente y mitigado todas las amenazas eficientemente en la plataforma co_silab.";
 elResultadoBanner.textContent = 
 "####################################\n" +
 "      EXAMEN COMPLETADO - NOTA A+\n" +
@@ -1373,7 +1525,7 @@ elResultadoBanner.textContent =
 "####################################";
 } else if(nota >= 3.0) {
 elResultadoTitulo.textContent = "✔ Examen Aprobado";
-elFeedbackMensaje.textContent = "Conocimientos operativos validados. Lograste contener los incidentes y mantener la estabilidad de los servicios de red.";
+elFeedbackMensaje.textContent = "¡Felicitaciones! Lograste contener los incidentes y mantener la estabilidad de los servicios de red satisfactoriamente.";
 elResultadoBanner.textContent = 
 "####################################\n" +
 "      EXAMEN APROBADO - SATISFACTORIO\n" +
@@ -1381,7 +1533,7 @@ elResultadoBanner.textContent =
 "####################################";
 } else {
 elResultadoTitulo.textContent = "❌ Examen Reprobado";
-elFeedbackMensaje.textContent = "La puntuación final resultante se sitúa por debajo del umbral mínimo de suficiencia (3.0). Repasa los comandos utilizando el material de apoyo.";
+elFeedbackMensaje.textContent = "Sigue practicando. La puntuación final resultante se sitúa por debajo del umbral mínimo de suficiencia (3.0).";
 elResultadoBanner.textContent = 
 "####################################\n" +
 "      EXAMEN REPROBADO - REPASAR\n" +
@@ -1409,7 +1561,6 @@ cargarPregunta(0);
 
 /* ==================== Inicialización ==================== */
 
-cargarPregunta(0);
 window.toggleAcordeon = toggleAcordeon;
 
 })();
