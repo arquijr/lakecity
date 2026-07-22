@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>T-800 // WORDTRIS PROTOCOL - REDES WINDOWS & LINUX</title>
+
+<style>
+  :root {
+    --red: #ff1a1a;
+    --red-dim: #8a0c0c;
+    --red-glow: #ff4d4d;
+    --black: #060202;
+    --panel-bg: rgba(18, 5, 6, 0.94);
+    --grid-bg: #110406;
+    --grid-line: #2d0b0e;
+    --green: #1fae5b;
+    --green-glow: #33e084;
+    --yellow: #d4a017;
+    --yellow-glow: #f5cb38;
+    --gray: #444;
+    --mono: 'Courier New', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; touch-action: manipulation; }
+
+  body {
+    margin: 0;
+    padding: 10px;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #1f0608 0%, var(--black) 85%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--mono);
+    color: var(--red);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 26, 26, 0.03) 0px,
+      rgba(255, 26, 26, 0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    z-index: 10;
+  }
+
+  .main-wrapper {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .system-header {
+    width: 100%;
+    text-align: center;
+    background: var(--panel-bg);
+    border: 1px solid var(--red-dim);
+    box-shadow: 0 0 15px rgba(255, 26, 26, 0.15);
+    padding: 8px 12px;
+    border-radius: 4px;
+  }
+  .system-header .brand { font-size: 10px; letter-spacing: 3px; color: var(--red-dim); }
+  .system-header .title { font-size: 18px; font-weight: bold; letter-spacing: 2px; text-shadow: 0 0 10px var(--red-glow); margin: 2px 0; }
+  .system-header .instruction { font-size: 10px; color: #ff9999; letter-spacing: 1px; }
+
+  .rig {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--red-dim);
+    box-shadow: 0 0 0 1px #000, 0 0 20px rgba(255, 26, 26, 0.12) inset;
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+  .game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .mission-box {
+    width: 100%;
+    background: #0d0203;
+    border: 1px solid var(--red-dim);
+    padding: 8px;
+    margin-bottom: 8px;
+    text-align: center;
+    border-radius: 3px;
+  }
+  .mission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--grid-line);
+    padding-bottom: 2px;
+  }
+  .tag-badge {
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+  .tag-badge.windows { background: #005a9e; color: #fff; text-shadow: 0 0 4px #00a4ef; }
+  .tag-badge.linux { background: #276929; color: #fff; text-shadow: 0 0 4px #42b983; }
+
+  .mission-desc {
+    font-size: 10.5px;
+    color: #e0a0a0;
+    line-height: 1.3;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Hint Row */
+  .hintRow { display: flex; justify-content: center; gap: 4px; margin-bottom: 8px; }
+  .hintTile {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: bold;
+    background: #18080a;
+    border: 1px solid var(--red-dim);
+    color: var(--red-dim);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+  }
+  .hintTile.green { background: var(--green); color: #000; border-color: var(--green-glow); box-shadow: 0 0 10px var(--green-glow); }
+  .hintTile.yellow { background: var(--yellow); color: #000; border-color: var(--yellow-glow); box-shadow: 0 0 10px var(--yellow-glow); }
+
+  /* Board Canvas */
+  .canvas-container {
+    position: relative;
+    background: var(--grid-bg);
+    border: 2px solid var(--red-dim);
+    box-shadow: 0 0 15px rgba(255, 10, 10, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  canvas#board { display: block; background: transparent; }
+
+  /* Side Panel */
+  .side {
+    width: 210px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #a33;
+    margin-bottom: 3px;
+    border-bottom: 1px solid var(--grid-line);
+    padding-bottom: 2px;
+  }
+
+  .stat { font-size: 18px; font-weight: bold; text-shadow: 0 0 6px var(--red-glow); color: var(--red); }
+  .stat-grade { font-size: 22px; color: #33e084; text-shadow: 0 0 8px var(--green-glow); }
+  .stat-fail { font-size: 16px; color: #ff5555; text-shadow: 0 0 6px rgba(255, 85, 85, 0.4); }
+
+  .next-box {
+    display: flex;
+    justify-content: center;
+    background: #080203;
+    padding: 4px;
+    border: 1px solid var(--grid-line);
+  }
+  canvas#next { background: #000; border: 1px solid var(--red-dim); display: block; }
+
+  /* Keyboard Grid */
+  .kbGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+  .kbKey {
+    font-size: 9.5px;
+    font-weight: bold;
+    text-align: center;
+    padding: 4px 0;
+    background: #1b0709;
+    border: 1px solid var(--grid-line);
+    color: #884444;
+    border-radius: 2px;
+  }
+  .kbKey.green { background: var(--green); color: #000; border-color: var(--green-glow); }
+  .kbKey.yellow { background: var(--yellow); color: #000; border-color: var(--yellow-glow); }
+  .kbKey.gray { background: var(--gray); color: #888; border-color: #555; opacity: 0.4; }
+
+  .status { font-size: 11px; color: #cc6666; }
+
+  .completed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+  .completed-empty {
+    font-size: 10px;
+    color: #663333;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 6px 0;
+  }
+  .completed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    background: #0d0203;
+    border: 1px solid var(--green);
+    color: var(--green-glow);
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 4px 6px;
+    border-radius: 3px;
+    box-shadow: 0 0 6px rgba(51, 224, 132, 0.15);
+  }
+
+  /* Floating score popup */
+  .scorePopup {
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    transform: translate(-50%, 0);
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--green-glow);
+    text-shadow: 0 0 10px var(--green-glow);
+    z-index: 16;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .scorePopup.show { animation: popFloat 1.1s ease-out forwards; }
+  @keyframes popFloat {
+    0% { opacity: 0; transform: translate(-50%, 10px) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, 0) scale(1.1); }
+    35% { transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -40px) scale(1); }
+  }
+
+  /* Overlay Modal */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 1, 2, 0.95);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 20;
+    gap: 10px;
+    padding: 16px;
+  }
+  #overlay.show { display: flex; }
+  #overlay .big { font-size: 20px; font-weight: bold; letter-spacing: 2px; text-shadow: 0 0 12px var(--red-glow); color: var(--red); }
+  #overlay .small { font-size: 11px; color: #dda0a0; letter-spacing: 1px; max-width: 270px; line-height: 1.4; }
+
+  button.btn-action {
+    font-family: var(--mono);
+    font-weight: bold;
+    background: #1f0507;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 8px 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+  button.btn-action:hover, button.btn-action:active {
+    background: var(--red);
+    color: #000;
+    box-shadow: 0 0 14px var(--red-glow);
+  }
+
+  .bannerText {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: center;
+    z-index: 15;
+    pointer-events: none;
+    opacity: 0;
+    width: 90%;
+    text-shadow: 0 0 12px currentColor;
+    background: rgba(0,0,0,0.88);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+  }
+  .bannerText.show { animation: bannerPop 1.4s ease-out forwards; }
+  @keyframes bannerPop {
+    0% { opacity: 0; transform: translate(-50%, -40%) scale(0.7); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+    30% { transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
+  }
+
+  /* Mobile Touch Controls */
+  .mobile-controls {
+    display: none;
+    width: 100%;
+    max-width: 360px;
+    margin-top: 6px;
+    gap: 6px;
+    flex-direction: column;
+  }
+
+  .touch-row { display: flex; justify-content: center; gap: 6px; }
+
+  .touch-btn {
+    flex: 1;
+    height: 42px;
+    background: #180507;
+    border: 1px solid var(--red-dim);
+    color: var(--red);
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .touch-btn:active { background: var(--red); color: #000; }
+
+  @media (max-width: 820px) {
+    body { padding: 4px; }
+    .rig { flex-direction: column; align-items: center; }
+    .side {
+      width: 100%;
+      max-width: 360px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .side > div:nth-child(5) { grid-column: span 2; }
+    .side > div:nth-child(6) { grid-column: span 2; }
+    .side > div:nth-child(7) { grid-column: span 2; }
+    .side > div:nth-child(9) { grid-column: span 2; }
+    .mobile-controls { display: flex; }
+    .controls-desktop { display: none; }
+  }
+
+  /* Student Info Section */
+  .student-box {
+    width: 100%;
+    background: var(--panel-bg);
+    border: 1px solid var(--red-dim);
+    box-shadow: 0 0 15px rgba(255, 26, 26, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  .student-field { display: flex; align-items: center; gap: 6px; }
+  .student-field label { font-size: 10px; letter-spacing: 1.5px; color: #a33; white-space: nowrap; }
+  .student-field input {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: #0d0203;
+    border: 1px solid var(--red-dim);
+    color: var(--red-glow);
+    padding: 5px 8px;
+    border-radius: 3px;
+    outline: none;
+    min-width: 160px;
+  }
+
+  /* Admin Floating FAB Button */
+  .admin-fab {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1f0507;
+    border: 1px solid var(--red-dim);
+    color: var(--red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 500;
+    box-shadow: 0 0 16px rgba(255, 26, 26, 0.4);
+    transition: all 0.2s;
+  }
+  .admin-fab:hover {
+    background: var(--red);
+    color: #000;
+    box-shadow: 0 0 20px var(--red-glow);
+  }
+
+  /* Admin Modal */
+  .admin-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 1, 2, 0.92);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 600;
+    padding: 16px;
+  }
+  .admin-modal.show { display: flex; }
+  .admin-modal-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--red-dim);
+    box-shadow: 0 0 24px rgba(255, 26, 26, 0.25);
+    border-radius: 6px;
+    padding: 18px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+  .admin-modal-title {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--red);
+    text-shadow: 0 0 8px var(--red-glow);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .admin-modal-box input[type="password"],
+  .admin-row input[type="text"],
+  .admin-row select,
+  .admin-row textarea {
+    font-family: var(--mono);
+    width: 100%;
+    background: #0d0203;
+    border: 1px solid var(--red-dim);
+    color: var(--red-glow);
+    padding: 7px 8px;
+    border-radius: 3px;
+    outline: none;
+    font-size: 12px;
+  }
+  .admin-error {
+    font-size: 11px;
+    color: #ff5555;
+    margin-top: 8px;
+    min-height: 14px;
+    text-align: center;
+  }
+  .admin-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .admin-row {
+    border: 1px solid var(--grid-line);
+    background: #0d0203;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  .admin-row-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .admin-row textarea { resize: vertical; min-height: 40px; font-size: 11px; }
+  .admin-hint { font-size: 10px; color: #a33; text-align: center; margin-bottom: 10px; line-height: 1.4; }
+
+  .admin-status-box {
+    background: #0a0203;
+    border: 1px solid var(--red-dim);
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  /* Start Gate Modal */
+  .gate-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 1, 2, 0.97);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 400;
+    padding: 16px;
+  }
+  .gate-modal.hidden { display: none; }
+  .gate-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--red-dim);
+    box-shadow: 0 0 24px rgba(255, 26, 26, 0.25);
+    border-radius: 6px;
+    padding: 22px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+  }
+  .gate-brand { font-size: 10px; letter-spacing: 3px; color: var(--red-dim); margin-bottom: 4px; }
+  .gate-title {
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--red);
+    text-shadow: 0 0 10px var(--red-glow);
+    margin-bottom: 6px;
+  }
+  .gate-sub { font-size: 11px; color: #dda0a0; line-height: 1.4; margin-bottom: 16px; }
+  .gate-field { text-align: left; margin-bottom: 12px; }
+  .gate-field label { display: block; font-size: 10px; letter-spacing: 1.5px; color: #a33; margin-bottom: 4px; }
+  .gate-field input {
+    font-family: var(--mono);
+    width: 100%;
+    font-size: 13px;
+    background: #0d0203;
+    border: 1px solid var(--red-dim);
+    color: var(--red-glow);
+    padding: 8px 10px;
+    border-radius: 3px;
+    outline: none;
+  }
+  .gate-error { font-size: 11px; color: #ff5555; min-height: 14px; margin-bottom: 8px; }
+  .gate-box button.btn-action { width: 100%; padding: 10px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="main-wrapper">
+
+  <div class="system-header">
+    <div class="brand">CYBERDYNE SYSTEMS // MODEL 800</div>
+    <div class="title">WORDTRIS: REDES & COMUNICACIÓN</div>
+    <div class="instruction">COMPLETA LAS 6 PALABRAS PARA ALCANZAR LOS 40 PUNTOS (NOTA 5,0)</div>
+  </div>
+
+  <div class="student-box">
+    <div class="student-field">
+      <label for="studentName">NOMBRE:</label>
+      <input type="text" id="studentName" placeholder="Nombre y apellido" autocomplete="off" readonly>
+    </div>
+    <div class="student-field">
+      <label for="studentGrade">GRADO:</label>
+      <input type="text" id="studentGrade" placeholder="Ej: 10-A" autocomplete="off" readonly>
+    </div>
+  </div>
+
+  <div class="rig">
+
+    <!-- MAIN GAME PANEL -->
+    <div class="panel game-area">
+
+      <div class="mission-box">
+        <div class="mission-header">
+          <span id="missionNum">PALABRA 1 / 6</span>
+          <span class="tag-badge" id="systemBadge">LINUX</span>
+        </div>
+        <div class="mission-desc" id="missionDesc">Cargando datos...</div>
+      </div>
+
+      <div class="hintRow" id="hintRow"></div>
+
+      <div class="canvas-container">
+        <canvas id="board"></canvas>
+
+        <div id="overlay">
+          <div class="big" id="overlayTitle">SISTEMA EN PAUSA</div>
+          <div class="small" id="overlaySub">Presiona P o el botón para continuar.</div>
+          <button class="btn-action" id="resetBtn">REINICIAR</button>
+        </div>
+
+        <div class="bannerText" id="banner"></div>
+        <div class="scorePopup" id="scorePopup"></div>
+      </div>
+
+      <!-- Touch Pad -->
+      <div class="mobile-controls">
+        <div class="touch-row">
+          <div class="touch-btn" id="btnLeft">&larr;</div>
+          <div class="touch-btn" id="btnRotate">&circlearrowright; ROTAR</div>
+          <div class="touch-btn" id="btnRight">&rarr;</div>
+        </div>
+        <div class="touch-row">
+          <div class="touch-btn" id="btnSoftDrop">&darr; CAER</div>
+          <div class="touch-btn" id="btnHardDrop">&DownArrowBar; BAZOOKA</div>
+          <div class="touch-btn" id="btnPause">PAUSA</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="side panel">
+
+      <div>
+        <div class="label">SIGUIENTE PIEZA</div>
+        <div class="next-box">
+          <canvas id="next" width="90" height="90"></canvas>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">PUNTOS (ACIERTOS)</div>
+        <div class="stat" id="pointsDisplay">00 / 40</div>
+      </div>
+
+      <div>
+        <div class="label">CALIFICACIÓN (NOTA)</div>
+        <div class="stat-grade" id="gradeDisplay">1,0</div>
+      </div>
+
+      <div>
+        <div class="label">INTENTOS FALLIDOS</div>
+        <div class="stat-fail" id="failuresDisplay">0 / 3</div>
+      </div>
+
+      <div>
+        <div class="label">PALABRAS RESUELTAS</div>
+        <div class="stat" id="wordsCompletedDisplay">0 / 6</div>
+      </div>
+
+      <div>
+        <div class="label">PALABRAS COMPLETADAS</div>
+        <div class="completed-list" id="completedList">
+          <div class="completed-empty" id="completedEmpty">— NINGUNA AÚN —</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="label">LETRAS DESCUBIERTAS</div>
+        <div class="kbGrid" id="kbGrid"></div>
+      </div>
+
+      <div class="controls-desktop">
+        <div class="label">CONTROLES</div>
+        <div style="font-size: 10px; line-height: 1.5; color: #a33;">
+          <div><b>&larr; &rarr;</b> Mover lateral</div>
+          <div><b>&darr;</b> Caída rápida</div>
+          <div><b>ESPACIO</b> Caída instantánea</div>
+          <div><b>&uarr; / X</b> Rotar pieza</div>
+          <div><b>P</b> Pausa</div>
+        </div>
+      </div>
+
+      <div class="status" id="statusLine">ESTADO: <span class="blink">EN LÍNEA</span></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Admin Floating Button -->
+<div class="admin-fab" id="adminFab" title="Panel de Administración Docente">⚙</div>
+
+<!-- Admin Password Modal -->
+<div class="admin-modal" id="adminPassModal">
+  <div class="admin-modal-box">
+    <div class="admin-modal-title">PANEL DOCENTE // ACCESO</div>
+    <div class="admin-hint">Ingresa la clave para gestionar palabras o reiniciar el bloqueo del sistema.</div>
+    <input type="password" id="adminPassInput" placeholder="Contraseña">
+    <div class="admin-error" id="adminPassError"></div>
+    <div class="admin-actions">
+      <button class="btn-action" id="adminPassCancel">CANCELAR</button>
+      <button class="btn-action" id="adminPassSubmit">ENTRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Control & Edit Modal -->
+<div class="admin-modal" id="adminEditModal">
+  <div class="admin-modal-box">
+    <div class="admin-modal-title">PANEL DE CONTROL DOCENTE</div>
+
+    <!-- System Unlock & Status Box -->
+    <div class="admin-status-box">
+      <div style="font-size:11px; color:#fff; margin-bottom:4px;">ESTADO ACTUAL DEL SISTEMA:</div>
+      <div style="font-size:13px; font-weight:bold; margin-bottom:6px;" id="adminStatusText">CARGANDO...</div>
+      <button class="btn-action" id="adminUnlockBtn" style="background:#276929; border-color:#33e084; color:#fff; width:100%; margin-top:4px;">
+        🔓 REINICIAR Y DESBLOQUEAR JUEGO
+      </button>
+    </div>
+
+    <div class="admin-modal-title" style="font-size:12px; margin-top:10px;">EDITOR DE PALABRAS DE LA MISIÓN</div>
+    <div class="admin-hint">Modifica el contenido de las 6 palabras sin alterar la lógica de evaluación.</div>
+    <div id="adminRowsContainer"></div>
+    <div class="admin-error" id="adminEditError"></div>
+    <div class="admin-actions">
+      <button class="btn-action" id="adminEditCancel">CERRAR</button>
+      <button class="btn-action" id="adminEditSave">GUARDAR CAMBIOS</button>
+    </div>
+  </div>
+</div>
+
+<!-- Start Gate Modal -->
+<div class="gate-modal" id="startGateModal">
+  <div class="gate-box">
+    <div class="gate-brand">CYBERDYNE SYSTEMS // MODEL 800</div>
+    <div class="gate-title">IDENTIFICACIÓN REQUERIDA</div>
+    <div class="gate-sub">Ingresa tu nombre y grado para iniciar la misión WORDTRIS.</div>
+    <div class="gate-field">
+      <label for="gateName">NOMBRE</label>
+      <input type="text" id="gateName" placeholder="Nombre y apellido" autocomplete="off">
+    </div>
+    <div class="gate-field">
+      <label for="gateGrade">GRADO</label>
+      <input type="text" id="gateGrade" placeholder="Ej: 10-A" autocomplete="off">
+    </div>
+    <div class="gate-error" id="gateError"></div>
+    <button class="btn-action" id="gateStartBtn">COMENZAR MISIÓN</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const MAX_FAILURES = 3;
+
+  const DEFAULT_MISSIONS = [
+    {
+      word: "LINUX",
+      system: "LINUX",
+      def: "Sistema operativo libre basado en el kernel Linux para redes y servidores."
+    },
+    {
+      word: "WINDOWS",
+      system: "WINDOWS",
+      def: "Sistema operativo desarrollado por Microsoft con soporte de red local y dominio."
+    },
+    {
+      word: "DEBIAN",
+      system: "LINUX",
+      def: "Distribución de Linux reconocida por su estabilidad y software libre."
+    },
+    {
+      word: "NETBIOS",
+      system: "WINDOWS",
+      def: "Servicio utilizado por Windows para compartir recursos en una red local."
+    },
+    {
+      word: "KERNEL",
+      system: "LINUX",
+      def: "Núcleo del sistema operativo encargado de administrar el hardware y la red."
+    },
+    {
+      word: "DOMINIO",
+      system: "WINDOWS",
+      def: "Conjunto de equipos administrados bajo políticas de red centralizadas en Windows."
+    }
+  ];
+
+  let MISSIONS = JSON.parse(JSON.stringify(DEFAULT_MISSIONS));
+
+  try {
+    const savedMissions = localStorage.getItem('wordtris_custom_missions');
+    if (savedMissions) {
+      MISSIONS = JSON.parse(savedMissions);
+    }
+  } catch(e) {}
+
+  const GLOSSARY_DICTIONARY = new Set([
+    "APT", "ARP", "ART", "CMD", "CPU", "DNS", "FTP", "GNU", "ISO", "LAN", "NAT", "NIC", "RDP", "RED", "SSH", "TCP", "TTL", "UDP", "VDI", "WAN",
+    "BASH", "BIOS", "BOOT", "DHCP", "GRUB", "HOST", "HTTP", "ICMP", "NMAP", "PING", "ROOT", "SUDO", "SWAP", "UEFI", "XFCE",
+    "GLIBC", "GNOME", "GUEST", "HTTPS", "LINUX", "MSTSC", "SAMBA", "SHELL",
+    "BIONIC", "DEBIAN", "KERNEL", "PUERTO", "ROUTER", "SUBRED", "SWITCH", "TELNET",
+    "ANDROID", "ARCHIVO", "BRIDGED", "CLIENTE", "COMANDO", "CONSOLA", "DOMINIO", "GATEWAY", "NETBIOS", "PAQUETE", "PROCESO", "SANDBOX", "USUARIO", "WAYLAND", "WINDOWS",
+    "ETHERNET", "FIREWALL", "HOSTNAME", "LOOPBACK", "SERVIDOR", "SERVICIO", "SNAPSHOT", "TERMINAL"
+  ]);
+
+  const ROWS = 14;
+  let CELL_SIZE = 34;
+  let COLS = 5;
+
+  const boardCanvas = document.getElementById('board');
+  const ctx = boardCanvas.getContext('2d');
+
+  const nextCanvas = document.getElementById('next');
+  const nctx = nextCanvas.getContext('2d');
+
+  const pointsDisplay = document.getElementById('pointsDisplay');
+  const gradeDisplay = document.getElementById('gradeDisplay');
+  const failuresDisplay = document.getElementById('failuresDisplay');
+  const wordsCompletedDisplay = document.getElementById('wordsCompletedDisplay');
+
+  const statusLine = document.getElementById('statusLine');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlaySub = document.getElementById('overlaySub');
+  const resetBtn = document.getElementById('resetBtn');
+  const hintRowEl = document.getElementById('hintRow');
+  const kbGridEl = document.getElementById('kbGrid');
+  const bannerEl = document.getElementById('banner');
+  const scorePopupEl = document.getElementById('scorePopup');
+  const completedListEl = document.getElementById('completedList');
+
+  const missionNumEl = document.getElementById('missionNum');
+  const systemBadgeEl = document.getElementById('systemBadge');
+  const missionDescEl = document.getElementById('missionDesc');
+
+  function calculateGrade(pts) {
+    const p = Math.max(0, Math.min(40, pts));
+    const grade = 1.0 + (p * 0.1);
+    return grade.toFixed(1).replace('.', ',');
+  }
+
+  function generateLetterPool(targetWord) {
+    const baseFreq = "AAAAEEEEEEEIIIIOOOOOUUUUBCDFGHJKLMNPQRSTVWXYZ";
+    return targetWord + targetWord + targetWord + baseFreq;
+  }
+
+  function randLetter(pool) {
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  const SHAPE_DEFS = {
+    MONO:  [[0,0]],
+    DOMH:  [[0,0],[1,0]],
+    DOMV:  [[0,0],[0,1]],
+    TRIV:  [[0,0],[0,1],[0,2]],
+    TRIH:  [[0,0],[1,0],[2,0]],
+    ELBOW: [[0,0],[0,1],[1,1]]
+  };
+  const SHAPE_NAMES = Object.keys(SHAPE_DEFS);
+
+  function rotateCells(cells) {
+    return cells.map(([x, y]) => [2 - y, x]);
+  }
+
+  function newPiece(pool) {
+    const name = SHAPE_NAMES[Math.floor(Math.random() * SHAPE_NAMES.length)];
+    const cells = SHAPE_DEFS[name].map(c => c.slice());
+    const letters = cells.map(() => randLetter(pool));
+    return { name, cells, letters, x: Math.floor((COLS - 2) / 2), y: 0 };
+  }
+
+  let grid, current, next, dropTimer, dropInterval, points, wordsSolved, failureCount, isSystemLocked;
+  let gameOver, paused, rafId, lastTime;
+  let missionIdx, activeMission, secretWord, hintState, kbState;
+  let clearing = null;
+  let currentLetterPool = "";
+  let completedWords = [];
+  let startTime = 0;
+  let finishTime = 0;
+
+  function formatElapsed(ms) {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const mm = Math.floor(totalSec / 60).toString().padStart(2, '0');
+    const ss = (totalSec % 60).toString().padStart(2, '0');
+    return `${mm}:${ss}`;
+  }
+
+  function formatNowDateTime() {
+    const now = new Date();
+    const dd = now.getDate().toString().padStart(2, '0');
+    const mo = (now.getMonth() + 1).toString().padStart(2, '0');
+    const yy = now.getFullYear();
+    let hh = now.getHours();
+    const mi = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hh >= 12 ? 'PM' : 'AM';
+    hh = hh % 12; if (hh === 0) hh = 12;
+    return `${dd}/${mo}/${yy} ${hh}:${mi} ${ampm}`;
+  }
+
+  function getStudentInfo() {
+    const nameEl = document.getElementById('studentName');
+    const gradeEl = document.getElementById('studentGrade');
+    const name = (nameEl && nameEl.value.trim()) ? nameEl.value.trim() : (localStorage.getItem('wordtris_studentName') || 'SIN REGISTRAR');
+    const grade = (gradeEl && gradeEl.value.trim()) ? gradeEl.value.trim() : (localStorage.getItem('wordtris_studentGrade') || 'SIN REGISTRAR');
+    return { name, grade };
+  }
+
+  // ---------------------------------------------------------------
+  // PERSISTENCE STATE LOAD / SAVE
+  // ---------------------------------------------------------------
+  function savePersistentState() {
+    try {
+      localStorage.setItem('wordtris_failures', String(failureCount));
+      localStorage.setItem('wordtris_locked', isSystemLocked ? 'true' : 'false');
+      localStorage.setItem('wordtris_points', String(points));
+      localStorage.setItem('wordtris_wordsSolved', String(wordsSolved));
+      localStorage.setItem('wordtris_completedWords', JSON.stringify(completedWords));
+      if (finishTime) localStorage.setItem('wordtris_finishTime', String(finishTime));
+      if (startTime) localStorage.setItem('wordtris_startTime', String(startTime));
+    } catch(e) {}
+  }
+
+  function loadPersistentState() {
+    try {
+      failureCount = parseInt(localStorage.getItem('wordtris_failures') || '0', 10);
+      isSystemLocked = localStorage.getItem('wordtris_locked') === 'true' || failureCount >= MAX_FAILURES;
+      points = parseInt(localStorage.getItem('wordtris_points') || '0', 10);
+      wordsSolved = parseInt(localStorage.getItem('wordtris_wordsSolved') || '0', 10);
+      completedWords = JSON.parse(localStorage.getItem('wordtris_completedWords') || '[]');
+      finishTime = parseInt(localStorage.getItem('wordtris_finishTime') || '0', 10);
+      startTime = parseInt(localStorage.getItem('wordtris_startTime') || '0', 10);
+    } catch(e) {
+      failureCount = 0;
+      isSystemLocked = false;
+      points = 0;
+      wordsSolved = 0;
+      completedWords = [];
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // REFRESH & F5 PROTECTION HANDLERS
+  // ---------------------------------------------------------------
+  // Detect if previous page session was interrupted mid-game via refresh (F5)
+  try {
+    loadPersistentState();
+    const wasActive = sessionStorage.getItem('wordtris_active_game') === 'true';
+    if (wasActive && !isSystemLocked && !gameOver) {
+      failureCount = Math.min(MAX_FAILURES, failureCount + 1);
+      if (failureCount >= MAX_FAILURES) {
+        isSystemLocked = true;
+      }
+      savePersistentState();
+    }
+  } catch(e) {}
+
+  // Intercept F5 / Ctrl+R / Cmd+R keyboard shortcuts
+  window.addEventListener('keydown', (e) => {
+    const isF5 = e.key === 'F5' || e.keyCode === 116;
+    const isCtrlR = (e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R' || e.keyCode === 82);
+
+    if (isF5 || isCtrlR) {
+      e.preventDefault();
+      e.stopPropagation();
+      showBanner('🔒 F5 / RECARGA BLOQUEADA POR EL SISTEMA', '#ff5555');
+      return false;
+    }
+  }, true);
+
+  // Prompt before leaving/reloading
+  window.addEventListener('beforeunload', (e) => {
+    if (!isSystemLocked && !gameOver && (points > 0 || failureCount > 0)) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+  });
+
+  function renderCompletedList() {
+    completedListEl.innerHTML = '';
+    if (completedWords.length === 0) {
+      const div = document.createElement('div');
+      div.className = 'completed-empty';
+      div.textContent = '— NINGUNA AÚN —';
+      completedListEl.appendChild(div);
+      return;
+    }
+    completedWords.forEach((w, i) => {
+      const div = document.createElement('div');
+      div.className = 'completed-item';
+      div.innerHTML = `<span>${w}</span><span style="color:#6ecb98; font-size:9px;">#${i + 1}</span>`;
+      completedListEl.appendChild(div);
+    });
+  }
+
+  function showScorePopup(text) {
+    scorePopupEl.textContent = text;
+    scorePopupEl.classList.remove('show');
+    void scorePopupEl.offsetWidth;
+    scorePopupEl.classList.add('show');
+  }
+
+  function setBoardDimensions() {
+    COLS = secretWord.length;
+    const maxBoardWidth = Math.min(340, window.innerWidth - 40);
+    CELL_SIZE = Math.floor(maxBoardWidth / COLS);
+    CELL_SIZE = Math.max(26, Math.min(38, CELL_SIZE));
+
+    boardCanvas.width = COLS * CELL_SIZE;
+    boardCanvas.height = ROWS * CELL_SIZE;
+  }
+
+  function loadMission(idx) {
+    missionIdx = idx;
+    if (missionIdx >= MISSIONS.length) {
+      showFinalEvaluation();
+      return;
+    }
+
+    activeMission = MISSIONS[missionIdx];
+    secretWord = activeMission.word;
+    currentLetterPool = generateLetterPool(secretWord);
+
+    missionNumEl.textContent = `PALABRA ${missionIdx + 1} / ${MISSIONS.length}`;
+    systemBadgeEl.textContent = activeMission.system;
+    systemBadgeEl.className = 'tag-badge ' + activeMission.system.toLowerCase();
+    missionDescEl.textContent = activeMission.def;
+
+    setBoardDimensions();
+    grid = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    hintState = Array(COLS).fill('');
+    kbState = {};
+
+    current = newPiece(currentLetterPool);
+    next = newPiece(currentLetterPool);
+
+    renderHints();
+    renderKeyboard();
+  }
+
+  function init() {
+    loadPersistentState();
+
+    if (isSystemLocked) {
+      triggerPermanentLockoutUI();
+      return;
+    }
+
+    dropInterval = 850;
+    dropTimer = 0;
+    lastTime = 0;
+    gameOver = false;
+    paused = false;
+    clearing = null;
+    if (!startTime) startTime = Date.now();
+
+    try { sessionStorage.setItem('wordtris_active_game', 'true'); } catch(e) {}
+
+    renderCompletedList();
+    loadMission(wordsSolved);
+
+    overlay.classList.remove('show');
+    statusLine.innerHTML = 'ESTADO: <span class="blink">EN LÍNEA</span>';
+    updateHUD();
+
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function updateHUD() {
+    pointsDisplay.textContent = `${String(points).padStart(2, '0')} / 40`;
+    gradeDisplay.textContent = calculateGrade(points);
+    failuresDisplay.textContent = `${failureCount} / ${MAX_FAILURES}`;
+    wordsCompletedDisplay.textContent = `${wordsSolved} / ${MISSIONS.length}`;
+  }
+
+  function renderHints() {
+    hintRowEl.innerHTML = '';
+    for (let i = 0; i < COLS; i++) {
+      const div = document.createElement('div');
+      div.className = 'hintTile' + (hintState[i] ? ' ' + hintState[i] : '');
+      div.textContent = hintState[i] === 'green' ? secretWord[i] : '?';
+      hintRowEl.appendChild(div);
+    }
+  }
+
+  function renderKeyboard() {
+    kbGridEl.innerHTML = '';
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (const ch of alphabet) {
+      const div = document.createElement('div');
+      const st = kbState[ch] || '';
+      div.className = 'kbKey' + (st ? ' ' + st : '');
+      div.textContent = ch;
+      kbGridEl.appendChild(div);
+    }
+  }
+
+  function statusRank(s) {
+    if (s === 'green') return 3;
+    if (s === 'yellow') return 2;
+    if (s === 'gray') return 1;
+    return 0;
+  }
+
+  function collides(cells, offX, offY) {
+    for (const [cx, cy] of cells) {
+      const x = cx + offX;
+      const y = cy + offY;
+      if (x < 0 || x >= COLS || y >= ROWS) return true;
+      if (y >= 0 && grid[y][x]) return true;
+    }
+    return false;
+  }
+
+  function merge() {
+    current.cells.forEach(([cx, cy], i) => {
+      const x = cx + current.x;
+      const y = cy + current.y;
+      if (y >= 0 && y < ROWS && x >= 0 && x < COLS) {
+        grid[y][x] = { letter: current.letters[i] };
+      }
+    });
+  }
+
+  function evaluateRow(letters) {
+    const result = Array(COLS).fill('gray');
+    const secretArr = secretWord.split('');
+    const used = Array(COLS).fill(false);
+
+    for (let i = 0; i < COLS; i++) {
+      if (letters[i] === secretArr[i]) {
+        result[i] = 'green';
+        used[i] = true;
+      }
+    }
+    for (let i = 0; i < COLS; i++) {
+      if (result[i] === 'green') continue;
+      for (let j = 0; j < COLS; j++) {
+        if (!used[j] && result[j] !== 'green' && letters[i] === secretArr[j]) {
+          used[j] = true;
+          result[i] = 'yellow';
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
+  function applyFeedbackToState(letters, feedback) {
+    feedback.forEach((st, i) => {
+      if (statusRank(st) > statusRank(hintState[i])) {
+        if (st === 'green' && hintState[i] !== 'green') {
+          points = Math.min(40, points + 1);
+        }
+        hintState[i] = st;
+      }
+    });
+    letters.forEach((ch, i) => {
+      const st = feedback[i];
+      const cur = kbState[ch] || '';
+      if (statusRank(st) > statusRank(cur)) kbState[ch] = st;
+    });
+    renderHints();
+    renderKeyboard();
+  }
+
+  function showBanner(text, color) {
+    bannerEl.textContent = text;
+    bannerEl.style.color = color;
+    bannerEl.classList.remove('show');
+    void bannerEl.offsetWidth;
+    bannerEl.classList.add('show');
+  }
+
+  function detectFullRows() {
+    const rows = [];
+    for (let y = ROWS - 1; y >= 0; y--) {
+      if (grid[y].every(cell => cell !== null)) rows.push(y);
+    }
+    return rows;
+  }
+
+  function beginClear(rowYs) {
+    const alreadySolved = hintState.every(s => s === 'green');
+
+    for (const y of rowYs) {
+      const letters = grid[y].map(c => c.letter);
+      const word = letters.join('');
+      const feedback = evaluateRow(letters);
+
+      grid[y].forEach((cell, x) => { cell.status = feedback[x]; });
+      applyFeedbackToState(letters, feedback);
+
+      if (word !== secretWord && GLOSSARY_DICTIONARY.has(word)) {
+        points = Math.min(40, points + 2);
+        showBanner(`¡TÉRMINO ${word} DETECTADO! (+2 PTS)`, '#f5cb38');
+        showScorePopup('+2 PTS');
+      }
+    }
+
+    const nowSolved = hintState.every(s => s === 'green');
+    const wordAchieved = nowSolved && !alreadySolved;
+
+    if (wordAchieved) {
+      points = Math.min(40, points + 6);
+      wordsSolved++;
+      completedWords.push(secretWord);
+    }
+
+    savePersistentState();
+    updateHUD();
+    renderCompletedList();
+
+    if (wordAchieved) {
+      showBanner(`¡PALABRA ${secretWord} COMPLETADA!`, '#33e084');
+      showScorePopup('+6 PTS');
+      clearing = { rows: rowYs, timer: 0, duration: 1300, nextMission: true };
+    } else {
+      clearing = { rows: rowYs, timer: 0, duration: 450, nextMission: false };
+    }
+  }
+
+  function showFinalEvaluation() {
+    paused = true;
+    gameOver = true;
+    try { sessionStorage.setItem('wordtris_active_game', 'false'); } catch(e) {}
+
+    if (!finishTime) finishTime = Date.now();
+    savePersistentState();
+
+    const elapsedStr = formatElapsed(finishTime - startTime);
+    const finalGrade = calculateGrade(points);
+    const wordsListStr = completedWords.map((w, i) => `${i + 1}. ${w}`).join(' &nbsp;·&nbsp; ');
+    const { name: studentNameVal, grade: studentGradeVal } = getStudentInfo();
+    const nowStr = formatNowDateTime();
+
+    overlayTitle.textContent = `¡FELICITACIONES, MISIÓN CUMPLIDA!`;
+    overlayTitle.style.color = '#33e084';
+    overlaySub.innerHTML = `
+      <div style="font-size:11px; color:#9ecbb0; line-height:1.6; margin-bottom:8px; border-bottom:1px solid var(--grid-line); padding-bottom:6px;">
+        <div>NOMBRE: <b style="color:#fff;">${studentNameVal}</b></div>
+        <div>GRADO: <b style="color:#fff;">${studentGradeVal}</b></div>
+        <div>FECHA Y HORA: <b style="color:#fff;">${nowStr}</b></div>
+      </div>
+      <div style="font-size:14px; color:#fff; margin-bottom:8px;"><b>PALABRAS RESUELTAS: ${wordsSolved} / ${MISSIONS.length}</b></div>
+      <div style="font-size:18px; color:var(--red-glow); margin-bottom:4px;">PUNTAJE FINAL: <b>${points} / 40 PUNTOS</b></div>
+      <div style="font-size:22px; color:#33e084; margin-bottom:8px;"><b>CALIFICACIÓN: ${finalGrade}</b></div>
+      <div style="font-size:12px; color:#f5cb38; margin-bottom:10px;">TIEMPO TOTAL: <b>${elapsedStr}</b></div>
+      <div style="font-size:9.5px; color:#9ecbb0; line-height:1.5;">${wordsListStr}</div>
+    `;
+
+    resetBtn.style.display = 'none';
+    overlay.classList.add('show');
+  }
+
+  function finishClear(advanceMission) {
+    const rowsSorted = clearing.rows.slice().sort((a, b) => a - b);
+    for (const y of rowsSorted) {
+      grid.splice(y, 1);
+      grid.unshift(Array(COLS).fill(null));
+    }
+    clearing = null;
+
+    if (advanceMission) {
+      loadMission(wordsSolved);
+    } else {
+      spawnNext();
+    }
+  }
+
+  function spawnNext() {
+    current = next;
+    current.x = Math.floor((COLS - 2) / 2);
+    current.y = 0;
+    next = newPiece(currentLetterPool);
+
+    if (collides(current.cells, current.x, current.y)) {
+      endGame();
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // GAME OVER & PERMANENT LOCKOUT LOGIC
+  // ---------------------------------------------------------------
+  function endGame() {
+    gameOver = true;
+    failureCount++;
+    if (!finishTime) finishTime = Date.now();
+
+    if (failureCount >= MAX_FAILURES) {
+      isSystemLocked = true;
+      try { sessionStorage.setItem('wordtris_active_game', 'false'); } catch(e) {}
+    }
+
+    savePersistentState();
+    updateHUD();
+
+    if (isSystemLocked) {
+      triggerPermanentLockoutUI();
+    } else {
+      const { name: studentNameVal, grade: studentGradeVal } = getStudentInfo();
+      overlayTitle.textContent = 'MISIÓN FALLIDA';
+      overlayTitle.style.color = 'var(--red)';
+      overlaySub.innerHTML = `
+        <div style="font-size:11px; color:#e0a0a0; line-height:1.5; margin-bottom:8px; border-bottom:1px solid var(--grid-line); padding-bottom:6px;">
+          <div>NOMBRE: <b style="color:#fff;">${studentNameVal}</b></div>
+          <div>GRADO: <b style="color:#fff;">${studentGradeVal}</b></div>
+        </div>
+        <div style="font-size:13px; color:#ff5555; font-weight:bold; margin-bottom:6px;">INTENTO FALLIDO ${failureCount} DE ${MAX_FAILURES}</div>
+        <div style="font-size:13px; color:#fff; margin-bottom:4px;">ACIERTOS: <b>${points} / 40 PUNTOS</b></div>
+        <div style="font-size:16px; color:#33e084; margin-bottom:8px;"><b>NOTA PARCIAL: ${calculateGrade(points)}</b></div>
+      `;
+      statusLine.innerHTML = 'ESTADO: <span style="color:var(--red)">INTENTO FALLIDO</span>';
+      resetBtn.style.display = 'inline-block';
+      resetBtn.textContent = `REINTENTAR (INTENTOS RESTANTES: ${MAX_FAILURES - failureCount})`;
+      resetBtn.onclick = () => {
+        overlay.classList.remove('show');
+        init();
+      };
+      overlay.classList.add('show');
+    }
+  }
+
+  function triggerPermanentLockoutUI() {
+    gameOver = true;
+    paused = true;
+    isSystemLocked = true;
+    try { sessionStorage.setItem('wordtris_active_game', 'false'); } catch(e) {}
+    savePersistentState();
+    updateHUD();
+
+    const { name: studentNameVal, grade: studentGradeVal } = getStudentInfo();
+    const nowStr = formatNowDateTime();
+    const elapsedStr = finishTime ? formatElapsed(finishTime - startTime) : '00:00';
+
+    overlayTitle.textContent = '¡SISTEMA BLOQUEADO PERMANENTEMENTE!';
+    overlayTitle.style.color = 'var(--red)';
+    overlaySub.innerHTML = `
+      <div style="font-size:11px; color:#e0a0a0; line-height:1.5; margin-bottom:8px; border-bottom:1px solid var(--grid-line); padding-bottom:6px;">
+        <div>ESTUDIANTE: <b style="color:#fff;">${studentNameVal}</b></div>
+        <div>GRADO: <b style="color:#fff;">${studentGradeVal}</b></div>
+        <div>FECHA: <b style="color:#fff;">${nowStr}</b></div>
+      </div>
+      <div style="font-size:13px; color:#ff5555; font-weight:bold; margin-bottom:6px;">SE AGOTARON LOS 3 INTENTOS PERMITIDOS</div>
+      <div style="font-size:15px; color:#fff; margin-bottom:4px;">ACIERTOS FINALES: <b>${points} / 40 PUNTOS</b></div>
+      <div style="font-size:22px; color:#33e084; margin-bottom:8px;"><b>CALIFICACIÓN DEFINITIVA: ${calculateGrade(points)}</b></div>
+      <div style="font-size:11px; color:#f5cb38; margin-bottom:12px;">TIEMPO REGISTRADO: <b>${elapsedStr}</b></div>
+      <div style="font-size:10px; color:#aaa; background:#180305; padding:8px; border:1px solid var(--red-dim); border-radius:3px; line-height:1.4;">
+        🔒 <b>ACCESO DENEGADO (F5 BLOQUEADO)</b><br>Solo un docente/administrador puede desbloquear el juego desde el botón flotante ⚙.
+      </div>
+    `;
+
+    statusLine.innerHTML = 'ESTADO: <span style="color:var(--red)">BLOQUEADO DEFINITIVAMENTE</span>';
+    resetBtn.style.display = 'none';
+    overlay.classList.add('show');
+
+    const gateModal = document.getElementById('startGateModal');
+    if (gateModal) gateModal.classList.add('hidden');
+  }
+
+  function hardDrop() {
+    if (clearing || gameOver || paused || isSystemLocked) return;
+    while (!collides(current.cells, current.x, current.y + 1)) {
+      current.y++;
+    }
+    lockPiece();
+  }
+
+  function lockPiece() {
+    merge();
+    const full = detectFullRows();
+    if (full.length > 0) {
+      beginClear(full);
+    } else {
+      spawnNext();
+    }
+    updateHUD();
+  }
+
+  function tryMove(dx, dy) {
+    if (gameOver || paused || clearing || isSystemLocked) return false;
+    if (!collides(current.cells, current.x + dx, current.y + dy)) {
+      current.x += dx;
+      current.y += dy;
+      return true;
+    }
+    return false;
+  }
+
+  function tryRotate() {
+    if (gameOver || paused || clearing || isSystemLocked) return;
+    const rotated = rotateCells(current.cells);
+    const minX = Math.min(...rotated.map(c => c[0]));
+    let shifted = rotated.map(([x, y]) => [x - Math.min(0, minX), y]);
+    const overflow = Math.max(0, Math.max(...shifted.map(c => c[0])) - (COLS - 1));
+    if (overflow > 0) shifted = shifted.map(([x, y]) => [x - overflow, y]);
+
+    if (!collides(shifted, current.x, current.y)) {
+      current.cells = shifted;
+    }
+  }
+
+  function softDrop() {
+    if (clearing || gameOver || paused || isSystemLocked) return;
+    if (!tryMove(0, 1)) {
+      lockPiece();
+    }
+  }
+
+  function togglePause() {
+    if (gameOver || isSystemLocked) return;
+    paused = !paused;
+    if (paused) {
+      overlayTitle.textContent = 'SISTEMA EN PAUSA';
+      overlayTitle.style.color = 'var(--red)';
+      overlaySub.textContent = 'Presiona P o el botón para reanudar.';
+      statusLine.innerHTML = 'ESTADO: <span style="color:#a33">EN ESPERA</span>';
+      resetBtn.style.display = 'inline-block';
+      resetBtn.textContent = 'REINICIAR JUEGO';
+      resetBtn.onclick = init;
+      overlay.classList.add('show');
+    } else {
+      overlay.classList.remove('show');
+      statusLine.innerHTML = 'ESTADO: <span class="blink">EN LÍNEA</span>';
+    }
+  }
+
+  const STATUS_COLOR = {
+    green: '#1fae5b',
+    yellow: '#d4a017',
+    gray: '#444444'
+  };
+
+  function drawCell(context, x, y, cell, sz, fontSize, isGhost) {
+    const px = x * sz;
+    const py = y * sz;
+
+    if (isGhost) {
+      context.fillStyle = 'rgba(255, 26, 26, 0.08)';
+      context.strokeStyle = 'rgba(255, 26, 26, 0.4)';
+      context.lineWidth = 1;
+      context.fillRect(px + 1, py + 1, sz - 2, sz - 2);
+      context.strokeRect(px + 1, py + 1, sz - 2, sz - 2);
+
+      context.fillStyle = 'rgba(255, 120, 120, 0.45)';
+      context.font = `bold ${fontSize}px "Courier New", monospace`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(cell.letter, px + sz / 2, py + sz / 2 + 1);
+      return;
+    }
+
+    const bg = cell.status ? STATUS_COLOR[cell.status] : '#2b0a0e';
+    const border = cell.status ? 'rgba(0,0,0,0.6)' : '#ff3333';
+
+    context.fillStyle = bg;
+    context.fillRect(px + 1, py + 1, sz - 2, sz - 2);
+
+    context.fillStyle = 'rgba(255,255,255,0.18)';
+    context.fillRect(px + 1, py + 1, sz - 2, 3);
+
+    context.strokeStyle = border;
+    context.lineWidth = 1;
+    context.strokeRect(px + 1, py + 1, sz - 2, sz - 2);
+
+    context.fillStyle = cell.status ? '#000000' : '#ffffff';
+    context.font = `bold ${fontSize}px "Courier New", monospace`;
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(cell.letter, px + sz / 2, py + sz / 2 + 1);
+  }
+
+  function getGhostY() {
+    let gy = current.y;
+    while (!collides(current.cells, current.x, gy + 1)) {
+      gy++;
+    }
+    return gy;
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, boardCanvas.width, boardCanvas.height);
+
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const px = x * CELL_SIZE;
+        const py = y * CELL_SIZE;
+
+        ctx.fillStyle = '#120507';
+        ctx.fillRect(px + 1, py + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+        ctx.strokeStyle = '#2d0c10';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 1, py + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+        ctx.fillStyle = 'rgba(255, 26, 26, 0.18)';
+        ctx.fillRect(px + 2, py + 2, 2, 2);
+      }
+    }
+
+    if (grid) {
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if (grid[y][x]) {
+            drawCell(ctx, x, y, grid[y][x], CELL_SIZE, Math.floor(CELL_SIZE * 0.55), false);
+          }
+        }
+      }
+    }
+
+    if (!gameOver && !clearing && !isSystemLocked && current) {
+      const ghostY = getGhostY();
+      if (ghostY !== current.y) {
+        current.cells.forEach(([cx, cy], i) => {
+          const x = cx + current.x;
+          const y = cy + ghostY;
+          if (y >= 0) drawCell(ctx, x, y, { letter: current.letters[i] }, CELL_SIZE, Math.floor(CELL_SIZE * 0.55), true);
+        });
+      }
+
+      current.cells.forEach(([cx, cy], i) => {
+        const x = cx + current.x;
+        const y = cy + current.y;
+        if (y >= 0) drawCell(ctx, x, y, { letter: current.letters[i] }, CELL_SIZE, Math.floor(CELL_SIZE * 0.55), false);
+      });
+    }
+
+    nctx.fillStyle = '#080203';
+    nctx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+
+    if (next && !isSystemLocked) {
+      const prevCell = 22;
+      const minX = Math.min(...next.cells.map(c => c[0]));
+      const maxX = Math.max(...next.cells.map(c => c[0]));
+      const minY = Math.min(...next.cells.map(c => c[1]));
+      const maxY = Math.max(...next.cells.map(c => c[1]));
+
+      const pieceW = (maxX - minX + 1) * prevCell;
+      const pieceH = (maxY - minY + 1) * prevCell;
+      const offsetX = (nextCanvas.width - pieceW) / 2;
+      const offsetY = (nextCanvas.height - pieceH) / 2;
+
+      next.cells.forEach(([cx, cy], i) => {
+        const px = offsetX + (cx - minX) * prevCell;
+        const py = offsetY + (cy - minY) * prevCell;
+
+        nctx.fillStyle = '#2b0a0e';
+        nctx.fillRect(px, py, prevCell - 2, prevCell - 2);
+        nctx.strokeStyle = '#ff3333';
+        nctx.strokeRect(px, py, prevCell - 2, prevCell - 2);
+
+        nctx.fillStyle = '#ffffff';
+        nctx.font = 'bold 13px "Courier New", monospace';
+        nctx.textAlign = 'center';
+        nctx.textBaseline = 'middle';
+        nctx.fillText(next.letters[i], px + prevCell / 2, py + prevCell / 2 + 1);
+      });
+    }
+  }
+
+  function loop(time) {
+    if (!lastTime) lastTime = time;
+    const delta = time - lastTime;
+    lastTime = time;
+
+    if (clearing) {
+      clearing.timer += delta;
+      if (clearing.timer >= clearing.duration) {
+        finishClear(clearing.nextMission);
+      }
+    } else if (!gameOver && !paused && !isSystemLocked) {
+      dropTimer += delta;
+      if (dropTimer > dropInterval) {
+        dropTimer = 0;
+        if (!tryMove(0, 1)) {
+          lockPiece();
+        }
+      }
+    }
+    render();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (gameOver || isSystemLocked) return;
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea') return;
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault();
+        tryMove(-1, 0);
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        tryMove(1, 0);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        softDrop();
+        break;
+      case 'ArrowUp':
+      case 'x':
+      case 'X':
+        e.preventDefault();
+        tryRotate();
+        break;
+      case ' ':
+        e.preventDefault();
+        hardDrop();
+        break;
+      case 'p':
+      case 'P':
+        e.preventDefault();
+        togglePause();
+        break;
+    }
+  });
+
+  document.getElementById('btnLeft').addEventListener('click', () => tryMove(-1, 0));
+  document.getElementById('btnRight').addEventListener('click', () => tryMove(1, 0));
+  document.getElementById('btnRotate').addEventListener('click', () => tryRotate());
+  document.getElementById('btnSoftDrop').addEventListener('click', () => softDrop());
+  document.getElementById('btnHardDrop').addEventListener('click', () => hardDrop());
+  document.getElementById('btnPause').addEventListener('click', () => togglePause());
+
+  resetBtn.addEventListener('click', () => {
+    if (!isSystemLocked) init();
+  });
+
+  window.addEventListener('resize', () => {
+    if (secretWord) setBoardDimensions();
+  });
+
+  // ---------------------------------------------------------------
+  // START GATE
+  // ---------------------------------------------------------------
+  function startGate() {
+    const gateModal = document.getElementById('startGateModal');
+    const gateName = document.getElementById('gateName');
+    const gateGrade = document.getElementById('gateGrade');
+    const gateError = document.getElementById('gateError');
+    const gateStartBtn = document.getElementById('gateStartBtn');
+    const headerName = document.getElementById('studentName');
+    const headerGrade = document.getElementById('studentGrade');
+
+    loadPersistentState();
+
+    let savedName = localStorage.getItem('wordtris_studentName') || '';
+    let savedGrade = localStorage.getItem('wordtris_studentGrade') || '';
+
+    gateName.value = savedName;
+    gateGrade.value = savedGrade;
+    headerName.value = savedName;
+    headerGrade.value = savedGrade;
+
+    if (isSystemLocked) {
+      gateModal.classList.add('hidden');
+      triggerPermanentLockoutUI();
+      return;
+    }
+
+    function attemptStart() {
+      const nameVal = gateName.value.trim();
+      const gradeVal = gateGrade.value.trim();
+
+      if (!nameVal || !gradeVal) {
+        gateError.textContent = 'Debes ingresar tu nombre y grado para iniciar.';
+        if (!nameVal) gateName.focus(); else gateGrade.focus();
+        return;
+      }
+
+      headerName.value = nameVal;
+      headerGrade.value = gradeVal;
+      try {
+        localStorage.setItem('wordtris_studentName', nameVal);
+        localStorage.setItem('wordtris_studentGrade', gradeVal);
+      } catch (e) {}
+
+      gateModal.classList.add('hidden');
+      init();
+    }
+
+    gateStartBtn.addEventListener('click', attemptStart);
+    gateName.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptStart(); });
+    gateGrade.addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptStart(); });
+
+    setTimeout(() => { (gateName.value ? gateGrade : gateName).focus(); }, 50);
+  }
+
+  // ---------------------------------------------------------------
+  // ADMIN PANEL (FAB ⚙ Button with Password 'code2026')
+  // ---------------------------------------------------------------
+  (function initAdminPanel() {
+    const ADMIN_PASSWORD = 'code2026';
+
+    const fab = document.getElementById('adminFab');
+    const passModal = document.getElementById('adminPassModal');
+    const passInput = document.getElementById('adminPassInput');
+    const passError = document.getElementById('adminPassError');
+    const passSubmit = document.getElementById('adminPassSubmit');
+    const passCancel = document.getElementById('adminPassCancel');
+
+    const editModal = document.getElementById('adminEditModal');
+    const rowsContainer = document.getElementById('adminRowsContainer');
+    const editError = document.getElementById('adminEditError');
+    const editSave = document.getElementById('adminEditSave');
+    const editCancel = document.getElementById('adminEditCancel');
+    const adminStatusText = document.getElementById('adminStatusText');
+    const adminUnlockBtn = document.getElementById('adminUnlockBtn');
+
+    function openPassModal() {
+      passInput.value = '';
+      passError.textContent = '';
+      passModal.classList.add('show');
+      setTimeout(() => passInput.focus(), 50);
+    }
+    function closePassModal() {
+      passModal.classList.remove('show');
+    }
+
+    function buildEditRows() {
+      rowsContainer.innerHTML = '';
+      MISSIONS.forEach((m, i) => {
+        const row = document.createElement('div');
+        row.className = 'admin-row';
+        row.innerHTML = `
+          <div class="label">MISIÓN ${i + 1}</div>
+          <div class="admin-row-grid">
+            <input type="text" data-idx="${i}" data-field="word" value="${m.word}" placeholder="PALABRA" maxlength="12">
+            <select data-idx="${i}" data-field="system">
+              <option value="LINUX" ${m.system === 'LINUX' ? 'selected' : ''}>LINUX</option>
+              <option value="WINDOWS" ${m.system === 'WINDOWS' ? 'selected' : ''}>WINDOWS</option>
+            </select>
+          </div>
+          <textarea data-idx="${i}" data-field="def" placeholder="Definición">${m.def}</textarea>
+        `;
+        rowsContainer.appendChild(row);
+      });
+    }
+
+    function updateAdminStatusUI() {
+      loadPersistentState();
+      if (isSystemLocked) {
+        adminStatusText.innerHTML = `<span style="color:#ff5555;">🔒 BLOQUEADO (${failureCount}/${MAX_FAILURES} Fallos/Recargas)</span>`;
+      } else {
+        adminStatusText.innerHTML = `<span style="color:#33e084;">🟢 ACTIVO (${failureCount}/${MAX_FAILURES} Fallos/Recargas)</span>`;
+      }
+    }
+
+    function openEditModal() {
+      updateAdminStatusUI();
+      buildEditRows();
+      editError.textContent = '';
+      editModal.classList.add('show');
+    }
+    function closeEditModal() {
+      editModal.classList.remove('show');
+    }
+
+    fab.addEventListener('click', openPassModal);
+    passCancel.addEventListener('click', closePassModal);
+
+    function trySubmitPassword() {
+      if (passInput.value === ADMIN_PASSWORD) {
+        closePassModal();
+        openEditModal();
+      } else {
+        passError.textContent = 'CONTRASEÑA INCORRECTA';
+        passInput.value = '';
+        passInput.focus();
+      }
+    }
+    passSubmit.addEventListener('click', trySubmitPassword);
+    passInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') trySubmitPassword();
+    });
+
+    editCancel.addEventListener('click', closeEditModal);
+
+    // RESET & UNLOCK GAME BUTTON IN ADMIN PANEL
+    adminUnlockBtn.addEventListener('click', () => {
+      if (confirm("¿Confirmas desbloquear y reiniciar el sistema por completo? Se borrará el contador de intentos fallidos y bloqueos.")) {
+        try {
+          localStorage.removeItem('wordtris_failures');
+          localStorage.removeItem('wordtris_locked');
+          localStorage.removeItem('wordtris_points');
+          localStorage.removeItem('wordtris_wordsSolved');
+          localStorage.removeItem('wordtris_completedWords');
+          localStorage.removeItem('wordtris_startTime');
+          localStorage.removeItem('wordtris_finishTime');
+          sessionStorage.removeItem('wordtris_active_game');
+        } catch(e) {}
+
+        failureCount = 0;
+        isSystemLocked = false;
+        points = 0;
+        wordsSolved = 0;
+        completedWords = [];
+        startTime = 0;
+        finishTime = 0;
+
+        closeEditModal();
+        overlay.classList.remove('show');
+
+        const gateModal = document.getElementById('startGateModal');
+        if (gateModal) gateModal.classList.remove('hidden');
+        init();
+      }
+    });
+
+    editSave.addEventListener('click', () => {
+      const wordInputs = rowsContainer.querySelectorAll('input[data-field="word"]');
+      const sysSelects = rowsContainer.querySelectorAll('select[data-field="system"]');
+      const defAreas = rowsContainer.querySelectorAll('textarea[data-field="def"]');
+
+      const wordRegex = /^[A-ZÑÁÉÍÓÚ]{2,12}$/;
+      const newMissions = [];
+
+      for (let i = 0; i < MISSIONS.length; i++) {
+        const rawWord = wordInputs[i].value.trim().toUpperCase();
+        const system = sysSelects[i].value;
+        const def = defAreas[i].value.trim();
+
+        if (!wordRegex.test(rawWord)) {
+          editError.textContent = `La palabra de la MISIÓN ${i + 1} debe tener solo letras (2-12 caracteres).`;
+          return;
+        }
+        if (!def) {
+          editError.textContent = `La definición de la MISIÓN ${i + 1} no puede estar vacía.`;
+          return;
+        }
+        newMissions.push({ word: rawWord, system, def });
+      }
+
+      for (let i = 0; i < MISSIONS.length; i++) {
+        MISSIONS[i].word = newMissions[i].word;
+        MISSIONS[i].system = newMissions[i].system;
+        MISSIONS[i].def = newMissions[i].def;
+      }
+
+      try {
+        localStorage.setItem('wordtris_custom_missions', JSON.stringify(MISSIONS));
+      } catch(e) {}
+
+      editError.textContent = '';
+      closeEditModal();
+
+      if (!isSystemLocked) {
+        init();
+      }
+    });
+
+    passModal.addEventListener('click', (e) => {
+      if (e.target === passModal) closePassModal();
+    });
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEditModal();
+    });
+  })();
+
+  startGate();
+})();
+</script>
+
+</body>
+</html>
