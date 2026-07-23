@@ -40,6 +40,39 @@
     .progress-text { font-size: 12px; color: #64748b; text-align: right; margin-top: 4px; }
     
     #qrcode { margin-top: 12px; display: flex; justify-content: center; }
+
+    /* Barra de estado de conexión (reemplaza al bloque de ID/QR cuando hay conexión) */
+    #connection-status {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    #connection-status .peer-label { color: #065f46; font-weight: 600; word-break: break-all; }
+    #disconnect-btn { padding: 6px 12px; font-size: 13px; flex-shrink: 0; }
+
+    /* Botón flotante para mostrar/ocultar el bloque de ID/QR sin desconectar */
+    #toggle-setup-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      font-size: 22px;
+      padding: 0;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
   </style>
   <!-- Librerías desde CDN -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -47,7 +80,7 @@
 </head>
 <body>
 
-  <div class="card">
+  <div class="card" id="setup-card">
     <h2>LocalShare Pro 🔒</h2>
     <p style="margin: -8px 0 12px 0; font-size: 12.5px; color: #64748b;">
       Conexión P2P directa (WebRTC) entre dos dispositivos — funciona a través de internet,
@@ -81,6 +114,11 @@
   </div>
 
   <div class="card">
+    <div id="connection-status">
+      <span>🟢 Conectado con: <span class="peer-label" id="connected-peer-label"></span></span>
+      <button id="disconnect-btn" class="btn-danger">Desconectar</button>
+    </div>
+
     <div id="chat-box"></div>
 
     <!-- Barra de Progreso de Transferencia -->
@@ -101,6 +139,8 @@
       <button id="send-file-btn" disabled>Enviar Archivo</button>
     </div>
   </div>
+
+  <button id="toggle-setup-btn" title="Mostrar/ocultar ID y código QR">🔧</button>
 
   <script src="app.js"></script>
 </body>
