@@ -29,12 +29,29 @@ const progressContainer = document.getElementById('progress-container');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
 
-// 1. Mostrar ID y Generar Código QR
+// URL base de la app (sin query params), usada para generar el enlace del QR
+const APP_BASE_URL = 'https://arquijr.github.io/lakecity/index.html';
+
+// 1. Mostrar ID y Generar Código QR con el enlace completo (no solo el ID),
+// para que al escanearlo desde el móvil se abra la página con el ID ya cargado.
 peer.on('open', (id) => {
   myIdSpan.textContent = id;
   qrcodeDiv.innerHTML = '';
-  new QRCode(qrcodeDiv, { text: id, width: 110, height: 110 });
+
+  const shareUrl = `${APP_BASE_URL}?peer=${encodeURIComponent(id)}`;
+  new QRCode(qrcodeDiv, { text: shareUrl, width: 130, height: 130 });
 });
+
+// 1c. Si la página se abrió desde un QR/enlace con ?peer=ID, precargamos
+// el campo de conexión (no conectamos automáticamente, para que el usuario
+// confirme y evitar conexiones no deseadas por un enlace compartido sin querer).
+(function prefillPeerFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const sharedPeer = params.get('peer');
+  if (sharedPeer) {
+    peerIdInput.value = sharedPeer;
+  }
+})();
 
 // 1b. Errores del peer (ID inválido, peer no disponible, servidor caído, etc.)
 peer.on('error', (err) => {
