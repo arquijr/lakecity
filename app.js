@@ -32,14 +32,39 @@ const progressText = document.getElementById('progress-text');
 // URL base de la app (sin query params), usada para generar el enlace del QR
 const APP_BASE_URL = 'https://arquijr.github.io/lakecity/index.html';
 
+// qrcodejs, por defecto, usa un tamaño de código (typeNumber) fijo y bajo
+// junto con el nivel de corrección más alto (H), pensado para strings cortos.
+// Nuestra URL completa (con ?peer=ID) supera esa capacidad y la librería
+// lanza "code length overflow". Para evitarlo, probamos tamaños crecientes
+// con un nivel de corrección más permisivo (L) hasta que el texto quepa.
+function renderQRCode(container, text) {
+  container.innerHTML = '';
+  for (let typeNumber = 4; typeNumber <= 40; typeNumber++) {
+    try {
+      new QRCode(container, {
+        text,
+        width: 130,
+        height: 130,
+        typeNumber,
+        correctLevel: QRCode.CorrectLevel.L
+      });
+      return; // Éxito
+    } catch (err) {
+      const isOverflow = /overflow/i.test(err && err.message);
+      if (!isOverflow) throw err;
+      container.innerHTML = ''; // Limpiar intento fallido y probar el siguiente tamaño
+    }
+  }
+  appendSystemMsg('⚠️ No se pudo generar el código QR (enlace demasiado largo).');
+}
+
 // 1. Mostrar ID y Generar Código QR con el enlace completo (no solo el ID),
 // para que al escanearlo desde el móvil se abra la página con el ID ya cargado.
 peer.on('open', (id) => {
   myIdSpan.textContent = id;
-  qrcodeDiv.innerHTML = '';
 
   const shareUrl = `${APP_BASE_URL}?peer=${encodeURIComponent(id)}`;
-  new QRCode(qrcodeDiv, { text: shareUrl, width: 130, height: 130 });
+  renderQRCode(qrcodeDiv, shareUrl);
 });
 
 // 1c. Si la página se abrió desde un QR/enlace con ?peer=ID, precargamos
