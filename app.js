@@ -7,6 +7,7 @@ let incomingFileHeader = null;
 let receivedChunks = [];
 let receivedSize = 0;
 let fileToSend = null;
+let manualDisconnect = false; // distingue una desconexión iniciada por el usuario de un corte remoto
 
 // Elementos DOM
 const myIdSpan = document.getElementById('my-id');
@@ -28,6 +29,12 @@ const rejectBtn = document.getElementById('reject-btn');
 const progressContainer = document.getElementById('progress-container');
 const progressFill = document.getElementById('progress-fill');
 const progressText = document.getElementById('progress-text');
+
+const setupCard = document.getElementById('setup-card');
+const connectionStatus = document.getElementById('connection-status');
+const connectedPeerLabel = document.getElementById('connected-peer-label');
+const disconnectBtn = document.getElementById('disconnect-btn');
+const toggleSetupBtn = document.getElementById('toggle-setup-btn');
 
 // URL base de la app (sin query params), usada para generar el enlace del QR
 const APP_BASE_URL = 'https://arquijr.github.io/lakecity/index.html';
@@ -133,14 +140,27 @@ function setupConnection() {
     enableControls();
     generateSecurityPIN();
     appendSystemMsg('Conexión P2P directa (cifrada por WebRTC) establecida.');
+    enterConnectedLayout();
   });
 
   conn.on('data', (data) => handleIncomingData(data));
   conn.on('close', () => {
-    appendSystemMsg('El otro dispositivo se ha desconectado.');
+    appendSystemMsg(manualDisconnect ? 'Has cerrado la conexión.' : 'El otro dispositivo se ha desconectado.');
+    manualDisconnect = false;
     disableControls();
     connectBtn.disabled = false;
     conn = null;
+    exitConnectedLayout();
+
+    // Si la conexión se cortó a mitad de una transferencia o con una
+    // solicitud pendiente, limpiamos todo ese estado para no dejar
+    // la interfaz en un estado inconsistente.
+    requestBanner.style.display = 'none';
+    incomingFileHeader = null;
+    receivedChunks = [];
+    receivedSize = 0;
+    fileToSend = null;
+    progressContainer.style.display = 'none';
   });
   conn.on('error', (err) => {
     console.error('Connection error:', err);
@@ -148,6 +168,44 @@ function setupConnection() {
     connectBtn.disabled = false;
   });
 }
+
+// Ajusta la interfaz cuando se establece una conexión: oculta el bloque de
+// ID/QR (ya no hace falta compartirlo) y muestra la barra de estado con el
+// botón de desconectar, además del botón flotante para poder re-mostrar el
+// bloque de ID/QR manualmente si el usuario lo necesita de nuevo.
+function enterConnectedLayout() {
+  setupCard.style.display = 'none';
+  connectionStatus.style.display = 'flex';
+  connectedPeerLabel.textContent = conn.peer;
+  toggleSetupBtn.style.display = 'flex';
+  toggleSetupBtn.textContent = '🔧';
+}
+
+// Revierte la interfaz al estado inicial (desconectado): vuelve a mostrar el
+// bloque de ID/QR y oculta la barra de estado y el botón flotante.
+function exitConnectedLayout() {
+  setupCard.style.display = '';
+  connectionStatus.style.display = 'none';
+  toggleSetupBtn.style.display = 'none';
+}
+
+// Botón de desconexión manual. El reseteo real de la interfaz (mensajes,
+// deshabilitar controles, volver a mostrar el bloque de ID/QR) ocurre en el
+// handler 'close' de la conexión, que se dispara automáticamente al llamar
+// conn.close(). Solo marcamos que fue una desconexión intencional para
+// mostrar el mensaje correcto.
+disconnectBtn.addEventListener('click', () => {
+  if (!conn) return;
+  manualDisconnect = true;
+  conn.close();
+});
+
+// Botón flotante: muestra u oculta el bloque de ID/QR sin cortar la conexión
+toggleSetupBtn.addEventListener('click', () => {
+  const isHidden = setupCard.style.display === 'none';
+  setupCard.style.display = isHidden ? 'block' : 'none';
+  toggleSetupBtn.textContent = isHidden ? '✖' : '🔧';
+});
 
 // Genera un PIN visual único basado en la pareja de IDs
 function generateSecurityPIN() {
