@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archivo Jedi · Adivina el Apellido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- CDN de html2canvas para exportar la tarjeta de resultados en PNG -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+  :root{
+    --bg-void:#000000;
+    --card-stock:#0b0b0a;
+    --card-stock-dark:#161510;
+    --card-edge:#FFE81F;
+    --card-edge-dim:#6b6318;
+    --ink:#FFE81F;
+    --ink-soft:#c9bf7a;
+    --hole-correct:#2fae4e;
+    --hole-correct-dark:#1b6f33;
+    --hole-present:#FFA500;
+    --hole-present-dark:#b97400;
+    --hole-absent:#332f26;
+    --hole-absent-dark:#1a1712;
+    --accent:#e0483e;
+    --grade-pass:#3182ce;
+    --grade-fail:#e53e3e;
+    --paper-shadow: 0 0 55px -12px rgba(255,232,31,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(255,232,31,0.06) 0%, transparent 45%),
+      radial-gradient(circle at 85% 100%, rgba(255,165,0,0.06) 0%, transparent 50%),
+      #000000;
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:16px 12px 60px;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* ===== ESTRELLAS DE FONDO ===== */
+  .stars{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+  }
+  .star{
+    position:absolute;
+    background:#fff;
+    border-radius:50%;
+    animation:twinkle 2.4s infinite alternate;
+  }
+  @keyframes twinkle{
+    0%{opacity:.2;}
+    100%{opacity:.9;}
+  }
+
+  .top-bar{
+    position:relative;
+    z-index:2;
+    width:100%;
+    max-width:560px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .student-badge{
+    background:var(--card-stock-dark);
+    border:1px solid var(--card-edge-dim);
+    padding:4px 10px;
+    border-radius:3px;
+    display:none;
+  }
+  .fullscreen-btn{
+    background:transparent;
+    border:1px solid var(--card-edge-dim);
+    color:var(--ink-soft);
+    padding:4px 8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    cursor:pointer;
+    border-radius:3px;
+    transition:all .2s ease;
+  }
+  .fullscreen-btn:hover{
+    border-color:var(--ink);
+    color:var(--ink);
+  }
+
+  .masthead, .card, .footline, .modal-overlay, .credits-bar{
+    position:relative;
+    z-index:1;
+  }
+
+  .masthead{
+    text-align:center;
+    margin-bottom:16px;
+    max-width:520px;
+  }
+  .robot-logo{
+    width:72px;
+    height:72px;
+    object-fit:contain;
+    filter:drop-shadow(0 0 12px rgba(255,232,31,0.6));
+    margin-bottom:6px;
+    transition:transform .3s ease;
+  }
+  .robot-logo:hover{
+    transform:scale(1.08) rotate(3deg);
+  }
+  .masthead .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.3em;
+    font-size:10px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+  }
+  .masthead h1{
+    font-family:'Orbitron', sans-serif;
+    font-weight:900;
+    font-size:clamp(20px, 4vw, 30px);
+    margin:6px 0 8px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    text-shadow:0 0 18px rgba(255,232,31,0.55), 0 0 34px rgba(255,165,0,0.25);
+  }
+  .masthead p{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.45;
+    margin:0;
+  }
+
+  .card{
+    background:var(--card-stock);
+    border:1px solid var(--card-edge);
+    box-shadow:var(--paper-shadow);
+    padding:22px clamp(12px,3.5vw,28px) 18px;
+    width:min(94vw, 560px);
+    clip-path: polygon(30px 0, 100% 0, 100% 100%, 0 100%, 0 30px);
+    position:relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0; left:0;
+    width:30px; height:30px;
+    background:
+      linear-gradient(135deg, transparent 49.3%, var(--card-edge) 50%, transparent 50.7%);
+  }
+
+  /* MARCA DE AGUA SELLO JEDI */
+  .jedi-seal-bg{
+    position:absolute;
+    right:12px;
+    bottom:12px;
+    width:100px;
+    height:100px;
+    opacity:0.06;
+    pointer-events:none;
+    background-image: radial-gradient(circle, var(--card-edge) 20%, transparent 20%), radial-gradient(circle, var(--card-edge) 40%, transparent 40%);
+    border:2px dashed var(--card-edge);
+    border-radius:50%;
+  }
+
+  .ruler{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+    padding-left:2px;
+  }
+  .ruler span{
+    width:var(--tile-size, 44px);
+    text-align:center;
+  }
+
+  .board{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    align-items:center;
+    margin-bottom:6px;
+  }
+  .row{
+    display:flex;
+    gap:6px;
+  }
+  .tile{
+    --tile-size:44px;
+    width:var(--tile-size);
+    height:var(--tile-size);
+    border:2px solid var(--card-edge-dim);
+    background:var(--card-stock-dark);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:700;
+    font-size:20px;
+    color:var(--ink);
+    border-radius:2px;
+    transition:transform .15s ease;
+  }
+  .tile.filled{
+    border-color:var(--ink);
+    transform:scale(1.03);
+  }
+  .tile.flip{
+    animation:flip .55s ease forwards;
+  }
+  @keyframes flip{
+    0%{transform:rotateX(0deg);}
+    45%{transform:rotateX(90deg);}
+    55%{transform:rotateX(90deg);}
+    100%{transform:rotateX(0deg);}
+  }
+  .tile.correct{
+    background:var(--hole-correct);
+    border-color:var(--hole-correct-dark);
+    color:#08150a;
+    box-shadow:inset 0 3px 6px rgba(0,0,0,.35), 0 0 14px rgba(47,174,78,.55);
+  }
+  .tile.present{
+    background:var(--hole-present);
+    border-color:var(--hole-present-dark);
+    color:#1a1200;
+    box-shadow:inset 0 3px 6px rgba(0,0,0,.25), 0 0 14px rgba(255,165,0,.5);
+  }
+  .tile.absent{
+    background:var(--hole-absent);
+    border-color:var(--hole-absent-dark);
+    color:#8c8474;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.2);
+  }
+  .row.shake{
+    animation:shake .4s ease;
+  }
+  @keyframes shake{
+    10%,90%{transform:translateX(-2px);}
+    20%,80%{transform:translateX(4px);}
+    30%,50%,70%{transform:translateX(-6px);}
+    40%,60%{transform:translateX(6px);}
+  }
+
+  .toast{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    text-align:center;
+    min-height:22px;
+    color:var(--accent);
+    font-weight:600;
+    margin:6px 0 4px;
+    padding:0 8px;
+    line-height:1.3;
+  }
+
+  .keyboard{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:10px;
+    width:100%;
+    align-items:center;
+  }
+  .krow{
+    display:flex;
+    gap:5px;
+    justify-content:center;
+    width:100%;
+  }
+  .key{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:12px;
+    border:none;
+    border-radius:3px;
+    background:var(--card-stock-dark);
+    color:var(--ink);
+    padding:0;
+    height:40px;
+    flex:1 1 30px;
+    max-width:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    user-select:none;
+    transition:filter .1s ease, transform .05s ease;
+    border:1px solid var(--card-edge-dim);
+  }
+  .key:hover{ filter:brightness(1.25); }
+  .key:active{transform:translateY(1px);}
+  .key.wide{
+    max-width:64px;
+    font-size:10px;
+    letter-spacing:.05em;
+  }
+  .key.correct{background:var(--hole-correct); border-color:var(--hole-correct-dark); color:#08150a;}
+  .key.present{background:var(--hole-present); border-color:var(--hole-present-dark); color:#1a1200;}
+  .key.absent{background:var(--hole-absent); border-color:var(--hole-absent-dark); color:#8c8474;}
+
+  .footline{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .footline-actions{
+    display:flex;
+    gap:8px;
+  }
+  .btn{
+    font-family:'Orbitron', sans-serif;
+    font-weight:700;
+    font-size:10px;
+    letter-spacing:.05em;
+    background:transparent;
+    color:var(--ink);
+    border:1px solid var(--card-edge);
+    border-radius:3px;
+    padding:8px 12px;
+    cursor:pointer;
+    text-transform:uppercase;
+    transition:all .2s ease;
+  }
+  .btn:hover{
+    background:var(--card-edge);
+    color:#000;
+    box-shadow:0 0 16px rgba(255,232,31,.5);
+  }
+  .btn.ghost{
+    border-color:var(--card-edge-dim);
+    color:var(--ink-soft);
+  }
+  .btn.ghost:hover{
+    background:var(--card-edge-dim);
+    color:#000;
+  }
+
+  /* ===== MODALES ===== */
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.88);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    z-index:20;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    background:var(--card-stock);
+    border:2px solid var(--card-edge);
+    box-shadow:var(--paper-shadow);
+    max-width:440px;
+    width:100%;
+    padding:24px 20px;
+    text-align:center;
+    clip-path: polygon(24px 0, 100% 0, 100% 100%, 0 100%, 0 24px);
+    position:relative;
+  }
+  .modal .status{
+    font-family:'IBM Plex Mono', monospace;
+    letter-spacing:.2em;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+  }
+  .modal h2{
+    font-family:'Orbitron', sans-serif;
+    font-size:22px;
+    margin:8px 0 12px;
+    text-shadow:0 0 14px rgba(255,232,31,0.5);
+  }
+  .modal p{
+    font-size:13px;
+    line-height:1.5;
+    color:var(--ink-soft);
+    margin:0 0 16px;
+  }
+
+  .punchcard-border{
+    border:2px solid var(--card-edge);
+    padding:16px;
+    background:radial-gradient(circle at 50% 0%, #161510 0%, #0b0b0a 100%);
+    box-shadow:inset 0 0 20px rgba(255,232,31,0.15);
+    position:relative;
+  }
+
+  /* NOTA COLORES */
+  .grade-pass-text{
+    color:#3182ce;
+    font-size:24px;
+    font-weight:900;
+    text-shadow:0 0 10px rgba(49,130,206,0.5);
+  }
+  .grade-fail-text{
+    color:#e53e3e;
+    font-size:24px;
+    font-weight:900;
+    text-shadow:0 0 10px rgba(229,62,62,0.5);
+  }
+
+  /* ===== CONSOLA DE CONFIGURACIÓN ===== */
+  .console-modal{
+    max-width:520px;
+    text-align:left;
+    clip-path:none;
+    max-height:85vh;
+    overflow-y:auto;
+  }
+  .console-modal h2{
+    font-size:18px;
+    text-align:center;
+  }
+  .console-section{
+    margin-top:16px;
+  }
+  .console-section h3{
+    font-family:'Orbitron', sans-serif;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink);
+    margin:0 0 8px;
+    border-bottom:1px solid var(--card-edge-dim);
+    padding-bottom:4px;
+  }
+  .entry-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px;
+    border-bottom:1px solid var(--card-edge-dim);
+    font-size:12px;
+  }
+  .entry-row:last-child{border-bottom:none;}
+  .entry-row .word{
+    font-weight:700;
+    letter-spacing:.05em;
+    flex:0 0 auto;
+    min-width:100px;
+  }
+  .entry-row .bio-preview{
+    flex:1;
+    color:var(--ink-soft);
+    font-size:11px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .entry-row.disabled .word,
+  .entry-row.disabled .bio-preview{
+    opacity:.4;
+    text-decoration:line-through;
+  }
+  .entry-row button{
+    flex:0 0 auto;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    background:transparent;
+    border:1px solid var(--card-edge-dim);
+    color:var(--ink-soft);
+    border-radius:3px;
+    padding:4px 6px;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .entry-row button:hover{
+    border-color:var(--ink);
+    color:var(--ink);
+  }
+  .console-form{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:8px;
+  }
+  .console-form input,
+  .console-form textarea{
+    background:var(--card-stock-dark);
+    border:1px solid var(--card-edge-dim);
+    color:var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:8px 10px;
+    border-radius:3px;
+    resize:vertical;
+  }
+  .console-form input:focus,
+  .console-form textarea:focus{
+    outline:none;
+    border-color:var(--card-edge);
+  }
+  .console-form .hint{
+    font-size:10px;
+    color:var(--ink-soft);
+  }
+  .console-form .form-error{
+    font-size:11px;
+    color:var(--accent);
+    min-height:14px;
+  }
+
+  /* ===== BOTÓN FLOTANTE DE CONFIGURACIÓN ===== */
+  .gear-fab{
+    position:fixed;
+    right:16px;
+    bottom:16px;
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    background:var(--card-stock-dark);
+    border:2px solid var(--card-edge);
+    color:var(--ink);
+    font-size:22px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:30;
+    box-shadow:0 0 18px rgba(255,232,31,.35);
+    transition:transform .25s ease, box-shadow .2s ease;
+  }
+  .gear-fab:hover{
+    transform:rotate(60deg);
+    box-shadow:0 0 26px rgba(255,232,31,.6);
+  }
+
+  /* CREDITS FOOTER */
+  .credits-bar{
+    margin-top:24px;
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-soft);
+    max-width:520px;
+    line-height:1.6;
+  }
+
+  /* EXPORTABLE CARD STYLING FOR CANVAS */
+  #exportCardContainer{
+    background:#080808;
+    color:#FFE81F;
+    border:4px solid #FFE81F;
+    padding:20px;
+    width:480px;
+    font-family:'IBM Plex Mono', monospace;
+    position:absolute;
+    left:-9999px;
+    top:-9999px;
+    box-sizing:border-box;
+  }
+
+  @media (max-width:420px){
+    .tile{--tile-size:36px; font-size:16px;}
+    .key{height:36px;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="top-bar">
+    <div class="student-badge" id="studentHeaderBadge">Estudiante: <span id="headerStudentName">-</span></div>
+    <button class="fullscreen-btn" id="fullscreenBtn" title="Modo Pantalla Completa">⛶ Pantalla Completa</button>
+  </div>
+
+  <div class="masthead">
+    <img src="https://github.com/JoseRubenRubio/imagenes-juegos-html/blob/main/robot.png?raw=true" alt="Robot Jedi Logo" class="robot-logo">
+    <div class="eyebrow" id="eyebrowText">Laboratorio de Historia de la Computación</div>
+    <h1 id="h1Text">Archivo Jedi · Adivina el Apellido</h1>
+    <p id="descText">Cada partida perfora un apellido de un pionero o pionera de la computación. Escribe una palabra del largo correcto y presiona Enter.</p>
+  </div>
+
+  <div class="card">
+    <div class="jedi-seal-bg"></div>
+    <div class="ruler" id="ruler"></div>
+    <div class="board" id="board"></div>
+    <div class="toast" id="toast">&nbsp;</div>
+    <div class="keyboard" id="keyboard"></div>
+    <div class="footline">
+      <span id="attemptsLabel">Intento 1</span>
+      <span id="timerLabel">Tiempo: 00:00</span>
+      <span id="scoreLabel">Puntaje: 0/0</span>
+      <div class="footline-actions">
+        <button class="btn" id="resetBtn">Reiniciar evaluación</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="credits-bar">
+    Diseñado con dedicación para la educación por el <strong>Profesor Arquímedes Mosquera de Panamá 🇵🇦</strong>
+  </div>
+
+  <!-- MODAL DE REGISTRO DE ESTUDIANTE (OBLIGATORIO) -->
+  <div class="modal-overlay show" id="studentOverlay">
+    <div class="modal punchcard-border">
+      <img src="https://github.com/JoseRubenRubio/imagenes-juegos-html/blob/main/robot.png?raw=true" alt="Robot Jedi" style="width:60px; height:60px; object-fit:contain; margin-bottom:4px;">
+      <div class="status">REGISTRO DE EVALUACIÓN</div>
+      <h2>Datos del Estudiante</h2>
+      <p>Ingresa tus datos para comenzar la prueba en el Archivo Jedi.</p>
+      <div class="console-form" style="margin-bottom:14px; text-align:left;">
+        <label style="font-size:11px; color:var(--ink-soft); margin-bottom:2px; display:block;">Nombre y Apellido *</label>
+        <input type="text" id="studentNameInput" placeholder="Ej: Juan Pérez" autocomplete="off">
+        <label style="font-size:11px; color:var(--ink-soft); margin-top:8px; margin-bottom:2px; display:block;">Grado / Curso *</label>
+        <input type="text" id="studentGradeInput" placeholder="Ej: 9° Grado A" autocomplete="off">
+        <div class="form-error" id="studentError" style="text-align:center; margin-top:6px;">&nbsp;</div>
+      </div>
+      <div style="display:flex; justify-content:center;">
+        <button class="btn" id="startEvalBtn">Comenzar Evaluación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RESULTADO DE PALABRA -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="status" id="modalStatus">RESULTADO</div>
+      <h2 id="modalWord">PALABRA</h2>
+      <p id="modalBio">Bio.</p>
+      <button class="btn" id="modalNext">Perforar otra tarjeta</button>
+    </div>
+  </div>
+
+  <!-- RESULTADOS FINALES DE LA EVALUACIÓN -->
+  <div class="modal-overlay" id="resultsOverlay">
+    <div class="modal console-modal punchcard-border" style="text-align:center;">
+      <div id="resultsFeedbackIcon" style="font-size:36px; margin-bottom:4px;">🏆</div>
+      <div class="status" id="resultsStatusText">EVALUACIÓN COMPLETADA</div>
+      <h2 style="font-size:20px; margin-bottom:8px;" id="resultsTitleText">Resultado Final</h2>
+      <div id="studentInfoDisplay" style="text-align:left; background:var(--card-stock-dark); padding:10px 12px; border:1px solid var(--card-edge-dim); border-radius:3px; margin-bottom:12px; font-size:11px; line-height:1.6; color:var(--ink-soft);"></div>
+      <div id="resultsBreakdown" style="text-align:left; margin-bottom:12px;"></div>
+      <p style="margin:0 0 4px; font-size:13px;">Puntaje: <strong id="resultsScore">0/0</strong></p>
+      <p style="margin:0 0 10px; font-size:13px;">Nota Final: <span id="resultsGrade" class="grade-pass-text">1.0</span></p>
+      <p style="font-size:12px; color:var(--ink-soft); margin:0 0 16px;" id="resultsMotivationText">¡Buen trabajo!</p>
+      
+      <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn" id="exportPngBtn" style="background:var(--card-edge); color:#000;">💾 Exportar / Guardar Tarjeta (PNG)</button>
+        <button class="btn ghost" id="resultsRestartBtn">Reiniciar Evaluación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONSOLA DE CONFIGURACIÓN DEL PROFESOR -->
+  <div class="modal-overlay" id="consoleOverlay">
+    <div class="modal console-modal">
+      <div class="status">CONSOLA · PROFESOR</div>
+      <h2>Panel de Configuración</h2>
+      <p style="margin-bottom:6px;">Administra el juego, palabras, sonido, clave y títulos sin tocar el código.</p>
+
+      <div class="console-section">
+        <h3>Ajustes Generales</h3>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <label style="font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="soundToggleCheck" checked style="accent-color:var(--card-edge);">
+            Activar efectos de sonido sintetizados
+          </label>
+        </div>
+      </div>
+
+      <div class="console-section">
+        <h3>Continuar Partida</h3>
+        <p style="font-size:11px; color:var(--ink-soft); margin:0 0 8px;" id="nextHint">Descubre primero la palabra en curso para poder pasar a la siguiente.</p>
+        <button class="btn" id="consoleNextBtn" disabled>Siguiente Palabra</button>
+      </div>
+
+      <div class="console-section">
+        <h3>Cambiar Clave de Profesor</h3>
+        <div class="console-form">
+          <input type="password" id="newPassInput" placeholder="Nueva contraseña (ej: miClave2026)" autocomplete="off">
+          <div style="display:flex; gap:8px;">
+            <button class="btn" id="savePassBtn">Guardar Clave</button>
+            <button class="btn ghost" id="resetPassDefaultBtn">Restablecer a code2026</button>
+          </div>
+          <div class="form-error" id="passMsgError">&nbsp;</div>
+        </div>
+      </div>
+
+      <div class="console-section">
+        <h3>Títulos y Textos</h3>
+        <div class="console-form">
+          <input type="text" id="titleEyebrowInput" placeholder="Texto superior (eyebrow)" maxlength="70" autocomplete="off">
+          <input type="text" id="titleH1Input" placeholder="Título principal" maxlength="90" autocomplete="off">
+          <textarea id="titleDescInput" rows="2" placeholder="Descripción / instrucciones"></textarea>
+          <input type="text" id="titleTabInput" placeholder="Título de la pestaña del navegador" maxlength="90" autocomplete="off">
+          <div class="form-error" id="titleError">&nbsp;</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" id="saveTitlesBtn">Guardar Títulos</button>
+            <button class="btn ghost" id="resetTitlesBtn">Restaurar por Defecto</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="console-section">
+        <h3>Archivo Base de Palabras</h3>
+        <div id="baseList"></div>
+      </div>
+
+      <div class="console-section">
+        <h3>Añadidas por el Profesor</h3>
+        <div id="customList"></div>
+        <p class="empty-note" id="customEmptyNote" style="display:none;">Aún no has añadido palabras.</p>
+      </div>
+
+      <div class="console-section">
+        <h3>Agregar Nueva Palabra</h3>
+        <div class="console-form">
+          <input type="text" id="newWordInput" placeholder="PALABRA (solo letras, sin espacios)" maxlength="20" autocomplete="off">
+          <textarea id="newBioInput" rows="2" placeholder="Biografía o pista útil (opcional)"></textarea>
+          <div class="form-error" id="formError">&nbsp;</div>
+          <button class="btn" id="addWordBtn" style="align-self:flex-start;">+ Agregar Nueva Palabra</button>
+        </div>
+      </div>
+
+      <div class="console-close">
+        <button class="btn ghost" id="consoleCloseBtn">Cerrar Consola</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTÓN FLOTANTE DE CONFIGURACIÓN -->
+  <button class="gear-fab" id="gearFab" title="Configuración de Profesor" aria-label="Abrir configuración">⚙</button>
+
+  <!-- MODAL DE CONTRASEÑA -->
+  <div class="modal-overlay" id="passwordOverlay">
+    <div class="modal">
+      <div class="status" id="passwordStatusText">ACCESO RESTRINGIDO</div>
+      <h2 style="font-size:18px;" id="passwordTitleText">Panel de Profesor</h2>
+      <p id="passwordDescText" style="font-size:12px;">Introduce el código de acceso para continuar.</p>
+      <div class="console-form" style="margin-bottom:12px; text-align:left;">
+        <input type="password" id="passwordInput" placeholder="CÓDIGO DE ACCESO" autocomplete="off">
+        <div class="form-error" id="passwordError" style="text-align:center;">&nbsp;</div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:center;">
+        <button class="btn ghost" id="passwordCancelBtn">Cancelar</button>
+        <button class="btn" id="passwordSubmitBtn">Entrar</button>
+      </div>
+      <p style="font-size:10px; color:var(--ink-soft); margin-top:10px;">
+        * Clave por defecto: <code>code2026</code>. Clave Maestra: <code>PROFE2026MASTER</code>
+      </p>
+    </div>
+  </div>
+
+  <!-- TARJETA EXPORTABLE (OCULTA FUERA DE PANTALLA PARA GENERAR IMAGEN CON HTML2CANVAS) -->
+  <div id="exportCardContainer">
+    <div style="text-align:center; border-bottom:2px dashed #FFE81F; padding-bottom:10px; margin-bottom:12px;">
+      <img src="https://github.com/JoseRubenRubio/imagenes-juegos-html/blob/main/robot.png?raw=true" style="width:50px; height:50px; object-fit:contain;">
+      <div style="font-size:10px; letter-spacing:2px; color:#c9bf7a; text-transform:uppercase;">LABORATORIO DE HISTORIA DE LA COMPUTACIÓN</div>
+      <div style="font-size:18px; font-weight:900; color:#FFE81F; margin:4px 0;">ARCHIVO JEDI · TARJETA PERFORADA</div>
+      <div style="font-size:11px; color:#c9bf7a;">Sello Oficial de Evaluación de Conocimientos</div>
+    </div>
+    <div id="expStudentInfo" style="font-size:12px; line-height:1.6; background:#161510; border:1px solid #6b6318; padding:10px; margin-bottom:12px; color:#FFE81F;"></div>
+    <div id="expBreakdown" style="font-size:11px; margin-bottom:12px;"></div>
+    <div style="text-align:center; background:#161510; border:2px solid #FFE81F; padding:12px; margin-bottom:12px;">
+      <div style="font-size:12px; color:#c9bf7a;">PUNTAJE OBTENIDO</div>
+      <div id="expScoreText" style="font-size:16px; font-weight:700; color:#FFE81F; margin-bottom:4px;">0/0</div>
+      <div style="font-size:12px; color:#c9bf7a;">NOTA FINAL</div>
+      <div id="expGradeText" style="font-size:26px; font-weight:900;">1.0</div>
+      <div id="expStatusTag" style="font-size:14px; font-weight:700; margin-top:4px;">APROBADO</div>
+    </div>
+    <div style="text-align:center; font-size:10px; color:#c9bf7a; border-top:1px dashed #6b6318; padding-top:8px;">
+      Desarrollado por el <strong>Profesor Arquímedes Mosquera de Panamá 🇵🇦</strong>
+    </div>
+  </div>
+
+<script>
+(function(){
+
+  // ===== SINTETIZADOR WEB AUDIO API (SONIDOS ESPACIALES) =====
+  let soundEnabled = true;
+  let audioCtx = null;
+
+  function getAudioCtx(){
+    if (!audioCtx){
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended'){
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  function playSound(type){
+    if (!soundEnabled) return;
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    if (type === 'correct'){
+      // Doble tono agudo espacial tipo sci-fi
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'triangle';
+
+      osc1.frequency.setValueAtTime(523.25, now); // C5
+      osc1.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+
+      osc2.frequency.setValueAtTime(659.25, now + 0.05); // E5
+      osc2.frequency.exponentialRampToValueAtTime(1046.50, now + 0.25); // C6
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now + 0.05);
+      osc1.stop(now + 0.35);
+      osc2.stop(now + 0.35);
+    } 
+    else if (type === 'wrong'){
+      // Tono grave de error
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(90, now + 0.25);
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.28);
+    }
+    else if (type === 'warning'){
+      // Alerta suave de palabra incompleta
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(350, now);
+      osc.frequency.setValueAtTime(450, now + 0.08);
+
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.18);
+    }
+    else if (type === 'victory'){
+      // Fanfarria espacial victoriosa de 5 notas
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = now + idx * 0.12;
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.18, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(start);
+        osc.stop(start + 0.4);
+      });
+    }
+    else if (type === 'fail'){
+      // Arpegio melancólico descendente (3 notas)
+      const notes = [440, 349.23, 293.66];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = now + idx * 0.2;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.15, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.5);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(start);
+        osc.stop(start + 0.5);
+      });
+    }
+  }
+
+  // ===== ESTRELLAS DE FONDO =====
+  function createStars(){
+    const container = document.getElementById('stars');
+    for (let i = 0; i < 120; i++){
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      const size = Math.random() * 2 + 1;
+      star.style.width = size + 'px';
+      star.style.height = size + 'px';
+      star.style.animationDelay = Math.random() * 2.4 + 's';
+      container.appendChild(star);
+    }
+  }
+  createStars();
+
+  // ===== ARCHIVO BASE =====
+  const PIONEERS = [
+    { word:"PASCAL",   bio:"Blaise Pascal (1623–1662): matemático y filósofo francés, inventor de la Pascalina, una de las primeras calculadoras mecánicas." },
+    { word:"BABBAGE",  bio:"Charles Babbage (1791–1871): matemático británico que diseñó la Máquina Analítica, precursora de la computadora moderna." },
+    { word:"LEIBNIZ",  bio:"Gottfried Leibniz (1646–1716): filósofo y matemático alemán que desarrolló el sistema binario usado en la computación actual." },
+    { word:"LOVELACE", bio:"Ada Lovelace (1815–1852): matemática británica considerada la primera programadora de la historia por su trabajo con la Máquina Analítica." },
+    { word:"JACQUARD", bio:"Joseph Marie Jacquard (1752–1834): inventor francés del telar de tarjetas perforadas, antecesoras de la programación." },
+    { word:"TURING",   bio:"Alan Turing (1912–1954): matemático británico, padre de la informática teórica y pionero en inteligencia artificial." }
+  ];
+
+  // ===== TABLAS OFICIALES DE CALIFICACIÓN =====
+  const GRADE_TABLES = {
+    25: {
+      25:5.0, 24:4.8, 23:4.6, 22:4.5, 21:4.3, 20:4.2, 19:4.0, 18:3.8,
+      17:3.7, 16:3.5, 15:3.4, 14:3.2, 13:3.0, 12:2.9, 11:2.7, 10:2.6,
+      9:2.4, 8:2.2, 7:2.1, 6:1.9, 5:1.8, 4:1.6, 3:1.4, 2:1.3, 1:1.1, 0:1.0
+    },
+    30: {
+      30:5.0, 29:4.8, 28:4.7, 27:4.6, 26:4.4, 25:4.3, 24:4.2, 23:4.0,
+      22:3.9, 21:3.8, 20:3.6, 19:3.5, 18:3.4, 17:3.2, 16:3.1, 15:3.0,
+      14:2.8, 13:2.7, 12:2.6, 11:2.4, 10:2.3, 9:2.2, 8:2.0, 7:1.9,
+      6:1.8, 5:1.6, 4:1.5, 3:1.4, 2:1.2, 1:1.1, 0:1.0
+    },
+    35: {
+      35:5.0, 34:4.8, 33:4.7, 32:4.6, 31:4.5, 30:4.4, 29:4.3, 28:4.2,
+      27:4.0, 26:3.9, 25:3.8, 24:3.7, 23:3.6, 22:3.5, 21:3.4, 20:3.2,
+      19:3.1, 18:3.0, 17:2.9, 16:2.8, 15:2.7, 14:2.6, 13:2.4, 12:2.3,
+      11:2.2, 10:2.1, 9:2.0, 8:1.9, 7:1.8, 6:1.6, 5:1.5, 4:1.3,
+      3:1.2, 2:1.1, 1:1.1, 0:1.0
+    },
+    40: {
+      40:5.0, 39:4.9, 38:4.8, 37:4.7, 36:4.6, 35:4.5, 34:4.4, 33:4.3,
+      32:4.2, 31:4.1, 30:4.0, 29:3.9, 28:3.8, 27:3.7, 26:3.6, 25:3.5,
+      24:3.4, 23:3.3, 22:3.2, 21:3.1, 20:3.0, 19:2.9, 18:2.8, 17:2.7,
+      16:2.6, 15:2.5, 14:2.4, 13:2.3, 12:2.2, 11:2.1, 10:2.0, 9:1.9,
+      8:1.8, 7:1.7, 6:1.6, 5:1.5, 4:1.4, 3:1.3, 2:1.2, 1:1.1, 0:1.0
+    }
+  };
+
+  function gradeForScore(score, maxScore){
+    if (!maxScore || maxScore <= 0) return 1.0;
+    const boundedScore = Math.max(0, Math.min(maxScore, score));
+    if (GRADE_TABLES[maxScore] && GRADE_TABLES[maxScore][boundedScore] !== undefined){
+      return GRADE_TABLES[maxScore][boundedScore];
+    }
+    const ratio = boundedScore / maxScore;
+    return Math.round((1.0 + ratio * 4.0) * 10) / 10;
+  }
+
+  const KEY_ROWS = [
+    ["Q","W","E","R","T","Y","U","I","O","P"],
+    ["A","S","D","F","G","H","J","K","L","Ñ"],
+    ["ENTER","Z","X","C","V","B","N","M","DEL"]
+  ];
+
+  // ===== LOCAL STORAGE & PERSISTENCIA =====
+  const STORAGE_CUSTOM = 'archivoJedi_custom_v3';
+  const STORAGE_DISABLED = 'archivoJedi_disabled_v3';
+  const STORAGE_TITLES = 'archivoJedi_titles_v3';
+  const STORAGE_PASS = 'archivoJedi_pass_v3';
+  const STORAGE_SOUND = 'archivoJedi_sound_v3';
+
+  let memoryFallback = { custom: [], disabled: [], titles: null, pass: null, sound: true };
+  let storageWorks = true;
+  try {
+    const t = '__test__';
+    localStorage.setItem(t, '1');
+    localStorage.removeItem(t);
+  } catch(e){
+    storageWorks = false;
+  }
+
+  function loadCustom(){
+    if (!storageWorks) return memoryFallback.custom.slice();
+    try {
+      const raw = localStorage.getItem(STORAGE_CUSTOM);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+  function saveCustom(list){
+    if (!storageWorks){ memoryFallback.custom = list; return; }
+    try { localStorage.setItem(STORAGE_CUSTOM, JSON.stringify(list)); } catch(e){}
+  }
+  function loadDisabled(){
+    if (!storageWorks) return memoryFallback.disabled.slice();
+    try {
+      const raw = localStorage.getItem(STORAGE_DISABLED);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e){ return []; }
+  }
+  function saveDisabled(list){
+    if (!storageWorks){ memoryFallback.disabled = list; return; }
+    try { localStorage.setItem(STORAGE_DISABLED, JSON.stringify(list)); } catch(e){}
+  }
+
+  const DEFAULT_TITLES = {
+    eyebrow: "Laboratorio de Historia de la Computación",
+    h1: "Archivo Jedi · Adivina el Apellido",
+    desc: "Cada partida perfora un apellido de un pionero o pionera de la computación. Escribe una palabra del largo correcto y presiona Enter.",
+    tab: "Archivo Jedi · Adivina el Apellido"
+  };
+  function loadTitles(){
+    if (!storageWorks) return Object.assign({}, DEFAULT_TITLES, memoryFallback.titles || {});
+    try {
+      const raw = localStorage.getItem(STORAGE_TITLES);
+      return raw ? Object.assign({}, DEFAULT_TITLES, JSON.parse(raw)) : Object.assign({}, DEFAULT_TITLES);
+    } catch(e){ return Object.assign({}, DEFAULT_TITLES); }
+  }
+  function saveTitles(obj){
+    if (!storageWorks){ memoryFallback.titles = obj; return; }
+    try { localStorage.setItem(STORAGE_TITLES, JSON.stringify(obj)); } catch(e){}
+  }
+
+  function loadPassword(){
+    if (!storageWorks) return memoryFallback.pass || 'code2026';
+    try {
+      return localStorage.getItem(STORAGE_PASS) || 'code2026';
+    } catch(e){ return 'code2026'; }
+  }
+  function savePassword(p){
+    if (!storageWorks){ memoryFallback.pass = p; return; }
+    try { localStorage.setItem(STORAGE_PASS, p); } catch(e){}
+  }
+
+  function loadSoundSetting(){
+    if (!storageWorks) return memoryFallback.sound;
+    try {
+      const raw = localStorage.getItem(STORAGE_SOUND);
+      return raw !== null ? raw === 'true' : true;
+    } catch(e){ return true; }
+  }
+  function saveSoundSetting(val){
+    soundEnabled = val;
+    if (!storageWorks){ memoryFallback.sound = val; return; }
+    try { localStorage.setItem(STORAGE_SOUND, val ? 'true' : 'false'); } catch(e){}
+  }
+
+  let customPioneers = loadCustom();
+  let disabledBaseWords = loadDisabled();
+  let currentTitles = loadTitles();
+  let currentPassword = loadPassword();
+  soundEnabled = loadSoundSetting();
+
+  const MASTER_KEY = 'PROFE2026MASTER';
+
+  function activePioneers(){
+    const base = PIONEERS.filter(p => disabledBaseWords.indexOf(p.word) === -1);
+    return base.concat(customPioneers);
+  }
+
+  // ===== ESTADO DEL ESTUDIANTE Y TEMPORIZADOR =====
+  let currentStudentName = "";
+  let currentStudentGrade = "";
+  let completionDateTime = "";
+  let timerInterval = null;
+  let startTime = 0;
+  let elapsedSeconds = 0;
+
+  function startTimer(){
+    stopTimer();
+    startTime = Date.now();
+    elapsedSeconds = 0;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      updateTimerDisplay();
+    }, 1000);
+  }
+
+  function stopTimer(){
+    if (timerInterval){
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+
+  function formatTime(totalSec){
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    if (mins === 0){
+      return secs + " seg";
+    }
+    return mins + " min " + (secs < 10 ? "0" : "") + secs + " seg";
+  }
+
+  function updateTimerDisplay(){
+    const timerEl = document.getElementById('timerLabel');
+    if (timerEl){
+      const mins = Math.floor(elapsedSeconds / 60);
+      const secs = elapsedSeconds % 60;
+      timerEl.textContent = "Tiempo: " + (mins < 10 ? "0" : "") + mins + ":" + (secs < 10 ? "0" : "") + secs;
+    }
+  }
+
+  // ===== ELEMENTOS =====
+  const board = document.getElementById('board');
+  const ruler = document.getElementById('ruler');
+  const keyboardEl = document.getElementById('keyboard');
+  const toastEl = document.getElementById('toast');
+  const attemptsLabel = document.getElementById('attemptsLabel');
+  const scoreLabel = document.getElementById('scoreLabel');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const studentOverlay = document.getElementById('studentOverlay');
+  const studentNameInput = document.getElementById('studentNameInput');
+  const studentGradeInput = document.getElementById('studentGradeInput');
+  const studentError = document.getElementById('studentError');
+  const startEvalBtn = document.getElementById('startEvalBtn');
+  const studentHeaderBadge = document.getElementById('studentHeaderBadge');
+  const headerStudentName = document.getElementById('headerStudentName');
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalStatus = document.getElementById('modalStatus');
+  const modalWord = document.getElementById('modalWord');
+  const modalBio = document.getElementById('modalBio');
+  const modalNext = document.getElementById('modalNext');
+
+  const resultsOverlay = document.getElementById('resultsOverlay');
+  const resultsFeedbackIcon = document.getElementById('resultsFeedbackIcon');
+  const resultsTitleText = document.getElementById('resultsTitleText');
+  const studentInfoDisplay = document.getElementById('studentInfoDisplay');
+  const resultsBreakdown = document.getElementById('resultsBreakdown');
+  const resultsScore = document.getElementById('resultsScore');
+  const resultsGrade = document.getElementById('resultsGrade');
+  const resultsMotivationText = document.getElementById('resultsMotivationText');
+  const resultsRestartBtn = document.getElementById('resultsRestartBtn');
+  const exportPngBtn = document.getElementById('exportPngBtn');
+
+  const consoleOverlay = document.getElementById('consoleOverlay');
+  const consoleCloseBtn = document.getElementById('consoleCloseBtn');
+  const consoleNextBtn = document.getElementById('consoleNextBtn');
+  const nextHint = document.getElementById('nextHint');
+  const baseList = document.getElementById('baseList');
+  const customList = document.getElementById('customList');
+  const customEmptyNote = document.getElementById('customEmptyNote');
+  const newWordInput = document.getElementById('newWordInput');
+  const newBioInput = document.getElementById('newBioInput');
+  const addWordBtn = document.getElementById('addWordBtn');
+  const formError = document.getElementById('formError');
+  const soundToggleCheck = document.getElementById('soundToggleCheck');
+  const newPassInput = document.getElementById('newPassInput');
+  const savePassBtn = document.getElementById('savePassBtn');
+  const resetPassDefaultBtn = document.getElementById('resetPassDefaultBtn');
+  const passMsgError = document.getElementById('passMsgError');
+
+  const gearFab = document.getElementById('gearFab');
+  const passwordOverlay = document.getElementById('passwordOverlay');
+  const passwordStatusText = document.getElementById('passwordStatusText');
+  const passwordTitleText = document.getElementById('passwordTitleText');
+  const passwordDescText = document.getElementById('passwordDescText');
+  const passwordInput = document.getElementById('passwordInput');
+  const passwordError = document.getElementById('passwordError');
+  const passwordSubmitBtn = document.getElementById('passwordSubmitBtn');
+  const passwordCancelBtn = document.getElementById('passwordCancelBtn');
+  let passwordTargetAction = 'console';
+
+  const eyebrowText = document.getElementById('eyebrowText');
+  const h1Text = document.getElementById('h1Text');
+  const descText = document.getElementById('descText');
+  const titleEyebrowInput = document.getElementById('titleEyebrowInput');
+  const titleH1Input = document.getElementById('titleH1Input');
+  const titleDescInput = document.getElementById('titleDescInput');
+  const titleTabInput = document.getElementById('titleTabInput');
+  const titleError = document.getElementById('titleError');
+  const saveTitlesBtn = document.getElementById('saveTitlesBtn');
+  const resetTitlesBtn = document.getElementById('resetTitlesBtn');
+
+  let target = "";
+  let bio = "";
+  let wordLength = 0;
+  let maxAttempts = 0;
+  let currentRow = 0;
+  let currentGuess = "";
+  let gameOver = false;
+  let lastWord = null;
+  let wordDiscovered = false;
+
+  // ===== ESTADO DE LA EVALUACIÓN =====
+  let sessionWords = [];
+  let sessionIndex = 0;
+  let sessionScore = 0;
+  let sessionResults = [];
+
+  function updateConsoleNextButton(){
+    consoleNextBtn.disabled = !wordDiscovered;
+    nextHint.textContent = wordDiscovered
+      ? "¡Palabra descubierta! Ya puedes pasar a la siguiente."
+      : "Descubre primero la palabra en curso para poder pasar a la siguiente.";
+  }
+
+  function buildSessionWords(){
+    const pool = activePioneers();
+    if (pool.length === 0) return [];
+    const shuffled = pool.slice();
+    for (let i = shuffled.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = tmp;
+    }
+    return shuffled;
+  }
+
+  function updateScoreDisplay(){
+    const maxPossible = sessionWords.length * 5;
+    scoreLabel.textContent = "Puntaje: " + sessionScore + "/" + maxPossible;
+  }
+
+  function applyTitles(){
+    eyebrowText.textContent = currentTitles.eyebrow || DEFAULT_TITLES.eyebrow;
+    h1Text.textContent = currentTitles.h1 || DEFAULT_TITLES.h1;
+    descText.textContent = currentTitles.desc || DEFAULT_TITLES.desc;
+    document.title = currentTitles.tab || DEFAULT_TITLES.tab;
+  }
+  applyTitles();
+
+  function fillTitleInputs(){
+    titleEyebrowInput.value = currentTitles.eyebrow || "";
+    titleH1Input.value = currentTitles.h1 || "";
+    titleDescInput.value = currentTitles.desc || "";
+    titleTabInput.value = currentTitles.tab || "";
+    titleError.textContent = "\u00A0";
+  }
+
+  function showToast(msg, ms){
+    toastEl.textContent = msg;
+    if (ms){
+      setTimeout(() => { if (toastEl.textContent === msg) toastEl.textContent = "\u00A0"; }, ms);
+    }
+  }
+
+  function buildBoard(){
+    board.innerHTML = "";
+    ruler.innerHTML = "";
+    for (let c = 0; c < wordLength; c++){
+      const s = document.createElement('span');
+      s.textContent = c + 1;
+      ruler.appendChild(s);
+    }
+    for (let r = 0; r < maxAttempts; r++){
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.id = 'row-' + r;
+      for (let c = 0; c < wordLength; c++){
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = 'tile-' + r + '-' + c;
+        row.appendChild(tile);
+      }
+      board.appendChild(row);
+    }
+  }
+
+  function buildKeyboard(){
+    keyboardEl.innerHTML = "";
+    KEY_ROWS.forEach(rowKeys => {
+      const krow = document.createElement('div');
+      krow.className = 'krow';
+      rowKeys.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'key' + (k.length > 1 ? ' wide' : '');
+        btn.textContent = k === 'DEL' ? '⌫' : (k === 'ENTER' ? 'ENTER' : k);
+        btn.dataset.key = k;
+        btn.id = 'key-' + k;
+        btn.addEventListener('click', () => handleKey(k));
+        krow.appendChild(btn);
+      });
+      keyboardEl.appendChild(krow);
+    });
+  }
+
+  function updateRowDisplay(){
+    const row = document.getElementById('row-' + currentRow);
+    if (!row) return;
+    for (let c = 0; c < wordLength; c++){
+      const tile = document.getElementById('tile-' + currentRow + '-' + c);
+      const letter = currentGuess[c] || "";
+      tile.textContent = letter;
+      tile.classList.toggle('filled', !!letter);
+    }
+  }
+
+  function evaluateGuess(guess){
+    const result = new Array(wordLength).fill('absent');
+    const targetArr = target.split("");
+    const guessArr = guess.split("");
+    const used = new Array(wordLength).fill(false);
+
+    for (let i = 0; i < wordLength; i++){
+      if (guessArr[i] === targetArr[i]){
+        result[i] = 'correct';
+        used[i] = true;
+      }
+    }
+    for (let i = 0; i < wordLength; i++){
+      if (result[i] === 'correct') continue;
+      let found = -1;
+      for (let j = 0; j < wordLength; j++){
+        if (!used[j] && targetArr[j] === guessArr[i]){
+          found = j;
+          break;
+        }
+      }
+      if (found !== -1){
+        result[i] = 'present';
+        used[found] = true;
+      }
+    }
+    return result;
+  }
+
+  function updateKeyboardColors(guess, result){
+    const priority = { absent:0, present:1, correct:2 };
+    for (let i = 0; i < guess.length; i++){
+      const letter = guess[i];
+      const keyEl = document.getElementById('key-' + letter);
+      if (!keyEl) continue;
+      const current = keyEl.dataset.status || 'absent';
+      if (!keyEl.dataset.status || priority[result[i]] > priority[current]){
+        keyEl.dataset.status = result[i];
+        keyEl.classList.remove('correct','present','absent');
+        keyEl.classList.add(result[i]);
+      }
+    }
+  }
+
+  function revealRow(result, onDone){
+    for (let c = 0; c < wordLength; c++){
+      const tile = document.getElementById('tile-' + currentRow + '-' + c);
+      setTimeout(() => {
+        tile.classList.add('flip');
+        setTimeout(() => tile.classList.add(result[c]), 275);
+      }, c * 220);
+    }
+    setTimeout(onDone, wordLength * 220 + 550);
+  }
+
+  function shakeRow(){
+    const row = document.getElementById('row-' + currentRow);
+    row.classList.add('shake');
+    setTimeout(() => row.classList.remove('shake'), 400);
+  }
+
+  function openModal(won){
+    const isLastWord = sessionIndex + 1 >= sessionWords.length;
+    modalStatus.textContent = won ? "TARJETA COMPLETA" : "TARJETA AGOTADA";
+    modalWord.textContent = target;
+    modalBio.textContent = bio + (won ? " (+5 puntos)" : " (0 puntos)");
+    modalNext.textContent = isLastWord ? "Ver resultado final" : "Palabra siguiente";
+    modalOverlay.classList.add('show');
+  }
+
+  function submitGuess(){
+    if (currentGuess.length !== wordLength){
+      playSound('warning');
+      showToast(currentGuess.length < wordLength ? "Faltan letras para completar la palabra" : "Sobran letras", 1400);
+      shakeRow();
+      return;
+    }
+    const result = evaluateGuess(currentGuess);
+    const won = result.every(r => r === 'correct');
+    
+    revealRow(result, () => {
+      updateKeyboardColors(currentGuess, result);
+      if (won){
+        playSound('correct');
+        gameOver = true;
+        wordDiscovered = true;
+        sessionScore += 5;
+        sessionResults.push({ word: target, bio: bio, earned: 5 });
+        updateScoreDisplay();
+        updateConsoleNextButton();
+        showToast("¡Excelente! Palabra correcta.", null);
+        setTimeout(() => openModal(true), 400);
+      } else if (currentRow === maxAttempts - 1){
+        playSound('wrong');
+        gameOver = true;
+        sessionResults.push({ word: target, bio: bio, earned: 0 });
+        updateScoreDisplay();
+        setTimeout(() => openModal(false), 400);
+      } else {
+        playSound('wrong');
+        currentRow++;
+        currentGuess = "";
+        attemptsLabel.textContent = "Palabra " + (sessionIndex + 1) + " de " + sessionWords.length + " · Intento " + (currentRow + 1) + " de " + maxAttempts;
+        updateRowDisplay();
+        
+        // Pista tematica antes del siguiente intento
+        if (bio){
+          const shortHint = bio.split(":")[1] || bio;
+          showToast("Pista: " + shortHint.slice(0, 65) + "...", 3000);
+        }
+      }
+    });
+  }
+
+  function handleKey(k){
+    if (gameOver || studentOverlay.classList.contains('show') || passwordOverlay.classList.contains('show')) return;
+    if (k === 'ENTER'){
+      submitGuess();
+      return;
+    }
+    if (k === 'DEL'){
+      currentGuess = currentGuess.slice(0, -1);
+      updateRowDisplay();
+      return;
+    }
+    if (/^[A-ZÑ]$/.test(k) && currentGuess.length < wordLength){
+      currentGuess += k;
+      updateRowDisplay();
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (gameOver || consoleOverlay.classList.contains('show') || studentOverlay.classList.contains('show') || passwordOverlay.classList.contains('show')) return;
+    const k = e.key.toUpperCase();
+    if (k === 'ENTER'){ handleKey('ENTER'); return; }
+    if (k === 'BACKSPACE'){ handleKey('DEL'); return; }
+    if (/^[A-ZÑ]$/.test(k)){ handleKey(k); }
+  });
+
+  function loadSessionWord(i){
+    const choice = sessionWords[i];
+    target = choice.word;
+    bio = choice.bio || "";
+    lastWord = choice.word;
+    wordLength = target.length;
+    maxAttempts = wordLength + 1;
+    currentRow = 0;
+    currentGuess = "";
+    gameOver = false;
+    wordDiscovered = false;
+    updateConsoleNextButton();
+    modalOverlay.classList.remove('show');
+    resultsOverlay.classList.remove('show');
+    showToast("\u00A0");
+    attemptsLabel.textContent = "Palabra " + (i + 1) + " de " + sessionWords.length + " · Intento 1 de " + maxAttempts;
+    updateScoreDisplay();
+    document.querySelectorAll('.key').forEach(k => {
+      k.dataset.status = "";
+      k.classList.remove('correct','present','absent');
+    });
+    buildBoard();
+  }
+
+  function startSession(){
+    sessionWords = buildSessionWords();
+    if (sessionWords.length === 0){
+      showToast("No hay palabras activas. Abre la consola para reactivar alguna.", null);
+      board.innerHTML = "";
+      ruler.innerHTML = "";
+      attemptsLabel.textContent = "Sin palabras activas";
+      scoreLabel.textContent = "Puntaje: 0/0";
+      return;
+    }
+    sessionIndex = 0;
+    sessionScore = 0;
+    sessionResults = [];
+    startTimer();
+    loadSessionWord(sessionIndex);
+  }
+
+  function advanceSession(){
+    if (sessionIndex + 1 < sessionWords.length){
+      sessionIndex++;
+      loadSessionWord(sessionIndex);
+    } else {
+      showFinalResults();
+    }
+  }
+
+  function showFinalResults(){
+    stopTimer();
+    modalOverlay.classList.remove('show');
+    completionDateTime = new Date().toLocaleString('es-ES', {
+      dateStyle: 'medium',
+      timeStyle: 'medium'
+    });
+
+    const timeFormatted = formatTime(elapsedSeconds);
+
+    studentInfoDisplay.innerHTML =
+      '<div><strong>Estudiante:</strong> ' + currentStudentName + '</div>' +
+      '<div><strong>Grado / Curso:</strong> ' + currentStudentGrade + '</div>' +
+      '<div><strong>Duración:</strong> ' + timeFormatted + '</div>' +
+      '<div><strong>Fecha y hora:</strong> ' + completionDateTime + '</div>';
+
+    const maxPossible = sessionWords.length * 5;
+    resultsBreakdown.innerHTML = "";
+    sessionResults.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'entry-row';
+      row.innerHTML =
+        '<span class="word">' + r.word + '</span>' +
+        '<span class="bio-preview">' + (r.earned > 0 ? 'Completada' : 'No completada') + '</span>' +
+        '<span>' + r.earned + '/5</span>';
+      resultsBreakdown.appendChild(row);
+    });
+
+    const finalGradeNum = gradeForScore(sessionScore, maxPossible);
+    resultsScore.textContent = sessionScore + "/" + maxPossible;
+    resultsGrade.textContent = finalGradeNum.toFixed(1);
+
+    if (finalGradeNum >= 3.0){
+      playSound('victory');
+      resultsFeedbackIcon.textContent = "🌟🏆🌟";
+      resultsGrade.className = "grade-pass-text";
+      resultsMotivationText.innerHTML = "¡Felicitaciones, Maestro Jedi! Has aprobado la evaluación con excelencia.";
+    } else {
+      playSound('fail');
+      resultsFeedbackIcon.textContent = "😔 Padawan";
+      resultsGrade.className = "grade-fail-text";
+      resultsMotivationText.innerHTML = "¡Sigue practicando, joven Padawan! La fuerza está en el conocimiento.";
+    }
+
+    resultsOverlay.classList.add('show');
+  }
+
+  // ===== EXPORTACIÓN A IMAGEN PNG CON HTML2CANVAS =====
+  exportPngBtn.addEventListener('click', () => {
+    const expInfo = document.getElementById('expStudentInfo');
+    const expBreak = document.getElementById('expBreakdown');
+    const expScore = document.getElementById('expScoreText');
+    const expGrade = document.getElementById('expGradeText');
+    const expTag = document.getElementById('expStatusTag');
+
+    const maxPossible = sessionWords.length * 5;
+    const finalGradeNum = gradeForScore(sessionScore, maxPossible);
+    const timeFormatted = formatTime(elapsedSeconds);
+
+    expInfo.innerHTML =
+      '<div><strong>Estudiante:</strong> ' + currentStudentName + '</div>' +
+      '<div><strong>Grado / Curso:</strong> ' + currentStudentGrade + '</div>' +
+      '<div><strong>Duración:</strong> ' + timeFormatted + '</div>' +
+      '<div><strong>Fecha y Hora:</strong> ' + completionDateTime + '</div>';
+
+    expBreak.innerHTML = "";
+    sessionResults.forEach(r => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.borderBottom = '1px solid #332f26';
+      row.style.padding = '3px 0';
+      row.innerHTML = '<span>' + r.word + '</span><span>' + (r.earned > 0 ? 'CORRECTO (5/5)' : 'INCORRECTO (0/5)') + '</span>';
+      expBreak.appendChild(row);
+    });
+
+    expScore.textContent = sessionScore + " / " + maxPossible + " Puntos";
+    expGrade.textContent = finalGradeNum.toFixed(1);
+
+    if (finalGradeNum >= 3.0){
+      expGrade.style.color = '#3182ce';
+      expTag.textContent = 'ESTADO: APROBADO (GANA)';
+      expTag.style.color = '#2fae4e';
+    } else {
+      expGrade.style.color = '#e53e3e';
+      expTag.textContent = 'ESTADO: REQUIERE REFUERZO';
+      expTag.style.color = '#e0483e';
+    }
+
+    const container = document.getElementById('exportCardContainer');
+    html2canvas(container, {
+      scale: 2,
+      backgroundColor: '#000000',
+      useCORS: true
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'Tarjeta_Jedi_' + currentStudentName.replace(/\s+/g, '_') + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }).catch(err => {
+      alert("No se pudo generar la imagen. Asegúrate de estar conectado a internet para cargar html2canvas.");
+    });
+  });
+
+  // ===== REGISTRO OBLIGATORIO DE ESTUDIANTE =====
+  function promptStudentInfo(){
+    stopTimer();
+    studentNameInput.value = "";
+    studentGradeInput.value = "";
+    currentStudentName = "";
+    currentStudentGrade = "";
+    studentError.textContent = "\u00A0";
+    studentHeaderBadge.style.display = 'none';
+    resultsOverlay.classList.remove('show');
+    modalOverlay.classList.remove('show');
+    studentOverlay.classList.add('show');
+    setTimeout(() => studentNameInput.focus(), 50);
+  }
+
+  startEvalBtn.addEventListener('click', () => {
+    const nameVal = studentNameInput.value.trim();
+    const gradeVal = studentGradeInput.value.trim();
+    if (!nameVal || !gradeVal){
+      playSound('warning');
+      studentError.textContent = "Debes ingresar tu nombre y tu grado para iniciar.";
+      return;
+    }
+    currentStudentName = nameVal;
+    currentStudentGrade = gradeVal;
+    headerStudentName.textContent = currentStudentName + " (" + currentStudentGrade + ")";
+    studentHeaderBadge.style.display = 'block';
+    studentOverlay.classList.remove('show');
+    startSession();
+  });
+
+  studentNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter'){
+      e.preventDefault();
+      studentGradeInput.focus();
+    }
+  });
+  studentGradeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter'){
+      e.preventDefault();
+      startEvalBtn.click();
+    }
+  });
+
+  // ===== MODO PANTALLA COMPLETA =====
+  fullscreenBtn.addEventListener('click', () => {
+    if (!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(err => {});
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+    }
+  });
+
+  // ===== CONSOLA DE CONFIGURACIÓN DEL PROFESOR =====
+  function renderConsole(){
+    soundToggleCheck.checked = soundEnabled;
+    baseList.innerHTML = "";
+    PIONEERS.forEach(p => {
+      const isDisabled = disabledBaseWords.indexOf(p.word) !== -1;
+      const row = document.createElement('div');
+      row.className = 'entry-row' + (isDisabled ? ' disabled' : '');
+      row.innerHTML =
+        '<span class="word">' + p.word + '</span>' +
+        '<span class="bio-preview">' + (p.bio || '') + '</span>';
+      const toggleBtn = document.createElement('button');
+      toggleBtn.textContent = isDisabled ? 'Activar' : 'Desactivar';
+      toggleBtn.addEventListener('click', () => {
+        if (isDisabled){
+          disabledBaseWords = disabledBaseWords.filter(w => w !== p.word);
+        } else {
+          disabledBaseWords = disabledBaseWords.concat([p.word]);
+        }
+        saveDisabled(disabledBaseWords);
+        renderConsole();
+      });
+      row.appendChild(toggleBtn);
+      baseList.appendChild(row);
+    });
+
+    customList.innerHTML = "";
+    if (customPioneers.length === 0){
+      customEmptyNote.style.display = 'block';
+    } else {
+      customEmptyNote.style.display = 'none';
+      customPioneers.forEach((p, idx) => {
+        const row = document.createElement('div');
+        row.className = 'entry-row';
+        row.innerHTML =
+          '<span class="word">' + p.word + '</span>' +
+          '<span class="bio-preview">' + (p.bio || 'Sin biografía') + '</span>';
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove';
+        removeBtn.textContent = 'Eliminar';
+        removeBtn.addEventListener('click', () => {
+          customPioneers = customPioneers.filter((_, i) => i !== idx);
+          saveCustom(customPioneers);
+          renderConsole();
+        });
+        row.appendChild(removeBtn);
+        customList.appendChild(row);
+      });
+    }
+  }
+
+  soundToggleCheck.addEventListener('change', (e) => {
+    saveSoundSetting(e.target.checked);
+  });
+
+  function openConsole(){
+    renderConsole();
+    fillTitleInputs();
+    updateConsoleNextButton();
+    newWordInput.value = "";
+    newBioInput.value = "";
+    newPassInput.value = "";
+    formError.textContent = "\u00A0";
+    passMsgError.textContent = "\u00A0";
+    consoleOverlay.classList.add('show');
+  }
+  function closeConsole(){
+    consoleOverlay.classList.remove('show');
+    if (attemptsLabel.textContent === "Sin palabras activas" && activePioneers().length > 0){
+      if (!currentStudentName){
+        promptStudentInfo();
+      } else {
+        startSession();
+      }
+    }
+  }
+
+  savePassBtn.addEventListener('click', () => {
+    const val = newPassInput.value.trim();
+    if (!val){
+      passMsgError.textContent = "Escribe una clave válida.";
+      return;
+    }
+    currentPassword = val;
+    savePassword(currentPassword);
+    newPassInput.value = "";
+    passMsgError.style.color = "var(--hole-correct)";
+    passMsgError.textContent = "Clave guardada con éxito ✓";
+    setTimeout(() => { passMsgError.style.color = "var(--accent)"; passMsgError.textContent = "\u00A0"; }, 2000);
+  });
+
+  resetPassDefaultBtn.addEventListener('click', () => {
+    currentPassword = 'code2026';
+    savePassword(currentPassword);
+    passMsgError.style.color = "var(--hole-correct)";
+    passMsgError.textContent = "Restablecido a code2026 ✓";
+    setTimeout(() => { passMsgError.style.color = "var(--accent)"; passMsgError.textContent = "\u00A0"; }, 2000);
+  });
+
+  function addCustomWord(){
+    const rawWord = newWordInput.value.trim().toUpperCase();
+    const rawBio = newBioInput.value.trim();
+
+    if (!rawWord){
+      formError.textContent = "Escribe una palabra.";
+      return;
+    }
+    if (!/^[A-ZÑ]{3,20}$/.test(rawWord)){
+      formError.textContent = "Solo letras (A-Z, Ñ), sin espacios ni números, entre 3 y 20 letras.";
+      return;
+    }
+    const existsInBase = PIONEERS.some(p => p.word === rawWord);
+    const existsInCustom = customPioneers.some(p => p.word === rawWord);
+    if (existsInBase || existsInCustom){
+      formError.textContent = "Esa palabra ya está en el archivo.";
+      return;
+    }
+
+    customPioneers = customPioneers.concat([{ word: rawWord, bio: rawBio || ('Palabra añadida por el profesor: ' + rawWord + '.') }]);
+    saveCustom(customPioneers);
+    newWordInput.value = "";
+    newBioInput.value = "";
+    formError.textContent = "\u00A0";
+    renderConsole();
+  }
+
+  // ===== ACCESO PROTEGIDO POR CONTRASEÑA =====
+  function openPasswordPrompt(targetAction){
+    passwordTargetAction = targetAction || 'console';
+    passwordInput.value = "";
+    passwordError.textContent = "\u00A0";
+    if (passwordTargetAction === 'reset'){
+      passwordStatusText.textContent = "ACCESO RESTRINGIDO AL PROFESOR";
+      passwordTitleText.textContent = "Reiniciar Actividad";
+      passwordDescText.textContent = "Introduce la clave de profesor para reiniciar la evaluación.";
+    } else {
+      passwordStatusText.textContent = "ACCESO RESTRINGIDO";
+      passwordTitleText.textContent = "Panel de Profesor";
+      passwordDescText.textContent = "Introduce el código de acceso para continuar.";
+    }
+    passwordOverlay.classList.add('show');
+    setTimeout(() => passwordInput.focus(), 50);
+  }
+  function closePasswordPrompt(){
+    passwordOverlay.classList.remove('show');
+  }
+  function attemptUnlock(){
+    const val = passwordInput.value.trim();
+    if (val === currentPassword || val === MASTER_KEY){
+      closePasswordPrompt();
+      if (passwordTargetAction === 'reset'){
+        promptStudentInfo();
+      } else {
+        openConsole();
+      }
+    } else {
+      playSound('wrong');
+      passwordError.textContent = "Código incorrecto. Solo el profesor puede acceder.";
+      passwordInput.value = "";
+      passwordInput.focus();
+    }
+  }
+
+  gearFab.addEventListener('click', () => openPasswordPrompt('console'));
+  passwordCancelBtn.addEventListener('click', closePasswordPrompt);
+  passwordSubmitBtn.addEventListener('click', attemptUnlock);
+  passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); attemptUnlock(); } });
+
+  consoleCloseBtn.addEventListener('click', closeConsole);
+  consoleNextBtn.addEventListener('click', () => {
+    if (!wordDiscovered) return;
+    consoleOverlay.classList.remove('show');
+    advanceSession();
+  });
+  addWordBtn.addEventListener('click', addCustomWord);
+  newWordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter'){ e.preventDefault(); addCustomWord(); } });
+
+  // ===== GUARDAR / RESTAURAR TÍTULOS =====
+  saveTitlesBtn.addEventListener('click', () => {
+    const eyebrow = titleEyebrowInput.value.trim();
+    const h1 = titleH1Input.value.trim();
+    const desc = titleDescInput.value.trim();
+    const tab = titleTabInput.value.trim();
+    if (!h1){
+      titleError.textContent = "El título principal no puede estar vacío.";
+      return;
+    }
+    currentTitles = {
+      eyebrow: eyebrow || DEFAULT_TITLES.eyebrow,
+      h1: h1,
+      desc: desc || DEFAULT_TITLES.desc,
+      tab: tab || h1
+    };
+    saveTitles(currentTitles);
+    applyTitles();
+    fillTitleInputs();
+    titleError.textContent = "Títulos guardados ✓";
+  });
+  resetTitlesBtn.addEventListener('click', () => {
+    currentTitles = Object.assign({}, DEFAULT_TITLES);
+    saveTitles(currentTitles);
+    applyTitles();
+    fillTitleInputs();
+    titleError.textContent = "Restaurado a los valores por defecto ✓";
+  });
+
+  resetBtn.addEventListener('click', () => openPasswordPrompt('reset'));
+  resultsRestartBtn.addEventListener('click', () => openPasswordPrompt('reset'));
+
+  modalNext.addEventListener('click', () => {
+    modalOverlay.classList.remove('show');
+    advanceSession();
+  });
+
+  buildKeyboard();
+  promptStudentInfo();
+})();
+</script>
+</body>
+</html>
