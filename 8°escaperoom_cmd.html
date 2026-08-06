@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consola de Comandos CMD - Evaluación Técnica</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --bg: #f4f7f6;
+            --sidebar-bg: #ffffff;
+        }
+
+        /* Protección de selección de texto */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: var(--bg); 
+            padding: 20px; 
+            margin: 0; 
+            display: flex; 
+            gap: 20px; 
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Permitir selección únicamente en campos de entrada */
+        input, select, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        .main-content { flex: 3; max-width: 900px; margin: 0 auto; }
+        .container { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+
+        .sidebar { 
+            flex: 1; 
+            min-width: 300px; 
+            background: var(--sidebar-bg); 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            height: fit-content; 
+            position: sticky; 
+            top: 20px; 
+            border-top: 5px solid var(--accent);
+        }
+
+        .student-strip {
+            background: var(--primary);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .student-strip label { font-size: 11px; font-weight: bold; display: block; margin-bottom: 5px; opacity: 0.8; }
+        .student-strip input { width: 100%; padding: 8px; border: none; border-radius: 5px; font-size: 14px; box-sizing: border-box; }
+        .info-static { font-size: 14px; font-weight: bold; margin-top: 5px; color: #ecf0f1; }
+
+        .intro-box {
+            background: #f8fafc;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+        .intro-box h3 { margin-top: 0; color: var(--primary); font-size: 18px; }
+        .intro-box p { margin: 5px 0; line-height: 1.5; color: #444; }
+
+        .section {
+            border: 2px solid #edf2f7;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            background: #ffffff;
+        }
+
+        #parte2, #parte3, #parte4, #parte5 { display: none; }
+        #parte2 { border-left: 8px solid var(--success); }
+        #parte3 { border-left: 8px solid var(--warning); }
+        #parte4 { border-left: 8px solid var(--danger); }
+        #parte5 { border-left: 8px solid var(--danger); }
+
+        .terminal-box { background: #1a1a1a; color: #4ade80; padding: 20px; border-radius: 8px; margin: 20px 0; font-family: monospace; line-height: 1.6; }
+        .tree-box { background: #f1f5f9; padding: 15px; border-radius: 8px; font-family: monospace; border: 1px dashed #cbd5e1; line-height: 1.2; }
+
+        .mini-teoria {
+            background: #eef6ff;
+            border: 1px solid #cfe8ff;
+            border-radius: 8px;
+            padding: 15px 18px;
+            margin-bottom: 18px;
+            font-size: 13.5px;
+            color: #1e3a5f;
+            line-height: 1.5;
+        }
+        .mini-teoria b { color: var(--accent); }
+        
+        .btn-save { background: var(--success); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        .btn-confirm { background: var(--accent); color: white; padding: 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: var(--primary); color: white; }
+
+        .data-display { font-size: 14px; line-height: 1.6; }
+        .points-box { font-size: 28px; text-align: center; color: var(--success); margin-top: 20px; font-weight: bold; border-top: 2px solid #eee; padding-top: 10px; }
+        
+        #mensajeFinal { 
+            display: none; 
+            background: #dcfce7; 
+            color: #166534; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 20px; 
+            text-align: center; 
+            font-weight: bold;
+            border: 2px solid #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes flashError {
+            0% { background-color: #fee2e2; }
+            60% { background-color: #fca5a5; }
+            100% { background-color: transparent; }
+        }
+        .flash-error { animation: flashError 0.9s ease-out; border-radius: 8px; }
+
+        .teoria-container {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+            border-top: 4px solid var(--accent);
+            font-size: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            line-height: 1.4;
+        }
+        .teoria-container h3 { color: var(--primary); margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px; text-align: center; }
+        .teoria-section { margin-bottom: 12px; }
+        .teoria-section b { color: var(--accent); display: block; margin-bottom: 3px; }
+        .teoria-table { font-size: 10px; width: 100%; margin-top: 5px; }
+        .teoria-table th { background: #f1f5f9; color: #334155; padding: 4px; }
+        .teoria-table td { padding: 4px; }
+
+        #btnResetFlotante {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 10000;
+            background: #1e293b;
+            color: #38bdf8;
+            border: 2px solid #38bdf8;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.25s ease-in-out;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        #btnResetFlotante:hover {
+            background: #38bdf8;
+            color: #0f172a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+        }
+        .attempt-badge {
+            display: inline-block;
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: var(--primary); margin: 0;">Consola de Comandos CMD</h1>
+            <p style="color: #64748b;">Materia: Informática | Prof. Arquimedes Mosquera</p>
+        </header>
+
+        <div class="student-strip">
+            <div>
+                <label>ESTUDIANTE</label>
+                <input type="text" id="nombre" placeholder="Nombre completo">
+            </div>
+            <div>
+                <label>GRADO</label>
+                <select id="grado" style="width: 100%; padding: 8px; border: none; border-radius: 5px; font-size: 14px; box-sizing: border-box;">
+                    <option value="" disabled selected>Selecciona...</option>
+                    <option value="8A">8A</option>
+                    <option value="8B">8B</option>
+                </select>
+            </div>
+            <div>
+                <label>MATERIA</label>
+                <div class="info-static">Informática</div>
+            </div>
+            <div>
+                <label>PROFESOR</label>
+                <div class="info-static">Arquimedes Mosquera</div>
+            </div>
+            <div style="grid-column: span 2;">
+                <button class="btn-save" onclick="guardarDatosEstudiante()">Guardar Datos del Estudiante</button>
+            </div>
+        </div>
+
+        <div class="intro-box">
+            <h3>Objetivo</h3>
+            <p>Administrar, organizar y recuperar información utilizando la consola de comandos (CMD) de Windows, aplicando herramientas de descarga, compresión y buenas prácticas de gestión de archivos y carpetas.</p>
+        </div>
+
+        <section class="section" id="parte1">
+            <h2>PARTE 1 — Apertura de CMD y Creación de Carpeta (8 pts)</h2>
+
+            <div class="mini-teoria">
+                <b>Teoría rápida:</b> CMD (Command Prompt) es el intérprete de línea de comandos de Windows. En lugar de hacer clic con el mouse, le escribimos instrucciones de texto al sistema operativo para movernos entre carpetas y administrarlas. La carpeta donde estamos parados en cada momento se llama <b>directorio actual</b>.
+            </div>
+
+            <div style="margin-bottom: 15px; color: #334155; line-height: 1.6;">
+                <strong>Instrucciones:</strong>
+                <ol>
+                    <li>Abrir la consola: presiona <b>Win + R</b>, escribe <b>cmd</b> y presiona Enter.</li>
+                    <li>Ir a la carpeta Documents.</li>
+                    <li>Revisar el contenido de la carpeta.</li>
+                    <li>Crear tu carpeta personal y entrar en ella.</li>
+                </ol>
+            </div>
+            <div class="terminal-box">
+                cd Documents<br>
+                dir<br>
+                mkdir TuNombre<br>
+                cd TuNombre
+            </div>
+            <p style="color:#334155;">Ahora, dentro de tu carpeta personal, debes colocar este comando para descargar el archivo que contiene la clave que va abajo:</p>
+            <div class="terminal-box">
+                curl -L -o archivos.zip https://github.com/arquijr/lakecity/raw/refs/heads/main/archivos.zip
+            </div>
+
+            <p style="color:#334155;"><b>Descomprimir con tar:</b> el archivo se descarga comprimido (.zip), así que no puedes ver su contenido todavía. El comando <b>tar</b> permite extraer archivos desde un ZIP directamente en la consola, sin necesidad de un programa externo. Usaremos:</p>
+            <div class="terminal-box">
+                tar -xf archivos.zip
+            </div>
+            <div class="mini-teoria">
+                <b>tar</b> = extrae (descomprime) el contenido de un archivo comprimido. <b>-x</b> = extract (extraer). <b>-f</b> = file (indica el nombre del archivo a extraer, en este caso <b>archivos.zip</b>).
+            </div>
+
+            <p style="color:#334155;"><b>Verificar con dir:</b> una vez extraído, usa <b>dir</b> para confirmar que la extracción funcionó. Debe aparecer ahora una carpeta llamada <b>archivos</b> dentro de tu carpeta personal:</p>
+            <div class="terminal-box">
+                dir
+            </div>
+
+            <p style="color:#334155;">Desde CMD, entra en ella y explora su contenido hasta encontrar un archivo de texto con la clave. Ábrelo usando el comando visto anteriormente para mostrar el contenido de un archivo de texto en pantalla.</p>
+
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 15px;">
+                <label>Escribe la palabra clave que indicó el profesor:</label>
+                <input type="text" id="claveParte1" placeholder="Primero guarda tus datos arriba..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px;" disabled>
+            </div>
+            <button class="btn-confirm" id="btnValidar" onclick="validarYDesbloquear()" disabled style="opacity:0.5; cursor: not-allowed;">Confirmar y Continuar</button>
+            <p id="avisoDatos" style="color: var(--danger); font-size: 13px; margin-top: 8px;">⚠️ Debes ingresar tu Nombre y Grado y presionar "Guardar Datos del Estudiante" antes de continuar.</p>
+        </section>
+
+        <section class="section" id="parte2">
+            <h2 style="color: var(--success);">PARTE 2 — Historial de comandos (8 pts)</h2>
+
+            <h3 style="color: var(--primary); margin-bottom: 8px;">Historial de comandos</h3>
+            <p style="color:#334155;">Ahora, en la <b>misma ventana de CMD</b> (sin cerrarla), debes guardar el historial de los comandos que has escrito hasta este momento. Escribe:</p>
+            <div class="terminal-box">
+                doskey /history &gt; historial.txt
+            </div>
+            <div class="mini-teoria"><b>doskey /history</b> = muestra todos los comandos escritos durante la sesión. Al usar <b>&gt;</b>, en lugar de mostrarlos en pantalla, los guarda dentro del archivo <b>historial.txt</b> como evidencia de tu trabajo.</div>
+
+            <p style="color:#334155;">Después de eso, debes descargar un segundo paquete para obtener la <b>clave 2</b>. Escribe:</p>
+            <div class="terminal-box">
+                curl -L -o clave2.zip https://github.com/arquijr/lakecity/raw/refs/heads/main/clave2.zip
+            </div>
+
+            <h3 style="color: var(--primary); margin-bottom: 8px;">Explicación de comando curl</h3>
+            <table>
+                <thead><tr><th>Parámetro</th><th>Función</th></tr></thead>
+                <tbody>
+                    <tr><td><b>-L</b></td><td>Sigue redirecciones del enlace</td></tr>
+                    <tr><td><b>-o</b></td><td>Nombre con el que se guarda el archivo descargado</td></tr>
+                    <tr><td><b>-x</b></td><td>Extraer (extract) el contenido del comprimido</td></tr>
+                    <tr><td><b>-f</b></td><td>Especifica el archivo (file) a extraer</td></tr>
+                </tbody>
+            </table>
+
+            <p style="color:#334155;">Ahora extrae el paquete descargado:</p>
+            <div class="terminal-box">
+                tar -xf clave2.zip
+            </div>
+
+            <p style="color:#334155;">Al extraer el paquete debe aparecer una carpeta llamada <b>clave2</b>. Entra en ella y explora su contenido hasta encontrar un archivo de texto con la clave. Ábrelo usando el comando visto anteriormente para mostrar el contenido de un archivo de texto en pantalla.</p>
+            <div class="mini-teoria"><b>type</b> = muestra en pantalla el contenido de un archivo de texto sin necesidad de abrirlo con un editor.</div>
+
+            <div style="margin-top: 25px; padding: 20px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
+                <label>Ingresa la clave encontrada en el archivo de texto:</label>
+                <input type="text" id="claveFTP" placeholder="Clave aquí..." style="width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px;">
+                <button class="btn-confirm" onclick="validarClaveParte3()" style="background: #856404;">Validar Clave y Desbloquear Fase 3</button>
+            </div>
+        </section>
+
+        <section class="section" id="parte3">
+            <h2 style="color: var(--warning);">PARTE 3 — Organización de Carpetas: Estructura EMPRESA (8 pts)</h2>
+
+            <div class="mini-teoria">
+                <b>Teoría rápida:</b> Con <b>mkdir</b> podemos crear varias carpetas dentro de otra para organizar información, tal como lo haría un departamento de sistemas en una empresa real. El comando <b>tree</b> nos permite ver toda esa organización en forma de árbol, para confirmar que la estructura quedó correcta.
+            </div>
+
+            <p>
+                Dentro de tu carpeta personal, crea la siguiente carpeta principal y sus subcarpetas usando <b>mkdir</b> y <b>cd</b>:<br>
+                <b>EMPRESA</b>
+            </p>
+
+            <div class="tree-box">
+                EMPRESA<br>
+                │<br>
+                ├── Recursos_Humanos<br>
+                ├── Finanzas<br>
+                ├── Marketing<br>
+                ├── Soporte<br>
+                └── Backups
+            </div>
+
+            <div class="terminal-box">
+                mkdir EMPRESA<br>
+                cd EMPRESA<br>
+                mkdir Recursos_Humanos Finanzas Marketing Soporte Backups<br>
+                tree /f /a
+            </div>
+            <div class="mini-teoria"><b>tree /f /a</b> = muestra la estructura de carpetas (y archivos, con /f) en forma de árbol de texto, usando caracteres compatibles con cualquier consola (/a).</div>
+
+            <div style="margin-top: 25px; padding: 20px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                <h3 style="margin-top: 0; color: #0369a1;">Verificación de Comando</h3>
+                <p>Escribe el <b>nombre del comando</b> usado para leer los archivos sin un editor:</p>
+                <input type="text" id="carpetaClave" placeholder="Nombre del comando..." style="width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px;">
+                <button class="btn-confirm" onclick="validarFase3()" style="background: #0369a1;">Confirmar Organización y Pasar a Fase 4</button>
+            </div>
+        </section>
+
+        <section class="section" id="parte4">
+            <h2 style="color: var(--danger);">PARTE 4 — Análisis de Datos (8 pts)</h2>
+
+            <p style="color:#334155;">Después de eso, debes descargar un tercer paquete para obtener la <b>clave 3</b>. Escribe:</p>
+            <div class="terminal-box">
+                curl -L -o clave3.zip https://github.com/arquijr/lakecity/raw/refs/heads/main/clave3.zip
+            </div>
+            <p style="color:#334155;">Repite el proceso de descompresión y exploración visto en las secciones anteriores para encontrar la <b>clave 3</b>.</p>
+
+            <div style="margin-top: 25px; padding: 20px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                <h3 style="margin-top: 0; color: #0369a1;">Verificación de Comando</h3>
+                <p>Escribe la <b>contraseña</b> encontrada en la clave 3 para desbloquear la Parte 5:</p>
+                <input type="text" id="claveParte4" placeholder="Contraseña..." style="width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px;">
+                <button class="btn-confirm" onclick="validarFase4()" style="background: #0369a1;">Confirmar y Pasar a Parte 5</button>
+            </div>
+        </section>
+
+        <section class="section" id="parte5">
+            <h2 style="color: var(--danger);">PARTE 5 — Entrega Final (8 pts)</h2>
+
+            <div style="background: #fee2e2; padding: 20px; border-radius: 8px; border-left: 5px solid var(--danger);">
+                <ol>
+                    <li>Toma una captura de pantalla de la consola CMD en la que has trabajado.</li>
+                    <li>Colócale el nombre <b>Consola</b> con la extensión <b>.jpg</b>.</li>
+                    <li>Impórtala en la sección de abajo.</li>
+                    <li>Envía la captura por Teams o al correo <b>Profesoritcep@gmail.com</b> con el asunto: <b>"Nombre y Grado"</b>.</li>
+                </ol>
+            </div>
+
+            <div style="margin-top: 20px; padding: 20px; border: 2px dashed #f87171; border-radius: 10px; text-align: center;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold;">Importar Documento Recuperado (.jpg):</label>
+                <input type="file" id="fileInput" accept=".jpg,.jpeg" style="margin-bottom: 10px;">
+                <br>
+                <button class="btn-confirm" onclick="procesarArchivoRecuperado()" style="background: var(--danger);">Finalizar Evaluación</button>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="sidebar">
+    <h3 style="margin-top:0">Panel de Control</h3>
+    <div id="displayData" class="data-display"><span style="color: #999;">Esperando registro...</span></div>
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+    <div class="data-display">
+        <b>Materia:</b> Informática<br>
+        <b>Profesor:</b> Arq. Mosquera<br>
+        <b>Estado:</b> <span id="statusRed">Pendiente</span><br>
+        <b>Intentos:</b> <span id="intentosDisplay" class="attempt-badge">0 / 2</span>
+    </div>
+    
+    <div id="mensajeFinal">
+        🎉 ¡FELICITACIONES! 🎉<br>
+        Evaluación completada. Has logrado alcanzar la meta con éxito.<br>
+        <div style="margin-top: 12px; font-size: 15px; border-top: 1px solid #86efac; padding-top: 10px;">
+            <div>Puntaje obtenido: <span id="finalPuntos">0</span> / 40 pts</div>
+            <div style="font-size: 20px; margin: 6px 0;">Calificación: <span id="finalNota">0.0</span></div>
+            <div style="font-size: 12px; font-weight: normal; color: #166534;">Fecha y hora: <span id="finalFecha">-</span></div>
+        </div>
+        <div id="btnSegundoIntentoContainer" style="display:none; margin-top:15px;">
+            <button onclick="iniciarSegundoIntento()" style="background: #166534; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%;">
+                🔄 Realizar 2do Intento
+            </button>
+        </div>
+    </div>
+
+    <div class="points-box">
+        <span id="puntosTotales">0</span> / 40 pts
+        <div style="font-size: 13px; color: #e74c3c; margin-top: 6px; font-weight: normal;">
+            Errores: <span id="erroresTotales">0</span> (−<span id="puntosDescontados">0</span> pts)
+        </div>
+    </div>
+
+    <div id="teoriaFinal" class="teoria-container">
+        <h3>Consola de Comandos CMD</h3>
+        
+        <div class="teoria-section">
+            <b>1. ¿Qué es CMD?</b>
+            Es el intérprete de línea de comandos de Windows. Permite ejecutar instrucciones escritas para administrar archivos, carpetas y el sistema sin usar el mouse.
+        </div>
+
+        <div class="teoria-section">
+            <b>2. Comandos básicos de navegación</b>
+            1. dir: Muestra archivos y carpetas del directorio actual.<br>
+            2. cd: Cambia de carpeta (cd nombre / cd ..).<br>
+            3. mkdir (md): Crea una carpeta nueva.<br>
+            4. cls: Limpia la pantalla.<br>
+            5. type: Muestra el contenido de un archivo de texto.
+        </div>
+
+        <div class="teoria-section">
+            <b>3. Descarga, compresión e historial</b>
+            <table class="teoria-table">
+                <tr><th>Comando</th><th>Función</th></tr>
+                <tr><td>curl -L -o</td><td>Descarga un archivo desde una URL</td></tr>
+                <tr><td>tar -xf</td><td>Extrae el contenido de un archivo .zip</td></tr>
+                <tr><td>tree /f /a</td><td>Muestra la estructura de carpetas y archivos</td></tr>
+                <tr><td>move</td><td>Mueve un archivo de una carpeta a otra</td></tr>
+                <tr><td>doskey /history</td><td>Muestra el historial de comandos escritos</td></tr>
+            </table>
+        </div>
+
+        <div class="teoria-section">
+            <b>4. ¿Qué podemos hacer con CMD?</b>
+            Crear, mover, copiar y eliminar archivos o carpetas; descargar y descomprimir información; automatizar tareas con archivos .bat; y administrar el sistema de forma rápida mediante texto, sin depender del mouse.
+        </div>
+    </div>
+</div>
+
+<!-- Botón Flotante Protegido para Reinicio por el Profesor -->
+<button id="btnResetFlotante" onclick="solicitarReinicioProfesor()" title="Opción exclusiva del profesor">
+    🔑 Reiniciar actividad
+</button>
+
+<script>
+    // ==========================================
+    // CAPA DE PROTECCIÓN ANTI-INSPECCIÓN CÓDIGO
+    // ==========================================
+    
+    // 1. Bloqueo de Clic Derecho
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+    });
+
+    // 2. Bloqueo de Atajos de Teclado (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U, Ctrl+S)
+    document.addEventListener('keydown', function(e) {
+        if (
+            e.keyCode === 123 || 
+            (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+            (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83)) || 
+            (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+            (e.metaKey && (e.keyCode === 85 || e.keyCode === 83))
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    });
+
+    // 3. Trampa de Depurador para Herramientas de Desarrollo
+    setInterval(function() {
+        const start = performance.now();
+        debugger;
+        const end = performance.now();
+        if (end - start > 100) {
+            document.body.innerHTML = `
+                <div style="background:#0f172a; color:#f87171; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family:sans-serif; text-align:center; padding:20px; box-sizing:border-box;">
+                    <h1 style="font-size:48px; margin-bottom:10px;">🚫 ACCESO DENEGADO</h1>
+                    <p style="font-size:20px; color:#cbd5e1; max-width:600px;">Se ha detectado el uso de herramientas de inspección o consola de desarrollo. La actividad ha sido bloqueada.</p>
+                </div>
+            `;
+        }
+    }, 1000);
+
+
+    // ==========================================
+    // LÓGICA Y EVALUACIÓN DE LA ACTIVIDAD
+    // ==========================================
+    let puntajeObtenido = 0;
+    let erroresTotales = 0;
+    const PUNTOS_POR_PARTE = 8;
+    const DESCUENTO_ERROR = 2;
+
+    const KEY_ATTEMPTS = 'cmd_eval_attempts_v2';
+    const KEY_STATE = 'cmd_eval_state_v2';
+
+    function obtenerIntentos() {
+        return parseInt(localStorage.getItem(KEY_ATTEMPTS) || '0', 10);
+    }
+
+    function actualizarDisplayIntentos() {
+        const intentos = obtenerIntentos();
+        const display = document.getElementById('intentosDisplay');
+        if (display) {
+            display.innerText = `${intentos} / 2`;
+            if (intentos >= 2) {
+                display.style.background = '#fee2e2';
+                display.style.color = '#991b1b';
+            } else {
+                display.style.background = '#e2e8f0';
+                display.style.color = '#1e293b';
+            }
+        }
+    }
+
+    function guardarEstado() {
+        const estado = {
+            intentoActivo: true,
+            nombre: document.getElementById('nombre').value,
+            grado: document.getElementById('grado').value,
+            datosGuardados: document.getElementById('nombre').disabled,
+            statusRed: document.getElementById('statusRed').innerText,
+            puntajeObtenido: puntajeObtenido,
+            erroresTotales: erroresTotales,
+            claveParte1: document.getElementById('claveParte1').value,
+            claveFTP: document.getElementById('claveFTP').value,
+            carpetaClave: document.getElementById('carpetaClave').value,
+            claveParte4: document.getElementById('claveParte4').value,
+            
+            displayDataHTML: document.getElementById('displayData').innerHTML,
+            
+            parte1Opacity: document.getElementById('parte1').style.opacity,
+            btnValidarDisabled: document.getElementById('btnValidar').disabled,
+            
+            parte2Visible: document.getElementById('parte2').style.display === 'block',
+            claveFTPDisabled: document.getElementById('claveFTP').disabled,
+            
+            parte3Visible: document.getElementById('parte3').style.display === 'block',
+            carpetaClaveDisabled: document.getElementById('carpetaClave').disabled,
+            
+            parte4Visible: document.getElementById('parte4').style.display === 'block',
+            claveParte4Disabled: document.getElementById('claveParte4').disabled,
+            
+            parte5Visible: document.getElementById('parte5').style.display === 'block',
+            fileInputDisabled: document.getElementById('fileInput').disabled,
+            
+            mensajeFinalVisible: document.getElementById('mensajeFinal').style.display === 'block',
+            teoriaFinalVisible: document.getElementById('teoriaFinal').style.display === 'block',
+            
+            finalPuntos: document.getElementById('finalPuntos').innerText,
+            finalNota: document.getElementById('finalNota').innerText,
+            finalFecha: document.getElementById('finalFecha').innerText,
+            
+            completado: document.getElementById('mensajeFinal').style.display === 'block'
+        };
+        
+        localStorage.setItem(KEY_STATE, JSON.stringify(estado));
+    }
+
+    function cargarEstado() {
+        let intentos = obtenerIntentos();
+        actualizarDisplayIntentos();
+
+        const estadoStr = localStorage.getItem(KEY_STATE);
+        
+        if (intentos >= 2) {
+            if (!estadoStr) {
+                mostrarBloqueo();
+                return;
+            }
+            try {
+                const est = JSON.parse(estadoStr);
+                if (est.completado) {
+                    mostrarBloqueo();
+                }
+            } catch(e) {}
+        }
+
+        if (!estadoStr) return;
+
+        try {
+            const estado = JSON.parse(estadoStr);
+
+            puntajeObtenido = estado.puntajeObtenido || 0;
+            erroresTotales = estado.erroresTotales || 0;
+            actualizarPuntaje();
+
+            if (estado.nombre) document.getElementById('nombre').value = estado.nombre;
+            if (estado.grado) document.getElementById('grado').value = estado.grado;
+            
+            if (estado.datosGuardados) {
+                document.getElementById('nombre').disabled = true;
+                document.getElementById('grado').disabled = true;
+                document.getElementById('avisoDatos').style.display = "none";
+                document.getElementById('claveParte1').disabled = false;
+                document.getElementById('claveParte1').placeholder = "Palabra clave...";
+            }
+
+            if (estado.displayDataHTML) {
+                document.getElementById('displayData').innerHTML = estado.displayDataHTML;
+            }
+
+            if (estado.statusRed) {
+                document.getElementById('statusRed').innerText = estado.statusRed;
+            }
+
+            if (estado.claveParte1 !== undefined) document.getElementById('claveParte1').value = estado.claveParte1;
+            if (estado.claveFTP !== undefined) document.getElementById('claveFTP').value = estado.claveFTP;
+            if (estado.carpetaClave !== undefined) document.getElementById('carpetaClave').value = estado.carpetaClave;
+            if (estado.claveParte4 !== undefined) document.getElementById('claveParte4').value = estado.claveParte4;
+
+            if (estado.datosGuardados) {
+                document.getElementById('btnValidar').disabled = estado.btnValidarDisabled;
+                document.getElementById('btnValidar').style.opacity = estado.btnValidarDisabled ? "0.5" : "1";
+                document.getElementById('btnValidar').style.cursor = estado.btnValidarDisabled ? "not-allowed" : "pointer";
+            }
+            if (estado.parte1Opacity) document.getElementById('parte1').style.opacity = estado.parte1Opacity;
+
+            if (estado.parte2Visible) document.getElementById('parte2').style.display = "block";
+            if (estado.claveFTPDisabled) document.getElementById('claveFTP').disabled = true;
+
+            if (estado.parte3Visible) document.getElementById('parte3').style.display = "block";
+            if (estado.carpetaClaveDisabled) document.getElementById('carpetaClave').disabled = true;
+
+            if (estado.parte4Visible) document.getElementById('parte4').style.display = "block";
+            if (estado.claveParte4Disabled) document.getElementById('claveParte4').disabled = true;
+
+            if (estado.parte5Visible) document.getElementById('parte5').style.display = "block";
+            if (estado.fileInputDisabled) document.getElementById('fileInput').disabled = true;
+
+            if (estado.mensajeFinalVisible) document.getElementById('mensajeFinal').style.display = "block";
+            if (estado.teoriaFinalVisible) document.getElementById('teoriaFinal').style.display = "block";
+
+            if (estado.finalPuntos) document.getElementById('finalPuntos').innerText = estado.finalPuntos;
+            if (estado.finalNota) document.getElementById('finalNota').innerText = estado.finalNota;
+            if (estado.finalFecha) document.getElementById('finalFecha').innerText = estado.finalFecha;
+
+            if (estado.completado && intentos < 2) {
+                document.getElementById('btnSegundoIntentoContainer').style.display = 'block';
+            }
+
+            if (intentos >= 2 && estado.completado) {
+                mostrarBloqueo();
+            }
+
+        } catch (e) {
+            console.error("Error al cargar el estado previo:", e);
+        }
+    }
+
+    function mostrarBloqueo() {
+        let overlay = document.getElementById('blockingOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'blockingOverlay';
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.96); z-index: 9998; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; backdrop-filter: blur(5px);';
+            overlay.innerHTML = `
+                <div style="background: #1e293b; border: 2px solid #ef4444; border-radius: 16px; padding: 40px; max-width: 520px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+                    <div style="font-size: 64px; margin-bottom: 15px;">🔒</div>
+                    <h2 style="color: #f87171; margin-top: 0; font-size: 26px; font-weight: 800;">Límite de Intentos Alcanzado</h2>
+                    <p style="font-size: 16px; color: #cbd5e1; line-height: 1.6; margin: 15px 0;">
+                        Has completado el número máximo de intentos permitidos (<b>2 de 2</b>) para esta actividad en este dispositivo.
+                    </p>
+                    <div style="background: #0f172a; padding: 18px; border-radius: 10px; margin-top: 20px; border-left: 4px solid #f59e0b; font-size: 13.5px; text-align: left; color: #e2e8f0; line-height: 1.5;">
+                        ⚠️ <b>Acceso Restringido:</b> La actividad se encuentra completamente bloqueada.<br><br>
+                        Si necesitas realizar un reinicio autorizado, por favor solicita la asistencia de tu profesor. Él utilizará el botón flotante <b>"Reiniciar actividad"</b> ubicado a la derecha.
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+        overlay.style.display = 'flex';
+    }
+
+    function solicitarReinicioProfesor() {
+        const pass = prompt("🔐 CONTROL DE PROFESOR\n\nIngrese la contraseña autorizada para reiniciar la actividad:");
+        if (pass === null) return;
+
+        if (pass === "code2026") {
+            reiniciarActividadCompleta();
+            alert("✅ Acceso concedido: La actividad ha sido reiniciada con éxito. Todos los intentos han sido restablecidos.");
+        } else {
+            alert("❌ Acceso denegado: Contraseña incorrecta.");
+        }
+    }
+
+    function reiniciarActividadCompleta() {
+        localStorage.removeItem(KEY_ATTEMPTS);
+        localStorage.removeItem(KEY_STATE);
+
+        puntajeObtenido = 0;
+        erroresTotales = 0;
+        actualizarPuntaje();
+
+        document.getElementById('parte2').style.display = "none";
+        document.getElementById('parte3').style.display = "none";
+        document.getElementById('parte4').style.display = "none";
+        document.getElementById('parte5').style.display = "none";
+        document.getElementById('mensajeFinal').style.display = "none";
+        document.getElementById('teoriaFinal').style.display = "none";
+        
+        const btnSeg = document.getElementById('btnSegundoIntentoContainer');
+        if (btnSeg) btnSeg.style.display = "none";
+
+        document.getElementById('parte1').style.opacity = "1";
+        document.getElementById('nombre').disabled = false;
+        document.getElementById('nombre').value = "";
+        document.getElementById('grado').disabled = false;
+        document.getElementById('grado').selectedIndex = 0;
+
+        document.getElementById('claveParte1').disabled = true;
+        document.getElementById('claveParte1').value = "";
+        document.getElementById('claveParte1').placeholder = "Primero guarda tus datos arriba...";
+        document.getElementById('btnValidar').disabled = true;
+        document.getElementById('btnValidar').style.opacity = "0.5";
+        document.getElementById('btnValidar').style.cursor = "not-allowed";
+
+        document.getElementById('claveFTP').disabled = false;
+        document.getElementById('claveFTP').value = "";
+        document.getElementById('carpetaClave').disabled = false;
+        document.getElementById('carpetaClave').value = "";
+        document.getElementById('claveParte4').disabled = false;
+        document.getElementById('claveParte4').value = "";
+        document.getElementById('fileInput').disabled = false;
+        document.getElementById('fileInput').value = "";
+
+        document.getElementById('avisoDatos').style.display = "block";
+        document.getElementById('displayData').innerHTML = '<span style="color: #999;">Esperando registro...</span>';
+        document.getElementById('statusRed').innerText = "Pendiente";
+
+        const overlay = document.getElementById('blockingOverlay');
+        if (overlay) overlay.style.display = 'none';
+
+        actualizarDisplayIntentos();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function iniciarSegundoIntento() {
+        let intentos = obtenerIntentos();
+        if (intentos >= 2) {
+            mostrarBloqueo();
+            alert("❌ Ya has realizado los 2 intentos permitidos.");
+            return;
+        }
+
+        puntajeObtenido = 0;
+        erroresTotales = 0;
+        actualizarPuntaje();
+
+        document.getElementById('parte2').style.display = "none";
+        document.getElementById('parte3').style.display = "none";
+        document.getElementById('parte4').style.display = "none";
+        document.getElementById('parte5').style.display = "none";
+        document.getElementById('mensajeFinal').style.display = "none";
+        document.getElementById('teoriaFinal').style.display = "none";
+        document.getElementById('btnSegundoIntentoContainer').style.display = "none";
+
+        document.getElementById('parte1').style.opacity = "1";
+        document.getElementById('nombre').disabled = false;
+        document.getElementById('nombre').value = "";
+        document.getElementById('grado').disabled = false;
+        document.getElementById('grado').selectedIndex = 0;
+
+        document.getElementById('claveParte1').disabled = true;
+        document.getElementById('claveParte1').value = "";
+        document.getElementById('claveParte1').placeholder = "Primero guarda tus datos arriba...";
+        document.getElementById('btnValidar').disabled = true;
+        document.getElementById('btnValidar').style.opacity = "0.5";
+        document.getElementById('btnValidar').style.cursor = "not-allowed";
+
+        document.getElementById('claveFTP').disabled = false;
+        document.getElementById('claveFTP').value = "";
+        document.getElementById('carpetaClave').disabled = false;
+        document.getElementById('carpetaClave').value = "";
+        document.getElementById('claveParte4').disabled = false;
+        document.getElementById('claveParte4').value = "";
+        document.getElementById('fileInput').disabled = false;
+        document.getElementById('fileInput').value = "";
+
+        document.getElementById('avisoDatos').style.display = "block";
+        document.getElementById('displayData').innerHTML = '<span style="color: #999;">Esperando registro (Intento 2)...</span>';
+        document.getElementById('statusRed').innerText = "Pendiente";
+
+        localStorage.removeItem(KEY_STATE);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function calcularNota(puntos) {
+        const nota = 1 + (puntos * 0.1);
+        return nota.toFixed(1);
+    }
+
+    function actualizarPuntaje() {
+        document.getElementById('puntosTotales').innerText = puntajeObtenido;
+        document.getElementById('erroresTotales').innerText = erroresTotales;
+        document.getElementById('puntosDescontados').innerText = erroresTotales * DESCUENTO_ERROR;
+    }
+
+    function sumarPuntosParte() {
+        puntajeObtenido += PUNTOS_POR_PARTE;
+        actualizarPuntaje();
+    }
+
+    function registrarError() {
+        erroresTotales++;
+        puntajeObtenido -= DESCUENTO_ERROR;
+        if (puntajeObtenido < 0) puntajeObtenido = 0;
+        actualizarPuntaje();
+
+        const box = document.querySelector('.points-box');
+        box.classList.remove('flash-error');
+        void box.offsetWidth;
+        box.classList.add('flash-error');
+        setTimeout(() => box.classList.remove('flash-error'), 900);
+    }
+
+    function guardarDatosEstudiante() {
+        let intentos = obtenerIntentos();
+        const estadoPrevioStr = localStorage.getItem(KEY_STATE);
+
+        if (intentos >= 2) {
+            if (estadoPrevioStr) {
+                try {
+                    const est = JSON.parse(estadoPrevioStr);
+                    if (est.completado) {
+                        mostrarBloqueo();
+                        alert("❌ Has alcanzado el número máximo de intentos permitidos (2/2). La actividad está bloqueada.");
+                        return;
+                    }
+                } catch(e){}
+            }
+        }
+
+        const nombre = document.getElementById('nombre').value.trim();
+        const grado = document.getElementById('grado').value.trim();
+        
+        if (nombre && grado) {
+            if (!estadoPrevioStr || JSON.parse(estadoPrevioStr).completado) {
+                intentos++;
+                localStorage.setItem(KEY_ATTEMPTS, intentos);
+            }
+
+            document.getElementById('displayData').innerHTML = `<b>Estudiante:</b><br>${nombre}<br><br><b>Grado:</b><br>${grado}`;
+            document.getElementById('claveParte1').disabled = false;
+            document.getElementById('claveParte1').placeholder = "Palabra clave...";
+            document.getElementById('btnValidar').disabled = false;
+            document.getElementById('btnValidar').style.opacity = "1";
+            document.getElementById('btnValidar').style.cursor = "pointer";
+            document.getElementById('avisoDatos').style.display = "none";
+            document.getElementById('nombre').disabled = true;
+            document.getElementById('grado').disabled = true;
+            
+            actualizarDisplayIntentos();
+            guardarEstado();
+            alert(`Datos personales guardados. (Iniciando Intento ${intentos} de 2)`);
+        } else { 
+            alert("Ingrese nombre y grado."); 
+        }
+    }
+
+    function validarYDesbloquear() {
+        const clave = document.getElementById('claveParte1').value.trim();
+        const nombre = document.getElementById('nombre').value.trim();
+
+        if (nombre && clave === "Command") {
+            document.getElementById('statusRed').innerText = "Verificada ✅";
+            sumarPuntosParte();
+            document.getElementById('parte2').style.display = "block";
+            document.getElementById('parte1').style.opacity = "0.6";
+            document.getElementById('btnValidar').disabled = true;
+            guardarEstado();
+            document.getElementById('parte2').scrollIntoView({ behavior: 'smooth' });
+        } else { 
+            registrarError(); 
+            guardarEstado();
+            setTimeout(() => alert("❌ Clave incorrecta. Se ha descontado " + DESCUENTO_ERROR + " pts. Verifique los datos de la Parte 1."), 50); 
+        }
+    }
+
+    function validarClaveParte3() {
+        if (document.getElementById('claveFTP').value.trim() === "Prompt") {
+            sumarPuntosParte();
+            document.getElementById('parte3').style.display = "block";
+            document.getElementById('claveFTP').disabled = true;
+            guardarEstado();
+            alert("✅ Fase 3 desbloqueada.");
+            document.getElementById('parte3').scrollIntoView({ behavior: 'smooth' });
+        } else { 
+            registrarError();
+            guardarEstado();
+            setTimeout(() => alert("❌ Contraseña equivocada. Se ha descontado " + DESCUENTO_ERROR + " pts."), 50);
+        }
+    }
+
+    function validarFase3() {
+        const entrada = document.getElementById('carpetaClave').value.trim();
+        if (entrada.toLowerCase() === "type") {
+            sumarPuntosParte();
+            document.getElementById('parte4').style.display = "block";
+            document.getElementById('carpetaClave').disabled = true;
+            guardarEstado();
+            alert("✅ Fase final desbloqueada.");
+            document.getElementById('parte4').scrollIntoView({ behavior: 'smooth' });
+        } else { 
+            registrarError();
+            guardarEstado();
+            setTimeout(() => alert("❌ Contraseña equivocada. Se ha descontado " + DESCUENTO_ERROR + " pts."), 50);
+        }
+    }
+
+    function validarFase4() {
+        const entrada = document.getElementById('claveParte4').value.trim();
+        if (entrada.toLowerCase() === "directorio") {
+            sumarPuntosParte();
+            document.getElementById('parte5').style.display = "block";
+            document.getElementById('claveParte4').disabled = true;
+            guardarEstado();
+            alert("✅ Parte 5 desbloqueada.");
+            document.getElementById('parte5').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError();
+            guardarEstado();
+            setTimeout(() => alert("❌ Contraseña equivocada. Se ha descontado " + DESCUENTO_ERROR + " pts."), 50);
+        }
+    }
+
+    function procesarArchivoRecuperado() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert("Por favor, selecciona el documento recuperado.");
+            return;
+        }
+
+        const nombreArchivo = file.name.toUpperCase().trim();
+        const nombreEsperado = "CONSOLA";
+        const esJpg = file.name.toLowerCase().endsWith(".jpg") || file.name.toLowerCase().endsWith(".jpeg");
+
+        if (nombreArchivo.includes(nombreEsperado) && esJpg) {
+            sumarPuntosParte();
+            document.getElementById('finalPuntos').innerText = puntajeObtenido;
+            document.getElementById('finalNota').innerText = calcularNota(puntajeObtenido);
+            document.getElementById('finalFecha').innerText = new Date().toLocaleString('es-ES', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+            document.getElementById('mensajeFinal').style.display = "block";
+            document.getElementById('teoriaFinal').style.display = "block";
+            document.getElementById('fileInput').disabled = true;
+
+            let intentos = obtenerIntentos();
+            if (intentos < 2) {
+                document.getElementById('btnSegundoIntentoContainer').style.display = 'block';
+            } else {
+                document.getElementById('btnSegundoIntentoContainer').style.display = 'none';
+            }
+
+            guardarEstado();
+            alert("Documento verificado. ¡Evaluación completada!");
+            document.getElementById('mensajeFinal').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            registrarError();
+            guardarEstado();
+            setTimeout(() => alert("❌ Error: El archivo debe ser un JPG y su nombre debe contener 'Consola'. Se ha descontado " + DESCUENTO_ERROR + " pts."), 50);
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', cargarEstado);
+    window.addEventListener('pageshow', cargarEstado);
+    window.addEventListener('popstate', cargarEstado);
+    window.addEventListener('storage', function(e) {
+        if (e.key === KEY_STATE || e.key === KEY_ATTEMPTS) {
+            cargarEstado();
+        }
+    });
+</script>
+
+</body>
+</html>
