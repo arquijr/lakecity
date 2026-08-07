@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen — Sistemas Operativos y el Kernel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#060B17; --bg-1:#0B1326; --panel-0:#101B33; --panel-1:#15233F;
+    --cyan:#00E5FF; --blue:#3BA4FF; --green:#39FF88; --purple:#8A5CFF; --red:#FF5C7A;
+    --muted:#7E92B2; --ink:#E7F6FF; --line: rgba(126,146,178,0.22);
+    --glow-cyan: 0 0 18px rgba(0,229,255,.35);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background: radial-gradient(circle at 15% 0%, rgba(59,164,255,0.10), transparent 45%),
+                radial-gradient(circle at 90% 20%, rgba(138,92,255,0.08), transparent 40%),
+                var(--bg-0);
+    color: var(--ink);
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding: 28px 16px;
+  }
+  .wrap{ width:100%; max-width: 760px; }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:.18em; color: var(--green); text-align:center; margin-bottom:8px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .eyebrow::before{ content:"▸"; color: var(--cyan); }
+  h1{
+    font-family:'Orbitron', sans-serif; font-weight:800; text-align:center;
+    font-size: clamp(24px, 5vw, 34px);
+    background: linear-gradient(120deg, var(--ink) 30%, var(--cyan) 70%, var(--blue));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom: 6px;
+  }
+  .sub{ text-align:center; color:var(--muted); font-size:13px; margin-bottom:22px; }
+
+  .statbar{
+    display:flex; justify-content:center; gap:22px; margin-bottom:16px;
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--muted);
+  }
+  .statbar b{ color:var(--ink); }
+  .timer-n{ color: var(--green); }
+  .timer-n.low{ color: var(--red); }
+
+  .core-gauge{
+    width: 100px; height: 100px;
+    margin: 4px auto 18px;
+    border-radius: 50%;
+    position: relative;
+    display:flex; align-items:center; justify-content:center;
+    background: conic-gradient(var(--core-color, var(--cyan)) calc(var(--core-pct, 0) * 1%), var(--panel-0) 0);
+    transition: background 0.5s ease;
+  }
+  .core-gauge::before{
+    content:"";
+    position:absolute; inset:8px;
+    border-radius:50%;
+    background: var(--bg-0);
+    box-shadow: inset 0 0 18px rgba(0,0,0,.6);
+  }
+  .core-gauge .core-inner{ position:relative; z-index:1; text-align:center; font-family:'JetBrains Mono', monospace; }
+  .core-inner .n{ font-size:18px; font-weight:700; color: var(--core-color, var(--cyan)); }
+  .core-inner .l{ font-size:8.5px; color: var(--muted); letter-spacing:.1em; }
+  .core-gauge.pulse{ animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse{
+    0%,100%{ filter: drop-shadow(0 0 0px var(--core-color, var(--cyan))); }
+    50%{ filter: drop-shadow(0 0 12px var(--core-color, var(--cyan))); }
+  }
+  @media (prefers-reduced-motion: reduce){ .core-gauge.pulse{ animation:none; } }
+
+  .score-display{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin: -10px auto 18px; font-family:'JetBrains Mono', monospace;
+  }
+  .score-display .score-val{
+    font-size:15px; font-weight:700; color: var(--ink);
+    background: var(--panel-0); border:1px solid var(--line); border-radius:8px;
+    padding:6px 14px; transition: color .3s ease, border-color .3s ease;
+  }
+  .score-display .score-val.good{ color: var(--green); border-color: var(--green); }
+  .score-display .score-val.mid{ color: var(--purple); border-color: var(--purple); }
+  .score-display .score-val.bad{ color: var(--red); border-color: var(--red); }
+  .score-display .score-errs{ font-size:11px; color: var(--muted); }
+  .score-display .score-errs b{ color: var(--red); }
+
+  .panel{
+    background: var(--panel-0);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px;
+  }
+
+  .qtag{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--cyan);
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:10px;
+  }
+  .qtext{ font-size: 17px; line-height:1.5; margin-bottom: 20px; color: var(--ink); }
+
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    text-align:left;
+    background: var(--panel-1);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding: 13px 16px;
+    color: var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size: 14px;
+    cursor:pointer;
+    transition: all .15s ease;
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .opt .k{ font-family:'JetBrains Mono', monospace; color:var(--cyan); font-weight:600; flex-shrink:0; }
+  .opt:hover{ border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+  .opt:disabled{ cursor:default; }
+  .opt.right{ border-color: var(--green); background: rgba(57,255,136,.08); }
+  .opt.right .k{ color: var(--green); }
+  .opt.wrong{ border-color: var(--red); background: rgba(255,92,122,.08); }
+  .opt.wrong .k{ color: var(--red); }
+
+  .feedback{ margin-top:16px; font-family:'JetBrains Mono', monospace; font-size:12.5px; min-height:18px; }
+  .feedback.correct{ color: var(--green); }
+  .feedback.wrong{ color: var(--red); }
+
+  .screen{ text-align:center; }
+  .screen p{ color: var(--muted); line-height:1.65; font-size:14.5px; max-width: 500px; margin: 14px auto 0; }
+  .btn{
+    font-family:'Orbitron', sans-serif; font-weight:700; font-size:14px;
+    color:#04121a; background: var(--cyan); border:none; border-radius:8px;
+    padding:13px 30px; cursor:pointer; margin-top:24px;
+    box-shadow: var(--glow-cyan);
+    transition: transform .12s ease;
+  }
+  .btn:hover{ transform: translateY(-1px); }
+
+  .grade-num{ font-family:'Orbitron', sans-serif; font-weight:800; font-size:58px; margin-top:10px; }
+  .breakdown{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--muted); margin-top:14px; line-height:1.9; }
+
+  .id-form{
+    display:flex; flex-direction:column; gap:14px; max-width:380px; margin: 20px auto 0; text-align:left;
+  }
+  .field label{
+    display:block; font-family:'JetBrains Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:.1em; color:var(--cyan); margin-bottom:6px;
+  }
+  .field input[type="text"], .field select{
+    width:100%; background: var(--panel-1); border:1px solid var(--line);
+    border-radius:8px; padding:11px 14px; color:var(--ink); font-family:'Inter', sans-serif;
+    font-size:14px; outline:none; transition: border-color .15s ease;
+  }
+  .field input[type="text"]:focus, .field select:focus{ border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+  .field select{ cursor:pointer; }
+  .id-error{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--red);
+    min-height:16px; text-align:center;
+  }
+  .student-tag{
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; color: var(--muted);
+    text-align:center; margin-bottom:14px;
+  }
+  .student-tag b{ color: var(--cyan); }
+
+  @media (max-width:480px){ .panel{ padding:18px; } }
+
+  .teacher-fab{
+    position:fixed; bottom:20px; right:20px; z-index:500;
+    width:48px; height:48px; border-radius:50%;
+    background: var(--panel-0); border:1px solid var(--line);
+    color: var(--muted); font-size:18px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow: 0 4px 14px rgba(0,0,0,.45);
+    transition: all .15s ease;
+  }
+  .teacher-fab:hover{ border-color: var(--cyan); color: var(--cyan); box-shadow: var(--glow-cyan); }
+
+  .teacher-overlay{
+    position:fixed; inset:0; z-index:600;
+    background: rgba(3,7,16,.72); backdrop-filter: blur(3px);
+    display:none; align-items:center; justify-content:center; padding:16px;
+  }
+  .teacher-overlay.open{ display:flex; }
+  .teacher-modal{
+    width:100%; max-width:340px; background: var(--panel-0);
+    border:1px solid var(--line); border-radius:14px; padding:24px;
+    text-align:center;
+  }
+  .teacher-modal .qtag{ margin-bottom:14px; }
+  .teacher-modal input[type="password"]{
+    width:100%; background: var(--panel-1); border:1px solid var(--line);
+    border-radius:8px; padding:11px 14px; color:var(--ink); font-family:'JetBrains Mono', monospace;
+    font-size:14px; outline:none; text-align:center; letter-spacing:.15em;
+  }
+  .teacher-modal input[type="password"]:focus{ border-color: var(--cyan); box-shadow: var(--glow-cyan); }
+  .teacher-err{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color: var(--red);
+    min-height:16px; margin-top:10px;
+  }
+  .teacher-actions{ display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+  .teacher-actions .btn{ width:100%; margin-top:0; }
+  .btn.danger{ background: var(--red); box-shadow: 0 0 18px rgba(255,92,122,.35); color:#1a0508; }
+  .btn.ghost{
+    background: transparent; color: var(--muted); border:1px solid var(--line);
+    box-shadow:none;
+  }
+  .btn.ghost:hover{ color: var(--ink); border-color: var(--muted); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; box-shadow:none; transform:none; }
+
+  .challenge-heading{
+    font-family:'Orbitron', sans-serif; font-weight:800;
+    font-size: clamp(22px, 4.5vw, 30px);
+    background: linear-gradient(120deg, var(--ink) 30%, var(--cyan) 70%, var(--blue));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom: 10px;
+  }
+  .challenge-timer{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:20px;
+    color: var(--green); margin: 16px 0 4px;
+  }
+  .challenge-timer.low{ color: var(--red); }
+  .file-btn-row{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:22px; }
+  .file-status{ font-family:'JetBrains Mono', monospace; font-size:12.5px; min-height:18px; margin-top:14px; }
+  .file-status.correct{ color: var(--green); }
+  .file-status.wrong{ color: var(--red); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Fundamentos de Informática · 9°</div>
+  <h1>Examen: SO y el Kernel</h1>
+  <div class="sub">40 preguntas basadas en la guía de Sistemas Operativos y el Kernel</div>
+
+  <div class="core-gauge" id="coreGauge">
+    <div class="core-inner">
+      <div class="n" id="coreN">0%</div>
+      <div class="l">AVANCE</div>
+    </div>
+  </div>
+
+  <div class="score-display">
+    <div class="score-val good" id="scoreVal">40 / 40 PTS</div>
+    <div class="score-errs">Errores: <b id="scoreErrs">0</b> (1 pt c/u)<span id="scorePhotos"></span></div>
+  </div>
+
+  <div class="statbar">
+    <div>PREGUNTA <b id="statQ">0/40</b></div>
+    <div>CORRECTAS <b id="statCorrect">0</b></div>
+    <div>TIEMPO <b class="timer-n" id="statTimer">1:20</b></div>
+  </div>
+
+  <div class="panel" id="panel"></div>
+</div>
+
+<div class="teacher-fab" id="teacherFab" title="Acceso docente">🔒</div>
+
+<div class="teacher-overlay" id="teacherOverlay">
+  <div class="teacher-modal" id="teacherModalLogin">
+    <div class="qtag">Acceso docente</div>
+    <input type="password" id="teacherPass" placeholder="Contraseña" autocomplete="off">
+    <div class="teacher-err" id="teacherErr"></div>
+    <div class="teacher-actions">
+      <button class="btn" id="teacherSubmit">Ingresar</button>
+      <button class="btn ghost" id="teacherCancel">Cancelar</button>
+    </div>
+  </div>
+  <div class="teacher-modal" id="teacherModalOptions" style="display:none;">
+    <div class="qtag">Opciones del docente</div>
+    <div class="teacher-actions">
+      <button class="btn danger" id="teacherReset">Reiniciar prueba</button>
+      <button class="btn ghost" id="teacherClose">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+(function(){
+  const QUESTIONS = [
+    {t:"¿Qué función del sistema operativo asigna memoria RAM, tiempo de procesador y espacio de almacenamiento a cada programa?", o:["Interfaz de usuario","Gestión de recursos","Administración de archivos","Control de dispositivos"], a:1},
+    {t:"¿Cuál de las siguientes NO aparece como función principal del sistema operativo en la teoría?", o:["Gestión de recursos","Control de dispositivos","Diseño gráfico de videojuegos","Administración de archivos"], a:2},
+    {t:"Según la teoría, ¿cuántas funciones del kernel se mencionan en total (RAM, CPU, discos, dispositivos, comunicación software-hardware)?", o:["3","4","5","6"], a:2},
+    {t:"Según la teoría, Linux es...", o:["Un sistema operativo completo","Un kernel","Una distribución de software","Un entorno de escritorio"], a:1},
+    {t:"¿Cuál de estos es un ejemplo correcto de sistema operativo (no de kernel) según la teoría?", o:["Linux","Ubuntu","El núcleo Linux","Ninguno es correcto"], a:1},
+    {t:"¿En qué año fue lanzada la primera versión del kernel Linux, la 0.01?", o:["1989","1991","1993","1995"], a:1},
+    {t:"¿Qué versión del kernel Linux corresponde al año 2003?", o:["Linux 2.2","Linux 2.4","Linux 2.6","Linux 3.0"], a:2},
+    {t:"¿Cuál fue el primer sistema operativo conocido, desarrollado para la IBM 704?", o:["UNIX","MS-DOS","GM-NAA I/O","OS/2"], a:2},
+    {t:"¿En qué año nace UNIX y quiénes lo crearon?", o:["1969, Ken Thompson y Dennis Ritchie","1971, Bill Gates","1975, Steve Jobs","1962, equipo de Bell Labs"], a:0},
+    {t:"¿Cuál de las siguientes NO es una característica de UNIX según la teoría?", o:["Multiusuario","Multitarea","Sistema de archivos jerárquico","Interfaz gráfica avanzada"], a:3},
+    {t:"¿Qué sistema, basado en comandos, dominó las computadoras personales durante los años 80?", o:["Windows 1.0","MS-DOS","OS/2","UNIX"], a:1},
+    {t:"¿Cuál fue el primer sistema comercial con interfaz gráfica avanzada?", o:["Macintosh","Windows 1.0","Apple Lisa","OS/2"], a:2},
+    {t:"¿En qué año se lanzó Windows 1.0?", o:["1983","1984","1985","1987"], a:2},
+    {t:"¿Qué distribución nace en 1993 como proyecto comunitario y se destaca por su estabilidad?", o:["Slackware","Debian","Red Hat Linux","SuSE"], a:1},
+    {t:"¿Qué distribución, fundada también en 1993, se convertiría en una de las más importantes a nivel empresarial?", o:["Debian","Red Hat Linux","SuSE Linux","Fedora"], a:1},
+    {t:"¿Qué introdujo Windows 95 según la teoría?", o:["Interfaz Aero, USB, DVD","Menú Inicio, barra de tareas, Plug and Play","Multiusuario, multitarea, seguridad","Interfaz Metro, nube, IA"], a:1},
+    {t:"¿En qué año nace Red Hat Enterprise Linux (RHEL)?", o:["2000","2001","2002","2003"], a:2},
+    {t:"¿Qué sistema, basado en UNIX, fue lanzado en 2001 junto a Windows XP?", o:["Fedora","Mac OS X","Ubuntu","ChromeOS"], a:1},
+    {t:"¿En qué año fue lanzado Ubuntu por Canonical?", o:["2003","2004","2005","2007"], a:1},
+    {t:"¿Cuál de estas NO es una característica de Ubuntu 4.10 según la teoría?", o:["Fácil instalación","Gratuito","Amplia comunidad","Orientado exclusivamente a servidores"], a:3},
+    {t:"¿Qué sistema operativo apareció junto al primer iPhone en 2007?", o:["Android","iOS","ChromeOS","webOS"], a:1},
+    {t:"¿En qué año fue presentado Android por Google, y en qué está basado?", o:["2007, en UNIX","2008, en Linux","2009, en BSD","2010, en macOS"], a:1},
+    {t:"¿Qué sistema, lanzado en 2009, es reconocido especialmente por su estabilidad?", o:["Windows Vista","Windows 7","Windows 8","Windows 10"], a:1},
+    {t:"¿Qué interfaz introdujo Windows Vista en 2007?", o:["Metro","Aero","Fluent Design","Aura"], a:1},
+    {t:"¿En qué año llegó ChromeOS al mercado?", o:["2009","2010","2011","2012"], a:2},
+    {t:"¿Qué interfaz introdujo Windows 8 en 2012?", o:["Aero","Metro","Fluent Design","Aura"], a:1},
+    {t:"¿Qué modelo de actualizaciones adoptó Microsoft con Windows 10 en 2015?", o:["Actualizaciones anuales grandes","Actualizaciones continuas","Sin actualizaciones","Actualizaciones cada 5 años"], a:1},
+    {t:"¿Qué distribución acerca la potencia de Arch Linux a usuarios menos experimentados, ganando popularidad en 2016?", o:["Manjaro","elementary OS","Linux Mint","openSUSE"], a:0},
+    {t:"¿Qué distribución destaca por su diseño inspirado en macOS, creciendo en 2018?", o:["Manjaro","elementary OS","Fedora","Debian"], a:1},
+    {t:"Según la teoría, ¿qué ocurre en 2019 respecto a Linux y la nube?", o:["Linux desaparece de la nube","Las principales plataformas de computación en la nube usan distribuciones Linux","La nube reemplaza a Linux","Linux se vuelve de pago"], a:1},
+    {t:"¿En qué años fueron anunciado y lanzado oficialmente Windows 11?", o:["Anunciado 2020, lanzado 2021","Anunciado 2021, lanzado 2022","Anunciado 2022, lanzado 2023","Anunciado 2021, lanzado 2023"], a:1},
+    {t:"¿Qué versión estable de Debian se lanzó en 2023?", o:["Debian 11","Debian 12 Bookworm","Debian 10","Debian 13"], a:1},
+    {t:"¿Qué versión LTS de Ubuntu se destaca en 2024?", o:["Ubuntu 22.04","Ubuntu 24.04 LTS","Ubuntu 20.04","Ubuntu 26.04"], a:1},
+    {t:"Además de Ubuntu 24.04 LTS, ¿qué otras distribuciones destacan en 2024 según la teoría?", o:["Fedora 40, Linux Mint 22, openSUSE Leap, Arch Linux","Slackware, MCC, Red Hat 9, SuSE 15","Solaris, BSD, MINIX, QNX","Windows 11, macOS, iOS, Android"], a:0},
+    {t:"¿Qué se consolida en los sistemas operativos durante 2025 según la teoría?", o:["Solo mejoras gráficas","Inteligencia artificial, automatización y computación en la nube","Eliminación del kernel","Desaparición de Linux"], a:1},
+    {t:"¿Qué versión del kernel Linux está marcada como LTS en el año 2022?", o:["Linux 5.0","Linux 5.15 LTS","Linux 6.1 LTS","Linux 6.6 LTS"], a:1},
+    {t:"¿Qué versión del kernel Linux corresponde al año 2025 según la línea de tiempo?", o:["Linux 6.1 LTS","Linux 6.6 LTS","Linux 6.12 LTS","Linux 6.15 LTS"], a:2},
+    {t:"En la sección '2026 – Situación Actual', ¿cuál de estos NO aparece como sistema operativo dominante?", o:["Windows 11","Android","iOS","Symbian"], a:3},
+    {t:"¿Cuál de estas distribuciones NO aparece en la lista de 'distribuciones Linux más conocidas' de 2026?", o:["Ubuntu","Debian","Arch Linux","MCC Interim Linux"], a:3},
+    {t:"¿Qué sistema operativo, desarrollado por IBM, aparece en 1987?", o:["OS/2","Windows 1.0","UNIX","Mac OS"], a:0}
+  ];
+
+  const GRADE_TABLE = {40:5,39:4.9,38:4.8,37:4.7,36:4.6,35:4.5,34:4.4,33:4.3,32:4.2,31:4.1,30:4,29:3.9,28:3.8,27:3.7,26:3.6,25:3.5,24:3.4,23:3.3,22:3.2,21:3.1,20:3,19:2.9,18:2.8,17:2.7,16:2.6,15:2.5,14:2.4,13:2.3,12:2.2,11:2.1,10:2,9:1.9,8:1.8,7:1.7,6:1.6,5:1.5,4:1.4,3:1.3,2:1.2,1:1.1,0:1.0};
+
+  let state = { idx:0, correct:0, errors:0, locked:false, timerId:null, timeLeft:80, studentName:'', studentGrade:'', studentDate:'', order:[], challenge1Done:false, challenge2Done:false, challengeTimerId:null, photoScore:0, photoCorrect:0, photoErrors:0 };
+
+  function formatTodayDate(){
+    const d = new Date();
+    return d.toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' });
+  }
+
+  const panel = document.getElementById('panel');
+
+  // ---- Shuffle: orden aleatorio de preguntas en cada intento ----
+  function shuffleArray(arr){
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  function newQuestionOrder(){
+    return shuffleArray(QUESTIONS.map((_, i) => i));
+  }
+  function currentQuestion(){
+    return QUESTIONS[state.order[state.idx]];
+  }
+
+  // ---- Candado anti-recarga ----
+  // El navegador no permite que una página deshabilite su propio botón de refresh,
+  // así que en vez de eso: si detectamos que la pestaña se recargó mientras el
+  // examen estaba en curso, bloqueamos el acceso hasta que el docente lo desbloquee.
+  const LS_IN_PROGRESS = 'so_exam_in_progress';
+  const LS_LOADED_ONCE = 'so_exam_loaded_once';
+  let examLocked = false;
+
+  function markExamStarted(){ sessionStorage.setItem(LS_IN_PROGRESS, '1'); }
+  function markExamEnded(){ sessionStorage.setItem(LS_IN_PROGRESS, '0'); }
+
+  function checkReloadLock(){
+    const alreadyLoaded = sessionStorage.getItem(LS_LOADED_ONCE) === '1';
+    const wasInProgress = sessionStorage.getItem(LS_IN_PROGRESS) === '1';
+    sessionStorage.setItem(LS_LOADED_ONCE, '1');
+    if(alreadyLoaded && wasInProgress){
+      examLocked = true;
+    }
+  }
+  checkReloadLock();
+
+  function renderLocked(){
+    document.querySelector('.core-gauge').style.display = 'none';
+    document.querySelector('.score-display').style.display = 'none';
+    document.querySelector('.statbar').style.display = 'none';
+    panel.innerHTML = `
+      <div class="screen">
+        <div class="qtag" style="color:var(--red);">🔒 Examen bloqueado</div>
+        <p style="color:var(--ink); font-size:15px; margin-top:0;">Se detectó que la página fue recargada mientras el examen estaba en curso. Por seguridad, el progreso se ha invalidado.</p>
+        <p style="margin-bottom:0;">Solo el docente puede desbloquear la prueba, ingresando la contraseña desde el botón 🔒 en la esquina inferior derecha.</p>
+      </div>`;
+  }
+  const statQ = document.getElementById('statQ');
+  const statCorrect = document.getElementById('statCorrect');
+  const statTimer = document.getElementById('statTimer');
+  const coreGauge = document.getElementById('coreGauge');
+  const coreN = document.getElementById('coreN');
+  const scoreVal = document.getElementById('scoreVal');
+  const scoreErrs = document.getElementById('scoreErrs');
+
+  function updateScoreDisplay(){
+    const totalPts = 40;
+    const pts = Math.max(0, Math.min(totalPts, state.correct + state.photoScore));
+    scoreVal.textContent = `${pts} / ${totalPts} PTS`;
+    scoreErrs.textContent = state.errors;
+    scoreVal.classList.remove('good','mid','bad');
+    if(pts >= 32) scoreVal.classList.add('good');
+    else if(pts >= 20) scoreVal.classList.add('mid');
+    else scoreVal.classList.add('bad');
+    const photoInfo = document.getElementById('scorePhotos');
+    if(photoInfo){
+      if(state.photoCorrect === 0 && state.photoErrors === 0){
+        photoInfo.textContent = '';
+      } else {
+        photoInfo.textContent = ` · Fotos: ${state.photoCorrect} ok (requisito cumplido) · ${state.photoErrors} error (-3c/u)`;
+      }
+    }
+  }
+
+  function updateStats(){
+    statQ.textContent = `${state.idx}/${QUESTIONS.length}`;
+    statCorrect.textContent = state.correct;
+
+    const progressPct = Math.round((state.idx/QUESTIONS.length)*100);
+    coreN.textContent = progressPct + '%';
+    let color = 'var(--cyan)';
+    if(state.idx > 0){
+      const accuracy = state.correct/state.idx;
+      if(accuracy >= 0.8) color = 'var(--green)';
+      else if(accuracy < 0.5) color = 'var(--red)';
+      else color = 'var(--purple)';
+    }
+    coreGauge.style.setProperty('--core-pct', progressPct);
+    coreGauge.style.setProperty('--core-color', color);
+
+    updateScoreDisplay();
+  }
+
+  function renderIntro(){
+    panel.innerHTML = `
+      <div class="screen">
+        <div class="qtag">Instrucciones</div>
+        <p style="color:var(--ink); font-size:15px; margin-top:0;">40 preguntas de opción múltiple sobre la guía de Sistemas Operativos y el Kernel: definición, funciones, kernel, evolución de Linux e historia completa hasta 2026.</p>
+        <p style="margin-bottom:0;">Tienes 1 minuto con 20 segundos por pregunta. Si el tiempo se agota, la pregunta se marca como incorrecta. Al final tu calificación se calcula sobre la escala de 40 puntos.</p>
+
+        <div class="id-form">
+          <div class="field">
+            <label for="studentName">Nombre completo</label>
+            <input type="text" id="studentName" placeholder="Escribe tu nombre" autocomplete="off" value="${state.studentName}">
+          </div>
+          <div class="field">
+            <label for="studentGrade">Grado / sección</label>
+            <select id="studentGrade">
+              <option value="" ${state.studentGrade===''?'selected':''} disabled>Selecciona tu sección</option>
+              <option value="9°A" ${state.studentGrade==='9°A'?'selected':''}>9°A</option>
+              <option value="9°B" ${state.studentGrade==='9°B'?'selected':''}>9°B</option>
+            </select>
+          </div>
+        </div>
+        <div class="id-error" id="idError"></div>
+
+        <button class="btn" id="startBtn">Comenzar examen</button>
+      </div>`;
+
+    const nameInput = document.getElementById('studentName');
+    const gradeSelect = document.getElementById('studentGrade');
+    const idError = document.getElementById('idError');
+
+    document.getElementById('startBtn').onclick = () => {
+      const name = nameInput.value.trim();
+      const grade = gradeSelect.value;
+      if(!name || !grade){
+        idError.textContent = '⚠ Debes escribir tu nombre y seleccionar tu grado (9°A o 9°B) antes de iniciar.';
+        if(!name) nameInput.focus(); else gradeSelect.focus();
+        return;
+      }
+      state.studentName = name;
+      state.studentGrade = grade;
+      state.studentDate = formatTodayDate();
+      state.idx = 0;
+      state.correct = 0;
+      state.errors = 0;
+      state.order = newQuestionOrder();
+      state.challenge1Done = false;
+      state.challenge2Done = false;
+      state.photoScore = 0;
+      state.photoCorrect = 0;
+      state.photoErrors = 0;
+      markExamStarted();
+      renderQuestion();
+    };
+  }
+
+  function formatTime(sec){
+    const m = Math.floor(sec/60);
+    const s = sec%60;
+    return `${m}:${s.toString().padStart(2,'0')}`;
+  }
+
+  function startTimer(){
+    clearInterval(state.timerId);
+    state.timeLeft = 80;
+    statTimer.textContent = formatTime(state.timeLeft);
+    statTimer.classList.remove('low');
+    state.timerId = setInterval(() => {
+      state.timeLeft--;
+      statTimer.textContent = formatTime(state.timeLeft);
+      if(state.timeLeft <= 15) statTimer.classList.add('low');
+      if(state.timeLeft <= 0){
+        clearInterval(state.timerId);
+        if(!state.locked) forceTimeout();
+      }
+    }, 1000);
+  }
+
+  function forceTimeout(){
+    state.locked = true;
+    const q = currentQuestion();
+    const opts = document.querySelectorAll('.opt');
+    opts.forEach(b => b.disabled = true);
+    opts[q.a].classList.add('right');
+    const feedback = document.getElementById('feedback');
+    feedback.textContent = '⏱ Tiempo agotado — sin respuesta.';
+    feedback.classList.add('wrong');
+    state.errors++;
+    updateScoreDisplay();
+    setTimeout(next, 1400);
+  }
+
+  function renderQuestion(){
+    updateStats();
+    if(state.idx >= QUESTIONS.length){ return renderEnd(); }
+    state.locked = false;
+    const q = currentQuestion();
+    const letters = ['A','B','C','D'];
+    panel.innerHTML = `
+      <div class="student-tag"><b>${state.studentName}</b> · ${state.studentGrade}</div>
+      <div class="qtag">Pregunta ${state.idx+1} de ${QUESTIONS.length}</div>
+      <div class="qtext">${q.t}</div>
+      <div class="options">
+        ${q.o.map((opt,i) => `<button class="opt" data-i="${i}"><span class="k">${letters[i]}</span><span>${opt}</span></button>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+    `;
+    document.querySelectorAll('.opt').forEach(btn => {
+      btn.onclick = () => handleAnswer(parseInt(btn.getAttribute('data-i')), q.a);
+    });
+    startTimer();
+  }
+
+  function handleAnswer(picked, correctIdx){
+    if(state.locked) return;
+    state.locked = true;
+    clearInterval(state.timerId);
+    const opts = document.querySelectorAll('.opt');
+    opts.forEach(b => b.disabled = true);
+    const feedback = document.getElementById('feedback');
+
+    if(picked === correctIdx){
+      opts[picked].classList.add('right');
+      state.correct++;
+      feedback.textContent = '✓ Correcto.';
+      feedback.classList.add('correct');
+    } else {
+      opts[picked].classList.add('wrong');
+      opts[correctIdx].classList.add('right');
+      feedback.textContent = '✕ Incorrecto — se resalta la respuesta correcta.';
+      feedback.classList.add('wrong');
+      state.errors++;
+    }
+    updateStats();
+    setTimeout(next, 1400);
+  }
+
+  function next(){
+    state.idx++;
+    if(state.idx === 20 && !state.challenge1Done){
+      return renderChallenge(1, 'Debian', 'Debian Linux', () => renderQuestion());
+    }
+    if(state.idx === QUESTIONS.length && !state.challenge2Done){
+      return renderChallenge(2, 'Ubuntu', 'Ubuntu', () => renderEnd());
+    }
+    renderQuestion();
+  }
+
+  // ---- Desafío práctico: subir logo con nombre de archivo exacto ----
+  function formatChallengeTime(sec){
+    const m = Math.floor(sec/60);
+    const s = sec%60;
+    return `${m}:${s.toString().padStart(2,'0')}`;
+  }
+
+  function renderChallenge(num, expectedName, distroLabel, onDone){
+    clearInterval(state.timerId);
+    let timeLeft = 180;
+    let fileValid = false;
+    let finished = false;
+
+    panel.innerHTML = `
+      <div class="screen">
+        <div class="student-tag"><b>${state.studentName}</b> · ${state.studentGrade}</div>
+        <div class="qtag">Desafío práctico ${num} de 2</div>
+        <div class="challenge-heading">DESAFÍO PRÁCTICO ${num}</div>
+        <p style="margin-top:0;">Busca en Internet el logotipo oficial de <b>${distroLabel}</b> y descarga la imagen.</p>
+        <p>Guarda el archivo con el nombre exacto <b>${expectedName}</b>, en formato <b>.jpg</b>, <b>.jpeg</b> o <b>.png</b> (por ejemplo: <b>${expectedName}.png</b>).</p>
+        <p>Luego impórtalo aquí usando el selector de archivos antes de que se agote el tiempo.</p>
+        <div class="challenge-timer" id="challengeTimer">${formatChallengeTime(timeLeft)}</div>
+        <input type="file" id="challengeFile" accept=".jpg,.jpeg,.png,image/jpeg,image/png" style="display:none">
+        <div class="file-btn-row">
+          <button class="btn" id="challengeSelectBtn">Seleccionar archivo</button>
+          <button class="btn ghost" id="challengeContinueBtn" disabled>Continuar</button>
+        </div>
+        <div class="file-status" id="challengeStatus"></div>
+      </div>`;
+
+    const timerEl = document.getElementById('challengeTimer');
+    const fileInput = document.getElementById('challengeFile');
+    const selectBtn = document.getElementById('challengeSelectBtn');
+    const continueBtn = document.getElementById('challengeContinueBtn');
+    const statusEl = document.getElementById('challengeStatus');
+
+    function validName(name){
+      const m = name.match(/^(.+)\.(jpg|jpeg|png)$/i);
+      if(!m) return false;
+      return m[1].toLowerCase() === expectedName.toLowerCase();
+    }
+
+    selectBtn.onclick = () => fileInput.click();
+
+    fileInput.onchange = () => {
+      const file = fileInput.files[0];
+      if(file && validName(file.name)){
+        fileValid = true;
+        continueBtn.disabled = false;
+        statusEl.textContent = `✓ Archivo "${file.name}" válido — requisito cumplido, pulsa Continuar.`;
+        statusEl.className = 'file-status correct';
+      } else {
+        fileValid = false;
+        continueBtn.disabled = true;
+        statusEl.textContent = `⚠ Nombre o formato incorrecto (-3 pts). Debes renombrar el archivo exactamente como ${expectedName}.jpg, ${expectedName}.jpeg o ${expectedName}.png.`;
+        statusEl.className = 'file-status wrong';
+      }
+    };
+
+    function finishChallenge(completed){
+      if(finished) return;
+      finished = true;
+      clearInterval(state.challengeTimerId);
+
+      if(fileValid){
+        state.photoCorrect++;
+        statusEl.textContent = `✓ Foto importada correctamente: requisito cumplido.`;
+        statusEl.className = 'file-status correct';
+      } else {
+        state.photoScore -= 3;
+        state.photoErrors++;
+        statusEl.textContent = timeLeft <= 0
+          ? `⚠ Tiempo agotado sin un archivo válido: -3 pts (error de formato o nombre).`
+          : `⚠ Error de formato o nombre: -3 pts.`;
+        statusEl.className = 'file-status wrong';
+      }
+      selectBtn.disabled = true;
+      continueBtn.style.display = 'none';
+      updateScoreDisplay();
+
+      if(num === 1) state.challenge1Done = true;
+      else state.challenge2Done = true;
+
+      setTimeout(onDone, 1100);
+    }
+
+    continueBtn.onclick = () => { if(fileValid) finishChallenge(true); };
+
+    state.challengeTimerId = setInterval(() => {
+      timeLeft--;
+      timerEl.textContent = formatChallengeTime(timeLeft);
+      if(timeLeft <= 30) timerEl.classList.add('low');
+      if(timeLeft <= 0){
+        clearInterval(state.challengeTimerId);
+        if(!finished) finishChallenge(false);
+      }
+    }, 1000);
+  }
+
+  function renderEnd(){
+    updateStats();
+    markExamEnded();
+    const rawScore = state.correct + state.photoScore;
+    const score = Math.max(0, Math.min(40, rawScore));
+    const grade = GRADE_TABLE[score] !== undefined ? GRADE_TABLE[score] : 1.0;
+    const pct = Math.round((state.correct/QUESTIONS.length)*100);
+    let color = 'var(--red)';
+    if(grade >= 4.5) color = 'var(--green)';
+    else if(grade >= 3) color = 'var(--cyan)';
+    else if(grade >= 2) color = 'var(--purple)';
+
+    const photoLine = (state.photoCorrect || state.photoErrors)
+      ? `Fotos importadas: ${state.photoCorrect} correcta(s) (requisito cumplido) · ${state.photoErrors} con error de nombre/formato (-3 c/u) → ${state.photoScore} pts<br>`
+      : '';
+
+    const dateLine = state.studentDate ? `Fecha: ${state.studentDate}<br>` : '';
+
+    panel.innerHTML = `
+      <div class="screen">
+        <div class="student-tag"><b>${state.studentName}</b> · ${state.studentGrade}</div>
+        <div class="qtag">Examen finalizado</div>
+        <div class="grade-num" style="color:${color};">${grade.toFixed(1)}</div>
+        <div class="breakdown">
+          Nombre: ${state.studentName}<br>
+          Grado: ${state.studentGrade}<br>
+          ${dateLine}
+          Respuestas correctas: ${state.correct} / ${QUESTIONS.length} (${pct}%)<br>
+          Errores: ${state.errors} (1 pt c/u)<br>
+          ${photoLine}
+          Puntos obtenidos: ${score} / 40<br>
+          Calificación final: ${grade.toFixed(1)} / 5.0
+        </div>
+        <p style="margin-top:20px;">Examen entregado. Solo el docente puede reiniciar la prueba.</p>
+      </div>`;
+  }
+
+  updateScoreDisplay();
+  if(examLocked){
+    renderLocked();
+  } else {
+    renderIntro();
+  }
+
+  // ---- Panel docente (protegido con contraseña) ----
+  const TEACHER_PASS = 'code2026';
+  const teacherFab = document.getElementById('teacherFab');
+  const teacherOverlay = document.getElementById('teacherOverlay');
+  const teacherModalLogin = document.getElementById('teacherModalLogin');
+  const teacherModalOptions = document.getElementById('teacherModalOptions');
+  const teacherPass = document.getElementById('teacherPass');
+  const teacherErr = document.getElementById('teacherErr');
+
+  function openTeacherOverlay(){
+    teacherOverlay.classList.add('open');
+    teacherModalLogin.style.display = '';
+    teacherModalOptions.style.display = 'none';
+    teacherPass.value = '';
+    teacherErr.textContent = '';
+    setTimeout(() => teacherPass.focus(), 50);
+  }
+  function closeTeacherOverlay(){
+    teacherOverlay.classList.remove('open');
+  }
+
+  teacherFab.onclick = openTeacherOverlay;
+  document.getElementById('teacherCancel').onclick = closeTeacherOverlay;
+  document.getElementById('teacherClose').onclick = closeTeacherOverlay;
+  teacherOverlay.addEventListener('click', (e) => { if(e.target === teacherOverlay) closeTeacherOverlay(); });
+
+  function tryLogin(){
+    if(teacherPass.value === TEACHER_PASS){
+      teacherModalLogin.style.display = 'none';
+      teacherModalOptions.style.display = '';
+      teacherErr.textContent = '';
+    } else {
+      teacherErr.textContent = '⚠ Contraseña incorrecta.';
+      teacherPass.value = '';
+      teacherPass.focus();
+    }
+  }
+  document.getElementById('teacherSubmit').onclick = tryLogin;
+  teacherPass.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryLogin(); });
+
+  document.getElementById('teacherReset').onclick = () => {
+    clearInterval(state.timerId);
+    clearInterval(state.challengeTimerId);
+    state = { idx:0, correct:0, errors:0, locked:false, timerId:null, timeLeft:80, studentName:'', studentGrade:'', studentDate:'', order:[], challenge1Done:false, challenge2Done:false, challengeTimerId:null, photoScore:0, photoCorrect:0, photoErrors:0 };
+    markExamEnded();
+    examLocked = false;
+    document.querySelector('.core-gauge').style.display = '';
+    document.querySelector('.score-display').style.display = '';
+    document.querySelector('.statbar').style.display = '';
+    closeTeacherOverlay();
+    renderIntro();
+    updateScoreDisplay();
+  };
+
+  // ---- Bloqueo de F5 / recargar / inspeccionar código ----
+  function isRefreshCombo(e){
+    const k = e.key;
+    return (k === 'F5') || ((e.ctrlKey || e.metaKey) && (k === 'r' || k === 'R'));
+  }
+  function isDevtoolsCombo(e){
+    const k = e.key;
+    return (k === 'F12') ||
+      ((e.ctrlKey || e.metaKey) && e.shiftKey && (k === 'I' || k === 'i' || k === 'J' || k === 'j' || k === 'C' || k === 'c')) ||
+      ((e.ctrlKey || e.metaKey) && (k === 'u' || k === 'U' || k === 's' || k === 'S'));
+  }
+
+  ['keydown','keyup','keypress'].forEach(evt => {
+    document.addEventListener(evt, (e) => {
+      if(isRefreshCombo(e) || isDevtoolsCombo(e)){
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    }, true);
+  });
+
+  ['contextmenu','auxclick'].forEach(evt => {
+    document.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }, true);
+  });
+
+  document.addEventListener('selectstart', (e) => { e.preventDefault(); }, true);
+
+  window.addEventListener('beforeunload', (e) => {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  });
+})();
+</script>
+</body>
+</html>
