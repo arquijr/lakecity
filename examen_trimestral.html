@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estudiantes - Examen Trimestral 2026</title>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+        padding: 30px 20px;
+        color: #e0e0e0;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 25px;
+        padding: 20px;
+    }
+    .header h1 {
+        font-size: 2.3em;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+        margin-bottom: 10px;
+    }
+    .header p { color: #aaa; font-size: 1.05em; }
+    .header .nota {
+        color: #7fd3ff;
+        font-size: 0.9em;
+        margin-top: 8px;
+    }
+    .header .editable-hint {
+        display: none;
+        color: #7fd3ff;
+        font-size: 0.75em;
+        margin-top: 10px;
+        opacity: 0.8;
+    }
+    .header.modo-profesor .editable-hint { display: block; }
+    .header.modo-profesor [contenteditable="true"] {
+        cursor: text;
+        border-radius: 8px;
+        outline: 1px dashed rgba(127, 211, 255, 0.5);
+        outline-offset: 4px;
+        transition: background 0.2s, outline-color 0.2s;
+    }
+    .header.modo-profesor [contenteditable="true"]:hover {
+        background: rgba(127, 211, 255, 0.08);
+        outline-color: rgba(127, 211, 255, 0.9);
+    }
+    .header.modo-profesor [contenteditable="true"]:focus {
+        background: rgba(127, 211, 255, 0.12);
+        outline-color: #7fd3ff;
+    }
+    .btn-reset-textos { background: rgba(255,255,255,0.12); color: #ffb199; }
+
+    /* Barra de control del profesor */
+    .toolbar {
+        max-width: 1400px;
+        margin: 0 auto 30px auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        padding: 14px 18px;
+    }
+    .toolbar .estado {
+        font-size: 0.9em;
+        color: #ccc;
+    }
+    .toolbar .estado.activo { color: #2ecc71; font-weight: bold; }
+    .btn {
+        border: none;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-size: 0.9em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-login { background: #3498db; color: #fff; }
+    .btn-logout { background: #7f8c8d; color: #fff; }
+    .btn-toggle-all { background: rgba(255,255,255,0.12); color: #fff; }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 25px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .class-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .class-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+    .class-header {
+        padding: 15px 20px;
+        font-size: 1.25em;
+        font-weight: bold;
+        color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+    .class-header .titulo { display: flex; align-items: center; gap: 8px; }
+    .class-header .right { display: flex; align-items: center; gap: 8px; }
+    .class-header .count {
+        font-size: 0.7em;
+        background: rgba(255,255,255,0.15);
+        padding: 4px 12px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+    .eye-btn {
+        background: rgba(255,255,255,0.15);
+        border: none;
+        color: #fff;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 0.9em;
+        flex-shrink: 0;
+    }
+    .eye-btn:hover { background: rgba(255,255,255,0.3); }
+
+    .class-8A .class-header { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .class-8B .class-header { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .class-9A .class-header { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+    .class-9B .class-header { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .class-10A .class-header { background: linear-gradient(135deg, #1abc9c, #16a085); }
+    .class-10B .class-header { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .class-11A .class-header { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    .class-11B .class-header { background: linear-gradient(135deg, #e91e63, #c2185b); }
+    .class-12A .class-header { background: linear-gradient(135deg, #00bcd4, #0097a7); }
+    .class-12B .class-header { background: linear-gradient(135deg, #607d8b, #455a64); }
+
+    .class-body { transition: all 0.25s ease; }
+    .class-card.oculto .class-body { display: none; }
+    .class-card.oculto { opacity: 0.55; }
+
+    .todos-badge {
+        font-size: 0.65em;
+        background: rgba(0,0,0,0.25);
+        padding: 3px 9px;
+        border-radius: 20px;
+        margin-left: 6px;
+    }
+
+    .student-list {
+        list-style: none;
+        padding: 0;
+        max-height: 420px;
+        overflow-y: auto;
+    }
+    .student-list::-webkit-scrollbar { width: 6px; }
+    .student-list::-webkit-scrollbar-track { background: transparent; }
+    .student-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+    .student-item {
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        transition: background 0.2s;
+    }
+    .student-item:hover { background: rgba(255,255,255,0.08); }
+    .student-item:last-child { border-bottom: none; }
+    .student-num {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8em;
+        font-weight: bold;
+        margin-right: 15px;
+        color: #fff;
+        flex-shrink: 0;
+    }
+    .student-name { font-size: 0.95em; color: #ddd; flex: 1; }
+    .delete-btn {
+        background: rgba(231, 76, 60, 0.2);
+        color: #ff6b5b;
+        border: none;
+        border-radius: 6px;
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+        font-size: 0.85em;
+        flex-shrink: 0;
+        margin-left: 8px;
+    }
+    .delete-btn:hover { background: rgba(231, 76, 60, 0.4); }
+
+    .add-student-row {
+        display: flex;
+        gap: 8px;
+        padding: 12px 20px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .add-student-row input {
+        flex: 1;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        padding: 8px 10px;
+        color: #fff;
+        font-size: 0.85em;
+    }
+    .add-student-row input::placeholder { color: #999; }
+    .add-student-row button {
+        background: #2ecc71;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 14px;
+        cursor: pointer;
+        font-size: 0.85em;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    .add-student-row button:hover { opacity: 0.85; }
+
+    .empty-msg {
+        padding: 18px 20px;
+        color: #888;
+        font-size: 0.85em;
+        text-align: center;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 40px;
+        color: #888;
+        font-size: 0.9em;
+    }
+
+    /* Modal de acceso del profesor */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+        padding: 20px;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-box {
+        background: #16213e;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 14px;
+        padding: 28px;
+        max-width: 340px;
+        width: 100%;
+        text-align: center;
+    }
+    .modal-box h2 { color: #fff; font-size: 1.2em; margin-bottom: 6px; }
+    .modal-box p { color: #aaa; font-size: 0.85em; margin-bottom: 16px; }
+    .modal-box input {
+        width: 100%;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 8px;
+        padding: 10px;
+        color: #fff;
+        margin-bottom: 10px;
+        font-size: 0.95em;
+    }
+    .modal-box .modal-error {
+        color: #ff6b5b;
+        font-size: 0.8em;
+        min-height: 18px;
+        margin-bottom: 6px;
+    }
+    .modal-box .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+    .modal-box .modal-btns button { flex: 1; }
+    .btn-cancelar { background: rgba(255,255,255,0.1); color: #ddd; }
+</style>
+</head>
+<body>
+
+<div class="header" id="headerContainer">
+    <h1 id="tituloPrincipal" spellcheck="false">📝 Estudiantes - Examen Trimestral</h1>
+    <p id="subtituloAsignatura" spellcheck="false">Asignatura: Informática | Docente: Arquimedes Mosquera | Primer Trimestre 2026</p>
+    <p class="nota" id="notaGrados" spellcheck="false">Grados 8° y 9°: todos los estudiantes realizan el examen trimestral · Grados 10°, 11° y 12°: solo los estudiantes listados deben realizarlo</p>
+    <p class="editable-hint" id="editableHint">✏️ Modo profesor: haz clic sobre el título o los subtítulos para editarlos. Los cambios se guardan automáticamente.</p>
+</div>
+
+<div class="toolbar">
+    <span id="estadoTexto" class="estado">Modo: solo lectura</span>
+    <button id="btnLogin" class="btn btn-login" onclick="abrirModal()">🔒 Acceso del profesor</button>
+    <button id="btnLogout" class="btn btn-logout" style="display:none;" onclick="cerrarSesion()">Cerrar sesión</button>
+    <button class="btn btn-toggle-all" onclick="mostrarTodos()">👁️ Mostrar todos los grados</button>
+    <button class="btn btn-toggle-all" onclick="ocultarTodos()">🙈 Ocultar todos los grados</button>
+    <button id="btnResetTextos" class="btn btn-reset-textos" style="display:none;" onclick="restablecerTextos()">↺ Restablecer títulos originales</button>
+</div>
+
+<div class="grid-container" id="gridContainer"></div>
+
+<div class="footer">
+    <p id="footerTexto">Primer Trimestre 2026</p>
+</div>
+
+<!-- Modal de acceso -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+        <h2>Acceso del profesor</h2>
+        <p>Ingrese la contraseña para agregar o eliminar estudiantes.</p>
+        <input type="password" id="passwordInput" placeholder="Contraseña" onkeydown="if(event.key==='Enter') intentarLogin()">
+        <div class="modal-error" id="modalError"></div>
+        <div class="modal-btns">
+            <button class="btn btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn btn-login" onclick="intentarLogin()">Ingresar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ==========================================================
+   NOTA IMPORTANTE:
+   Este control de acceso funciona solo en el navegador (front-end),
+   ya que este archivo es HTML puro sin servidor. Es útil para evitar
+   que un estudiante edite la lista por error o sin permiso, pero
+   cualquier persona con conocimientos técnicos podría ver la
+   contraseña en el código fuente. Si necesitan seguridad real
+   (por ejemplo, para uso institucional), se recomienda una
+   aplicación con backend y autenticación de verdad.
+   ========================================================== */
+const CONTRASENA_PROFESOR = "profesor2026";
+
+// Grados donde TODOS los estudiantes realizan el examen trimestral
+const GRADOS_TODOS = ["8A", "8B", "9A", "9B"];
+
+const GRADOS_INFO = {
+    "8A": "🎓 8° A",
+    "8B": "🎓 8° B",
+    "9A": "🎓 9° A",
+    "9B": "🎓 9° B",
+    "10A": "🎓 10° A",
+    "10B": "🎓 10° B",
+    "11A": "🎓 11° A",
+    "11B": "🎓 11° B",
+    "12A": "🎓 12° A",
+    "12B": "🎓 12° B"
+};
+
+let estudiantes = {
+  "8A": ["Achurra Gomez, Gabriel","Araúz Zapata, Ana Graciela","Arosemena Simons, Julieta Isabel","Barrios Gomez, Gabriel Alejandro","Benavides Chiari, Sofia Cecilia","Calzada De Oliveira, Gabriela","Cattan Figueroa, Daniella Fernanda","Cedeño Katsambanis, Diego Francisco","Chong Loo, Lei Marie","Espinosa Domínguez, Sergio Iván","Esteriano Benitez, Nicole Victoria","Fernandez Valdes, Marinés","Gomez Clement, Ana Victoria","González Miró, Juliette del Carmen","Jimenez Gonzalez, Matías","Jodar Rios, Santiago","Lopez Gonzalez, Agustin Omar","Lopez Robles, Julio Jesús","Melo Ramirez, Alicia Daniela","Pessina Moreno, María Victoria","Prado Correa, Alejandra Nicole","Quirós Yap, Emma Lucia","Russo Caponi, Sole","Silvera Castillero, Carlos Alberto","Townshend Alvarado, Emma Gabriela","Valderrama Jurado, Santiago Adolfo","Valois Romero, Danna Penelopé","Villalaz Delgado, Lola Victoria","Zarate Solis, Mía Camila"],
+  "8B": ["Arosemena Simons, Adriana Sofia","Baruco Duarte, Lucas Eduardo","Bazan Rodriguez, Enzo Alessandro","Blanco Ureña, Maya Isabel","Brin Arrue, Victoria","Brostella Gonzalez, Gabriela Maria","Carrizo Valderrama, Maria Luccia","Chong Arosemena, Christopher Ryan","Durufour Barsallo, Daniela Isabel","Escobar Castro, Franco Antonio","Espinosa Vega, Sophia Paola","Gamboa Moreno, Isabella Sofía","Gonzalez Berroa, Marieliz Isabella","Gonzalez Martinez, Gabriela Denise","Grimaldo Fragueiro, Camilo","Guardia Liu, Daniella","Jimenez Gonzalez, Alejandro","Lam Pimentel, Francisco Javier","Leiva Stanziola, Ambar Andrés","Lopez Gonzalez, Ximena","Mon Abood, Nicolás Alberto","Otárola Moreno, Juan Pablo","Peraza Valdes, Antonella Isabel","Perez Arauz, Natalia","Petrella Bacaicoa, Diego Javier","Schlesinger Carles, Matthew Alan","Segura De La Rosa, Andrés Eduardo","Tejera Gonzalez, María Sofía"],
+  "9A": ["Aued Quiros, Nathalia Isabel","Bayless Morales, Isabella Carolina","Benitez ., Kamila Victoria","Blanco Gutierrez, Eva Sofia","Combe Ortega, Maria Gabriela","Cruz Chandeck, Juan David","Fernandez Boloboski, María Ángel","Garcia Wilson, Ximena Alessandra","Gianopulos Henderson, Anastasia Mercedes","Gisbert Keene, Carla Elizabeth","Jentz Bonilla, Lucas Daniel","Jimenez Zambrano, Samuel Alejandro","Kelly Castagnet, Sophia Marie","Khelani Khelani, Daksh Dev","Maduro Loaiza, Diego Alejandro","Padilla Kinglow, Kenzo André","Paredes Marcos, Juan José","Paredes Mendoza, Gema Valentina","Paz Rodriguez Gonzalez, Liz Gabriela","Perez Hawkes, Antonio","Rodriguez Bermudez, Alejandra María","Sanchez Figueras, Gabriel","Sierra Cedeño, Gian Alberto","Sollami Giraldez, Emma Raquel","Sossa Porcell, José Manuel","Tello Diaz, María Eugenia"],
+  "9B": ["Barranco Calvo, Liz Marie","Chen Pinilla, María Fernanda","Chong Loo, Jiang David","Deir Barsallo, Daniel Eduardo","Fong Melais, Carlosantiago","Garrido Abrego, Ian André","Gonzalez Gonzalez, Sofía Del Mar","Guillen Davila, Ana Victoria","Ibarra Cedeño, Juan David","Leiva Stanziola, Lucía De Los Angeles","Maduro Loaiza, Isabella Sofía","Moscoso Chen, Ana Matilde","Olcesi Bosano, Mia Isabella","Palomo Castrellon, Camila Renée","Paredes Caballero, Mariana Lucia","Paredes Mendoza, Angel Francisco","Perez Hawkes, Ximena Sofía","Pimentel McLeod, Daniela Sofia","Pineda De Leon, Carlos Fabián","Puyol Sosa, Gretel Marie","Quintero Xatruch, Ambar Julieta","Rivera Real, Andrés Iván","Rodriguez Della Togna, Analía","Sanson Mojica, Rafael Eduardo","Sierra Cedeño, Gabriel Andrés","Suarez Escobar, Hernán Alejandro","Treminio Ellis, Paulina Andrea"],
+  "10A": ["Aguilar Solis, María Fernanda","De La Cruz Calderon, Sara Michelle","Fares Fares, Mohamed","Gomez Clement, Juan David","Preciado Chaves, David Alejandro","Rubio Calcagno, Valeria Isabel","Saiz Zuleta, Jessica Sofía"],
+  "10B": ["Escalona Vallecillo, Andrés Manuel","Fanilla Navarro, Fabiola Beatriz","Godoy Prieto, Luna Valentina","Jentz Bonilla, Miguel Andres","Padilla Vergara, María Lourdes","Roner Branca, Isabella Marie","Vieto Martinez, Ian Andre"],
+  "11A": ["Arauz Alvarez, Vicente Antonio","Cerrud Correa, Sebastian","Gonzalez Gonzalez, Lia Rebeka","Rios Comeron, Julián"],
+  "11B": ["Barranco Calvo, Ian Carlo","Russo Caponi, Leone","Sanchez Constantakis, Nicolás","Sanchez Diaz, Alejandro Francisco","Tejera Gonzalez, Maria Del Carmen"],
+  "12A": ["Aguilar Ross, Adriana Maria","Arauz Alvarez, Roberto Agustin","Cardenas Quiodettis, Christian David","Cerrud Frogge, Bruno Antonio","Costella Moreno, Alessandro","De La Cruz Calderon, Alejandro Andre","Guillen Davila, Ana Sofia","Huerta Andrade, Liz Marie","Jimenez Zambrano, Andres Ramon","Latorraca Chea, Marco Emilio","Lee Liao, Jose David","Llaurado Barrera, Nicole Marie","Oviedo Pravia, Ana Laura","Pinilla Miro, Anna Gabriela","Victoria Cedeño, Nicolás"],
+  "12B": ["Alvarado Lee, Felipe Eduardo","Andrade Garcia, Valeria Isabelle","Cerabona Lasso De La Vega, Francesca","Remon Sandoval, Sofia Isabel","Reyna Iovane, Raffaela Antonella"]
+};
+
+let ocultos = {};       // { "8A": true } -> tarjeta oculta
+let esProfesor = false;
+
+// Textos originales del encabezado (para poder restablecerlos)
+const TEXTOS_DEFAULT = {
+    titulo: '📝 Estudiantes - Examen Trimestral',
+    subtitulo: 'Asignatura: Informática | Docente: Arquimedes Mosquera | Primer Trimestre 2026',
+    nota: 'Grados 8° y 9°: todos los estudiantes realizan el examen trimestral · Grados 10°, 11° y 12°: solo los estudiantes listados deben realizarlo'
+};
+
+function cargarEstado() {
+    try {
+        const guardado = localStorage.getItem('examen_trimestral_estudiantes');
+        if (guardado) estudiantes = JSON.parse(guardado);
+    } catch (e) {}
+    try {
+        const ocultosGuardados = localStorage.getItem('examen_trimestral_ocultos');
+        if (ocultosGuardados) ocultos = JSON.parse(ocultosGuardados);
+    } catch (e) {}
+    try {
+        const textoGuardado = localStorage.getItem('examen_trimestral_titulo');
+        if (textoGuardado !== null) document.getElementById('tituloPrincipal').textContent = textoGuardado;
+    } catch (e) {}
+    try {
+        const textoGuardado = localStorage.getItem('examen_trimestral_subtitulo');
+        if (textoGuardado !== null) document.getElementById('subtituloAsignatura').textContent = textoGuardado;
+    } catch (e) {}
+    try {
+        const textoGuardado = localStorage.getItem('examen_trimestral_nota');
+        if (textoGuardado !== null) document.getElementById('notaGrados').textContent = textoGuardado;
+    } catch (e) {}
+}
+
+/* ---------- Edición de título y subtítulos (solo modo profesor) ---------- */
+function guardarTextoHeader(clave, elementoId) {
+    const texto = document.getElementById(elementoId).textContent.trim();
+    localStorage.setItem(`examen_trimestral_${clave}`, texto);
+}
+
+function activarEdicionHeader() {
+    const header = document.getElementById('headerContainer');
+    const editables = [
+        { id: 'tituloPrincipal', clave: 'titulo' },
+        { id: 'subtituloAsignatura', clave: 'subtitulo' },
+        { id: 'notaGrados', clave: 'nota' }
+    ];
+    if (esProfesor) {
+        header.classList.add('modo-profesor');
+    } else {
+        header.classList.remove('modo-profesor');
+    }
+    editables.forEach(({ id, clave }) => {
+        const el = document.getElementById(id);
+        el.setAttribute('contenteditable', esProfesor ? 'true' : 'false');
+        // Evita duplicar el listener si esta función se llama varias veces
+        if (!el.dataset.listenerAgregado) {
+            el.addEventListener('blur', () => guardarTextoHeader(clave, id));
+            el.addEventListener('keydown', (evt) => {
+                if (evt.key === 'Enter') {
+                    evt.preventDefault();
+                    el.blur();
+                }
+            });
+            el.dataset.listenerAgregado = 'true';
+        }
+    });
+    document.getElementById('btnResetTextos').style.display = esProfesor ? 'inline-block' : 'none';
+}
+
+function restablecerTextos() {
+    if (!esProfesor) return;
+    if (!confirm('¿Restablecer el título y los subtítulos a su texto original?')) return;
+    document.getElementById('tituloPrincipal').textContent = TEXTOS_DEFAULT.titulo;
+    document.getElementById('subtituloAsignatura').textContent = TEXTOS_DEFAULT.subtitulo;
+    document.getElementById('notaGrados').textContent = TEXTOS_DEFAULT.nota;
+    localStorage.removeItem('examen_trimestral_titulo');
+    localStorage.removeItem('examen_trimestral_subtitulo');
+    localStorage.removeItem('examen_trimestral_nota');
+}
+
+function guardarEstudiantes() {
+    localStorage.setItem('examen_trimestral_estudiantes', JSON.stringify(estudiantes));
+}
+function guardarOcultos() {
+    localStorage.setItem('examen_trimestral_ocultos', JSON.stringify(ocultos));
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function render() {
+    const grid = document.getElementById('gridContainer');
+    grid.innerHTML = '';
+    let totalGeneral = 0;
+
+    Object.keys(GRADOS_INFO).forEach(grado => {
+        const lista = estudiantes[grado] || [];
+        totalGeneral += lista.length;
+        const oculto = !!ocultos[grado];
+        const esTodos = GRADOS_TODOS.includes(grado);
+
+        const card = document.createElement('div');
+        card.className = `class-card class-${grado}` + (oculto ? ' oculto' : '');
+
+        const badge = esTodos
+            ? `<span class="todos-badge">Todos presentan</span>`
+            : '';
+
+        let itemsHtml = '';
+        if (lista.length === 0) {
+            itemsHtml = `<li class="empty-msg">No hay estudiantes registrados en este grado.</li>`;
+        } else {
+            lista.forEach((nombre, idx) => {
+                itemsHtml += `
+                <li class="student-item">
+                    <span class="student-num">${idx + 1}</span>
+                    <span class="student-name">${escapeHtml(nombre)}</span>
+                    ${esProfesor ? `<button class="delete-btn" title="Eliminar" onclick="eliminarEstudiante('${grado}', ${idx})">✕</button>` : ''}
+                </li>`;
+            });
+        }
+
+        const addRowHtml = esProfesor ? `
+            <div class="add-student-row">
+                <input type="text" id="input-${grado}" placeholder="Nombre completo del estudiante">
+                <button onclick="agregarEstudiante('${grado}')">Agregar</button>
+            </div>` : '';
+
+        card.innerHTML = `
+            <div class="class-header" onclick="toggleGrado('${grado}', event)">
+                <span class="titulo">${GRADOS_INFO[grado]}${badge}</span>
+                <span class="right">
+                    <span class="count">${lista.length} estudiante${lista.length === 1 ? '' : 's'}</span>
+                    <button class="eye-btn" title="${oculto ? 'Mostrar' : 'Ocultar'} grado" onclick="toggleGrado('${grado}', event)">${oculto ? '👁️' : '🙈'}</button>
+                </span>
+            </div>
+            <div class="class-body">
+                <ul class="student-list">${itemsHtml}</ul>
+                ${addRowHtml}
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+
+    document.getElementById('footerTexto').textContent =
+        `Primer Trimestre 2026 | Total de estudiantes que presentan examen: ${totalGeneral}`;
+}
+
+function toggleGrado(grado, evt) {
+    if (evt) evt.stopPropagation();
+    ocultos[grado] = !ocultos[grado];
+    guardarOcultos();
+    render();
+}
+
+function mostrarTodos() {
+    Object.keys(GRADOS_INFO).forEach(g => ocultos[g] = false);
+    guardarOcultos();
+    render();
+}
+
+function ocultarTodos() {
+    Object.keys(GRADOS_INFO).forEach(g => ocultos[g] = true);
+    guardarOcultos();
+    render();
+}
+
+function agregarEstudiante(grado) {
+    if (!esProfesor) return;
+    const input = document.getElementById(`input-${grado}`);
+    const nombre = input.value.trim();
+    if (!nombre) {
+        input.focus();
+        return;
+    }
+    if (!estudiantes[grado]) estudiantes[grado] = [];
+    estudiantes[grado].push(nombre);
+    // Orden alfabético para mantener consistencia con la lista original
+    estudiantes[grado].sort((a, b) => a.localeCompare(b, 'es'));
+    guardarEstudiantes();
+    render();
+}
+
+function eliminarEstudiante(grado, idx) {
+    if (!esProfesor) return;
+    const nombre = estudiantes[grado][idx];
+    if (!confirm(`¿Eliminar a "${nombre}" del grado ${grado}?`)) return;
+    estudiantes[grado].splice(idx, 1);
+    guardarEstudiantes();
+    render();
+}
+
+/* ---------- Acceso del profesor ---------- */
+function abrirModal() {
+    document.getElementById('modalOverlay').classList.add('visible');
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('modalError').textContent = '';
+    document.getElementById('passwordInput').focus();
+}
+function cerrarModal() {
+    document.getElementById('modalOverlay').classList.remove('visible');
+}
+function intentarLogin() {
+    const val = document.getElementById('passwordInput').value;
+    if (val === CONTRASENA_PROFESOR) {
+        esProfesor = true;
+        cerrarModal();
+        actualizarBarra();
+        render();
+    } else {
+        document.getElementById('modalError').textContent = 'Contraseña incorrecta. Intente de nuevo.';
+    }
+}
+function cerrarSesion() {
+    esProfesor = false;
+    actualizarBarra();
+    render();
+}
+function actualizarBarra() {
+    const estado = document.getElementById('estadoTexto');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnLogout = document.getElementById('btnLogout');
+    if (esProfesor) {
+        estado.textContent = 'Modo: profesor (edición activa)';
+        estado.classList.add('activo');
+        btnLogin.style.display = 'none';
+        btnLogout.style.display = 'inline-block';
+    } else {
+        estado.textContent = 'Modo: solo lectura';
+        estado.classList.remove('activo');
+        btnLogin.style.display = 'inline-block';
+        btnLogout.style.display = 'none';
+    }
+    activarEdicionHeader();
+}
+
+cargarEstado();
+actualizarBarra();
+render();
+</script>
+</body>
+</html>
