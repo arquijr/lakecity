@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ruleta CMD &amp; CLI</title>
+<style>
+:root{
+  --bg:#0a1420; --panel:#0f1f33; --panel2:#142a44; --line:#1f3b5c;
+  --cyan:#22c3e6; --amber:#ffb020; --green:#22e08f; --red:#ff5470;
+  --text:#d9e7f7; --dim:#7d93b0;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+  font-family:'Segoe UI',Arial,sans-serif;padding:18px;}
+.wrap{max-width:900px;margin:0 auto;}
+h1{font-size:1.2em;text-align:center;margin:0 0 4px;}
+p.sub{text-align:center;color:var(--dim);font-size:.85em;margin:0 0 18px;}
+.stats{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:6px 12px;font-family:monospace;font-size:.85em;color:var(--dim);}
+.stat span{color:var(--amber);font-weight:700;}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:760px){.layout{grid-template-columns:1fr;}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;}
+.wheel-wrap{position:relative;width:min(280px,70vw);margin:0 auto 16px;}
+.pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:24px;color:var(--amber);z-index:2;}
+#wheel{width:100%;aspect-ratio:1;border-radius:50%;border:4px solid var(--panel2);
+  transition:transform 3s cubic-bezier(.15,.68,.1,1);
+  display:flex;align-items:center;justify-content:center;position:relative;}
+#wheel .num{position:absolute;color:#04141c;font-weight:700;font-size:.72em;font-family:monospace;}
+.hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;
+  border-radius:50%;background:var(--panel2);border:2px solid var(--cyan);z-index:2;}
+button{background:linear-gradient(135deg,var(--cyan),#0d7d94);color:#04141c;border:none;
+  padding:12px 24px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.95em;}
+button:disabled{opacity:.4;cursor:not-allowed;}
+button.secundario{background:transparent;border:1px solid var(--line);color:var(--dim);}
+.pregunta-box{display:none;text-align:left;}
+.pregunta-box.activo{display:block;}
+.pregunta-tema{font-family:monospace;font-size:.7em;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;}
+.pregunta-txt{font-size:1.05em;margin:8px 0 14px;}
+.opcion{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+  color:var(--text);padding:10px 14px;border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:.9em;}
+.opcion:hover:not(:disabled){border-color:var(--cyan);}
+.opcion.correcta{border-color:var(--green);background:rgba(34,224,143,.15);}
+.opcion.incorrecta{border-color:var(--red);background:rgba(255,84,112,.15);}
+.feedback{font-family:monospace;font-size:.85em;margin-top:10px;min-height:20px;}
+.feedback.ok{color:var(--green);}
+.feedback.mal{color:var(--red);}
+.final{display:none;text-align:center;}
+.final.activo{display:block;}
+.final h2{color:var(--amber);}
+.final table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.85em;}
+.final td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;}
+.final td.lbl{color:var(--dim);}
+.final td.val{color:var(--text);font-weight:700;text-align:right;font-family:monospace;}
+.final .nota{font-size:2em;color:var(--amber);margin:10px 0;}
+#inicioBox{max-width:420px;margin:40px auto;text-align:left;}
+#inicioBox label{display:block;font-size:.8em;color:var(--dim);margin:10px 0 4px;}
+#inicioBox input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--text);font-size:.95em;}
+#inicioBox button{width:100%;margin-top:18px;}
+#mainBox{display:none;}
+#alarmaOverlay{position:fixed;inset:0;pointer-events:none;z-index:80;display:none;}
+#alarmaOverlay.activo{display:block;background:rgba(255,0,51,.35);animation:parpadeoAlarma .55s infinite alternate;}
+@keyframes parpadeoAlarma{from{opacity:.15;}to{opacity:.65;}}
+#alarmaTexto{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:81;
+  background:#3a0010;color:#fff;border:2px solid #ff0033;border-radius:8px;
+  padding:10px 20px;font-family:monospace;font-weight:700;font-size:.85em;text-align:center;
+  display:none;max-width:90vw;}
+#alarmaTexto.activo{display:block;}
+.fab{position:fixed;bottom:20px;right:20px;width:52px;height:52px;border-radius:50%;
+  background:var(--panel2);border:2px solid var(--line);color:var(--text);font-size:22px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:70;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);}
+.fab:hover{border-color:var(--cyan);}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
+  align-items:center;justify-content:center;z-index:90;padding:16px;}
+.modal-overlay.activo{display:flex;}
+.modal-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:22px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;}
+.modal-box h3{margin:0 0 14px;color:var(--cyan);}
+.modal-box .fila-opcion{display:flex;gap:10px;margin-bottom:10px;}
+.modal-box .fila-opcion button{flex:1;}
+.editor-pregunta{border:1px solid var(--line-soft,var(--line));border-radius:10px;padding:12px;margin-bottom:12px;background:var(--panel2);}
+.editor-pregunta label{display:block;font-size:.72em;color:var(--dim);margin:6px 0 3px;}
+.editor-pregunta input,.editor-pregunta select{width:100%;padding:7px 9px;border-radius:6px;
+  border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:.85em;}
+.editor-acciones{position:sticky;bottom:0;background:var(--panel);padding-top:10px;display:flex;gap:10px;}
+.editor-acciones button{flex:1;}
+</style>
+</head>
+<body>
+<div id="alarmaOverlay"></div>
+<div id="alarmaTexto">⚠ ALERTA: HACKEO DE SISTEMA DETECTADO ⚠<br>-1 punto · Responde correctamente la siguiente pregunta para desactivar la alarma</div>
+<div class="wrap">
+<h1>🎡 Ruleta de Comandos <span style="color:var(--cyan)">CMD &amp; CLI</span></h1>
+<p class="sub">20 preguntas sobre la consola de Windows (CMD) y la terminal de Linux (CLI). Acierto: +1 · Error: -1</p>
+
+<div id="inicioBox" class="panel">
+  <label for="inputNombre">Nombre del estudiante</label>
+  <input id="inputNombre" type="text" placeholder="Nombre y apellido">
+  <label for="inputGrado">Grado</label>
+  <input id="inputGrado" type="text" placeholder="Ej. 11°">
+  <button id="btnComenzar">Comenzar evaluación</button>
+</div>
+
+<div id="mainBox">
+<div class="stats">
+  <div class="stat">Estudiante: <span id="statNombre">-</span></div>
+  <div class="stat">Puntos: <span id="statPuntos">0</span></div>
+  <div class="stat">Respondidas: <span id="statResp">0</span>/20</div>
+</div>
+<div class="layout">
+  <div class="panel">
+    <div class="wheel-wrap">
+      <div class="pointer">▼</div>
+      <div id="wheel"><div class="hub"></div></div>
+    </div>
+    <button id="btnGirar">Girar la ruleta</button>
+  </div>
+  <div class="panel" style="text-align:left">
+    <div id="preguntaBox" class="pregunta-box">
+      <div class="pregunta-tema" id="pTema"></div>
+      <div class="pregunta-txt" id="pTexto"></div>
+      <div id="pOpciones"></div>
+      <div class="feedback" id="pFeedback"></div>
+    </div>
+    <div id="idleBox" style="text-align:center;color:var(--dim);padding-top:40px;">Gira la ruleta para ver tu primera pregunta.</div>
+    <div id="finalBox" class="final">
+      <h2>Evaluación completada</h2>
+      <div class="nota" id="finalNota"></div>
+      <table>
+        <tr><td class="lbl">Estudiante</td><td class="val" id="repNombre"></td></tr>
+        <tr><td class="lbl">Grado</td><td class="val" id="repGrado"></td></tr>
+        <tr><td class="lbl">Fecha</td><td class="val" id="repFecha"></td></tr>
+        <tr><td class="lbl">Hora</td><td class="val" id="repHora"></td></tr>
+        <tr><td class="lbl">Correctas</td><td class="val" id="repCorrectas"></td></tr>
+        <tr><td class="lbl">Errores</td><td class="val" id="repErrores"></td></tr>
+        <tr><td class="lbl">Puntos obtenidos</td><td class="val" id="repPuntos"></td></tr>
+        <tr><td class="lbl">Recargas/cierres durante la prueba</td><td class="val" id="repRecargas"></td></tr>
+        <tr><td class="lbl">Calificación</td><td class="val" id="repNota"></td></tr>
+      </table>
+      <button id="btnSiguienteEstudiante" style="margin-top:16px;width:100%;">Finalizar y dejar libre para el siguiente estudiante</button>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="fab" id="btnFab" title="Opciones del docente">⚙️</div>
+
+<div class="modal-overlay" id="modalMenu">
+  <div class="modal-box">
+    <h3>Opciones del docente</h3>
+    <div class="fila-opcion">
+      <button id="btnAbrirReinicio">Reiniciar evaluación</button>
+      <button id="btnAbrirEditor">Editar preguntas</button>
+    </div>
+    <button class="secundario" id="btnCerrarMenu" style="width:100%;">Cerrar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalEditor">
+  <div class="modal-box">
+    <h3>Editar preguntas</h3>
+    <div id="listaEditor"></div>
+    <div class="editor-acciones">
+      <button id="btnGuardarPreguntas">Guardar cambios</button>
+      <button class="secundario" id="btnCerrarEditor">Cancelar</button>
+    </div>
+  </div>
+</div>
+<script>
+let preguntas = [
+ {t:"CMD",q:"¿Qué comando de CMD muestra la dirección IP de la computadora?",o:["ipconfig","dir","cls","whoami"],c:0},
+ {t:"CMD",q:"¿Qué comando limpia la pantalla en CMD?",o:["clear","cls","limpiar","reset"],c:1},
+ {t:"CMD",q:"¿Qué comando muestra el nombre del usuario actual en CMD?",o:["user","me","whoami","who"],c:2},
+ {t:"CMD",q:"¿Qué comando lista los archivos de una carpeta en CMD?",o:["ls","dir","list","show"],c:1},
+ {t:"CMD",q:"¿Qué comando crea una carpeta nueva en CMD?",o:["newdir","mkdir","makedir","carpeta"],c:1},
+ {t:"CMD",q:"¿Qué comando cambia de carpeta en CMD?",o:["cd","chdir2","go","move"],c:0},
+ {t:"CMD",q:"¿Qué comando elimina un archivo en CMD?",o:["rm","erase","del","delete"],c:2},
+ {t:"CMD",q:"¿Qué comando muestra la ruta que sigue un paquete hasta otro equipo en CMD?",o:["ping","tracert","netstat","route"],c:1},
+ {t:"CMD",q:"¿Qué comando comprueba la conectividad con otro equipo en CMD?",o:["ping","test","check","conn"],c:0},
+ {t:"CMD",q:"¿Qué comando muestra información detallada de red (IP, DNS, etc.) en CMD?",o:["ipconfig /all","netinfo","showip","config"],c:0},
+ {t:"CLI",q:"¿Qué comando de CLI (Linux) muestra en qué carpeta estás?",o:["pwd","cd","dir","home"],c:0},
+ {t:"CLI",q:"¿Qué comando de CLI lista archivos y carpetas?",o:["dir","ls","list","show"],c:1},
+ {t:"CLI",q:"¿Qué comando de CLI muestra también los archivos ocultos?",o:["ls -h","ls -a","ls -o","ls -x"],c:1},
+ {t:"CLI",q:"¿Qué comando de CLI crea un archivo vacío?",o:["touch","new","make","file"],c:0},
+ {t:"CLI",q:"¿Qué comando de CLI copia un archivo o carpeta?",o:["mv","cp","copy","dup"],c:1},
+ {t:"CLI",q:"¿Qué comando de CLI mueve o renombra un archivo?",o:["cp","ren","mv","move"],c:2},
+ {t:"CLI",q:"¿Qué comando de CLI elimina una carpeta junto con su contenido?",o:["rm -r","del -f","rmdir","erase"],c:0},
+ {t:"CLI",q:"¿Qué comando de CLI muestra las primeras líneas de un archivo?",o:["top","head","first","begin"],c:1},
+ {t:"CLI",q:"¿Qué comando de CLI muestra el manual de otro comando?",o:["help","info","man","doc"],c:2},
+ {t:"CLI",q:"¿Qué comando de CLI muestra la fecha y hora del sistema?",o:["time","date","clock","now"],c:1}
+];
+try{
+  const guardadas = localStorage.getItem("rcli_preguntas");
+  if(guardadas) preguntas = JSON.parse(guardadas);
+}catch(e){}
+
+let orden = [...Array(20).keys()];
+for(let i=orden.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[orden[i],orden[j]]=[orden[j],orden[i]];}
+let idx = 0, puntos = 0, respondidas = 0, correctas = 0, errores = 0, girando = false, rotacionActual = 0;
+let estudianteNombre = "", estudianteGrado = "", alarmaActiva = false, recargas = 0;
+const CLAVE_REINICIO = "code2026";
+let audioCtx = null, beepIntervalId = null;
+
+function reproducirBeep(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "square";
+    osc.frequency.value = 880;
+    gain.gain.value = 0.06;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.18);
+  }catch(e){}
+}
+
+function guardarProgreso(){
+  try{
+    localStorage.setItem("rcli_progreso", JSON.stringify({
+      estudianteNombre, estudianteGrado, orden, idx, puntos, respondidas,
+      correctas, errores, alarmaActiva, recargas, iniciado: document.getElementById("mainBox").style.display==="block",
+      terminado: document.getElementById("finalBox").classList.contains("activo")
+    }));
+  }catch(e){}
+}
+
+function borrarProgreso(){
+  try{ localStorage.removeItem("rcli_progreso"); }catch(e){}
+}
+
+const TABLA_NOTAS = {20:5,19:4.8,18:4.6,17:4.4,16:4.2,15:4,14:3.8,13:3.6,12:3.4,11:3.2,
+  10:3,9:2.8,8:2.6,7:2.4,6:2.2,5:2,4:1.8,3:1.6,2:1.4,1:1.2,0:1};
+
+const wheel = document.getElementById("wheel");
+const N = 20;
+const paletaColores = ["#22c3e6","#ffb020","#22e08f","#ff5470","#a06bff","#22c3e6","#ffb020","#22e08f","#ff5470","#a06bff"];
+let gradient = [];
+for(let i=0;i<N;i++){
+  const c = paletaColores[i % paletaColores.length];
+  gradient.push(c+" "+(i*360/N)+"deg "+((i+1)*360/N)+"deg");
+}
+wheel.style.background = "conic-gradient(" + gradient.join(",") + ")";
+for(let i=0;i<N;i++){
+  const ang = (i+0.5)*(360/N);
+  const num = document.createElement("div");
+  num.className = "num";
+  num.textContent = i+1;
+  num.style.transform = "rotate("+ang+"deg) translate(0,-110px) rotate(-"+ang+"deg)";
+  num.style.left = "calc(50% - 8px)";
+  num.style.top = "calc(50% - 8px)";
+  wheel.appendChild(num);
+}
+
+function actualizarStats(){
+  document.getElementById("statPuntos").textContent = puntos;
+  document.getElementById("statResp").textContent = respondidas;
+}
+
+function girar(){
+  if(girando || respondidas>=20) return;
+  girando = true;
+  document.getElementById("btnGirar").disabled = true;
+  document.getElementById("idleBox").style.display="none";
+  const preguntaIdx = orden[idx];
+  const slice = 360/N;
+  const anguloDestino = preguntaIdx*slice + slice/2;
+  const vueltas = 4*360;
+  rotacionActual += vueltas + (360 - anguloDestino) - (rotacionActual % 360);
+  wheel.style.transform = "rotate("+rotacionActual+"deg)";
+  setTimeout(()=>mostrarPregunta(preguntaIdx), 3100);
+}
+
+function mostrarPregunta(i){
+  girando = false;
+  const p = preguntas[i];
+  document.getElementById("preguntaBox").classList.add("activo");
+  document.getElementById("pTema").textContent = p.t;
+  document.getElementById("pTexto").textContent = p.q;
+  document.getElementById("pFeedback").textContent = "";
+  document.getElementById("pFeedback").className = "feedback";
+  const cont = document.getElementById("pOpciones");
+  cont.innerHTML = "";
+  p.o.forEach((op,oi)=>{
+    const b = document.createElement("button");
+    b.className = "opcion";
+    b.textContent = op;
+    b.onclick = ()=>responder(oi,p,i);
+    cont.appendChild(b);
+  });
+}
+
+function activarAlarma(){
+  alarmaActiva = true;
+  document.getElementById("alarmaOverlay").classList.add("activo");
+  document.getElementById("alarmaTexto").classList.add("activo");
+  if(!beepIntervalId){
+    reproducirBeep();
+    beepIntervalId = setInterval(reproducirBeep, 500);
+  }
+}
+
+function desactivarAlarma(){
+  alarmaActiva = false;
+  document.getElementById("alarmaOverlay").classList.remove("activo");
+  document.getElementById("alarmaTexto").classList.remove("activo");
+  if(beepIntervalId){ clearInterval(beepIntervalId); beepIntervalId = null; }
+}
+
+function responder(oi,p,i){
+  const botones = document.querySelectorAll("#pOpciones .opcion");
+  botones.forEach(b=>b.disabled=true);
+  const correcto = oi===p.c;
+  botones[oi].classList.add(correcto?"correcta":"incorrecta");
+  if(!correcto) botones[p.c].classList.add("correcta");
+  puntos += correcto? 1 : -1;
+  if(correcto){ correctas++; if(alarmaActiva) desactivarAlarma(); }
+  else{ errores++; activarAlarma(); }
+  respondidas++;
+  idx++;
+  const fb = document.getElementById("pFeedback");
+  fb.textContent = correcto ? "✔ Correcto (+1 punto)" : "✘ Incorrecto (-1 punto). Era: "+p.o[p.c];
+  fb.className = "feedback "+(correcto?"ok":"mal");
+  actualizarStats();
+  guardarProgreso();
+  setTimeout(()=>{
+    document.getElementById("preguntaBox").classList.remove("activo");
+    if(respondidas>=20){ mostrarFinal(); }
+    else{ document.getElementById("btnGirar").disabled=false; }
+  }, 1400);
+}
+
+function mostrarFinal(){
+  desactivarAlarma();
+  document.getElementById("finalBox").classList.add("activo");
+  const netoClamp = Math.max(0, Math.min(20, puntos));
+  const nota = TABLA_NOTAS[netoClamp];
+  const ahora = new Date();
+  document.getElementById("finalNota").textContent = nota.toFixed(1);
+  document.getElementById("repNombre").textContent = estudianteNombre;
+  document.getElementById("repGrado").textContent = estudianteGrado;
+  document.getElementById("repFecha").textContent = ahora.toLocaleDateString();
+  document.getElementById("repHora").textContent = ahora.toLocaleTimeString();
+  document.getElementById("repCorrectas").textContent = correctas;
+  document.getElementById("repErrores").textContent = errores;
+  document.getElementById("repPuntos").textContent = puntos;
+  document.getElementById("repRecargas").textContent = recargas;
+  document.getElementById("repNota").textContent = nota.toFixed(1);
+  guardarProgreso();
+}
+
+document.getElementById("btnComenzar").addEventListener("click", ()=>{
+  const nombre = document.getElementById("inputNombre").value.trim();
+  const grado = document.getElementById("inputGrado").value.trim();
+  if(!nombre || !grado){
+    alert("Por favor completa el nombre y el grado del estudiante.");
+    return;
+  }
+  estudianteNombre = nombre;
+  estudianteGrado = grado;
+  document.getElementById("statNombre").textContent = nombre + " (" + grado + ")";
+  document.getElementById("inicioBox").style.display = "none";
+  document.getElementById("mainBox").style.display = "block";
+  guardarProgreso();
+});
+
+document.getElementById("btnGirar").addEventListener("click", girar);
+
+function reiniciarEvaluacion(){
+  orden = [...Array(20).keys()];
+  for(let i=orden.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[orden[i],orden[j]]=[orden[j],orden[i]];}
+  idx=0; puntos=0; respondidas=0; correctas=0; errores=0; rotacionActual=0; recargas=0;
+  desactivarAlarma();
+  wheel.style.transition="none"; wheel.style.transform="rotate(0deg)";
+  requestAnimationFrame(()=>{wheel.style.transition="transform 3s cubic-bezier(.15,.68,.1,1)";});
+  actualizarStats();
+  document.getElementById("finalBox").classList.remove("activo");
+  document.getElementById("idleBox").style.display="block";
+  document.getElementById("btnGirar").disabled=false;
+  document.getElementById("mainBox").style.display="none";
+  document.getElementById("inicioBox").style.display="block";
+  document.getElementById("inputNombre").value="";
+  document.getElementById("inputGrado").value="";
+  borrarProgreso();
+}
+
+function pedirClave(){
+  const clave = prompt("Esta acción es solo para el docente.\nIntroduce la contraseña:");
+  if(clave === null) return false;
+  if(clave !== CLAVE_REINICIO){ alert("Contraseña incorrecta."); return false; }
+  return true;
+}
+
+document.getElementById("btnFab").addEventListener("click", ()=>{
+  if(!pedirClave()) return;
+  document.getElementById("modalMenu").classList.add("activo");
+});
+document.getElementById("btnCerrarMenu").addEventListener("click", ()=>{
+  document.getElementById("modalMenu").classList.remove("activo");
+});
+document.getElementById("btnAbrirReinicio").addEventListener("click", ()=>{
+  document.getElementById("modalMenu").classList.remove("activo");
+  if(confirm("¿Reiniciar la evaluación por completo? Se perderá el progreso actual.")){
+    reiniciarEvaluacion();
+  }
+});
+
+document.getElementById("btnSiguienteEstudiante").addEventListener("click", ()=>{
+  reiniciarEvaluacion();
+});
+
+function pruebaEnCurso(){
+  return document.getElementById("mainBox").style.display === "block" &&
+    !document.getElementById("finalBox").classList.contains("activo");
+}
+
+window.addEventListener("beforeunload", function(e){
+  if(pruebaEnCurso()){
+    e.preventDefault();
+    e.returnValue = "";
+    return "";
+  }
+});
+
+document.addEventListener("keydown", function(e){
+  const esRefrescar = e.key === "F5" || ((e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R"));
+  if(esRefrescar && pruebaEnCurso()){
+    e.preventDefault();
+    alert("No se puede recargar la página mientras la evaluación está en curso.");
+  }
+});
+
+function renderizarEditor(){
+  const cont = document.getElementById("listaEditor");
+  cont.innerHTML = "";
+  preguntas.forEach((p,i)=>{
+    const box = document.createElement("div");
+    box.className = "editor-pregunta";
+    box.innerHTML =
+      '<label>Tema</label><input data-i="'+i+'" data-f="t" value="'+p.t+'">' +
+      '<label>Pregunta</label><input data-i="'+i+'" data-f="q" value="'+p.q.replace(/"/g,"&quot;")+'">' +
+      p.o.map((op,oi)=>'<label>Opción '+(oi+1)+'</label><input data-i="'+i+'" data-f="o'+oi+'" value="'+op.replace(/"/g,"&quot;")+'">').join("") +
+      '<label>Opción correcta</label><select data-i="'+i+'" data-f="c">' +
+      p.o.map((op,oi)=>'<option value="'+oi+'"'+(oi===p.c?" selected":"")+'>Opción '+(oi+1)+'</option>').join("") +
+      '</select>';
+    cont.appendChild(box);
+  });
+}
+
+document.getElementById("btnAbrirEditor").addEventListener("click", ()=>{
+  document.getElementById("modalMenu").classList.remove("activo");
+  renderizarEditor();
+  document.getElementById("modalEditor").classList.add("activo");
+});
+document.getElementById("btnCerrarEditor").addEventListener("click", ()=>{
+  document.getElementById("modalEditor").classList.remove("activo");
+});
+document.getElementById("btnGuardarPreguntas").addEventListener("click", ()=>{
+  const nuevas = preguntas.map((p,i)=>({t:p.t,q:p.q,o:p.o.slice(),c:p.c}));
+  const inputs = document.querySelectorAll("#listaEditor input, #listaEditor select");
+  inputs.forEach(el=>{
+    const i = parseInt(el.dataset.i,10), f = el.dataset.f;
+    if(f==="t") nuevas[i].t = el.value.trim();
+    else if(f==="q") nuevas[i].q = el.value.trim();
+    else if(f==="c") nuevas[i].c = parseInt(el.value,10);
+    else if(f.startsWith("o")) nuevas[i].o[parseInt(f.slice(1),10)] = el.value.trim();
+  });
+  for(const p of nuevas){
+    if(!p.t || !p.q || p.o.some(o=>!o)){
+      alert("Todas las preguntas deben tener tema, texto y las 4 opciones completas.");
+      return;
+    }
+  }
+  preguntas = nuevas;
+  try{ localStorage.setItem("rcli_preguntas", JSON.stringify(preguntas)); }catch(e){}
+  document.getElementById("modalEditor").classList.remove("activo");
+  alert("Preguntas actualizadas correctamente.");
+});
+
+(function restaurarProgreso(){
+  try{
+    const guardado = JSON.parse(localStorage.getItem("rcli_progreso"));
+    if(!guardado || !guardado.iniciado) return;
+    estudianteNombre = guardado.estudianteNombre;
+    estudianteGrado = guardado.estudianteGrado;
+    orden = guardado.orden; idx = guardado.idx; puntos = guardado.puntos;
+    respondidas = guardado.respondidas; correctas = guardado.correctas; errores = guardado.errores;
+    recargas = guardado.recargas || 0;
+    if(!guardado.terminado){ recargas++; }
+    document.getElementById("statNombre").textContent = estudianteNombre + " (" + estudianteGrado + ")";
+    document.getElementById("inicioBox").style.display = "none";
+    document.getElementById("mainBox").style.display = "block";
+    actualizarStats();
+    if(guardado.terminado){ mostrarFinal(); }
+    else if(respondidas>=20){ mostrarFinal(); }
+    else{
+      if(guardado.alarmaActiva){ activarAlarma(); }
+      guardarProgreso();
+    }
+  }catch(e){}
+})();
+
+actualizarStats();
+</script>
+</body>
+</html>
