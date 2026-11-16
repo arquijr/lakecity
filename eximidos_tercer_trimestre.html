@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eximidos del Examen Trimestral – 3.er Trimestre</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;padding:30px 20px;color:#e0e0e0}
+.header{text-align:center;margin-bottom:25px}
+.header h1{font-size:2.2em;color:#fff;text-shadow:0 0 20px rgba(0,200,255,.5);margin-bottom:8px}
+.header p{color:#aaa}
+.criterio{max-width:900px;margin:0 auto 25px;padding:12px 18px;border-radius:12px;background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.4);text-align:center}
+.criterio b{color:#2ecc71}
+.wrap{max-width:1000px;margin:0 auto}
+.tabs,.filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#ddd;padding:8px 16px;border-radius:20px;transition:.2s}
+button:hover{background:rgba(255,255,255,.15)}
+button.active{background:#3498db;color:#fff;border-color:#3498db}
+.filters button.active{background:#2ecc71;border-color:#2ecc71}
+.filters button.active.no{background:#e74c3c;border-color:#e74c3c}
+.filters button.active.all{background:#9b59b6;border-color:#9b59b6}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;text-align:center}
+.stat .n{font-size:2em;font-weight:bold;color:#fff}
+.stat.ok .n{color:#2ecc71}.stat.bad .n{color:#e74c3c}
+.stat small{color:#aaa}
+.search{display:block;width:100%;max-width:420px;margin:0 auto 18px;padding:10px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font:inherit}
+.search::placeholder{color:#999}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;margin-bottom:22px}
+.card h2{padding:12px 20px;color:#fff;font-size:1.2em;display:flex;justify-content:space-between;align-items:center}
+.card h2 span{font-size:.7em;background:rgba(255,255,255,.18);padding:4px 12px;border-radius:20px;font-weight:normal}
+.g10A h2{background:linear-gradient(135deg,#1abc9c,#16a085)}.g10B h2{background:linear-gradient(135deg,#3498db,#2980b9)}
+.g11A h2{background:linear-gradient(135deg,#9b59b6,#8e44ad)}.g11B h2{background:linear-gradient(135deg,#e91e63,#c2185b)}
+.g12A h2{background:linear-gradient(135deg,#00bcd4,#0097a7)}.g12B h2{background:linear-gradient(135deg,#607d8b,#455a64)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 14px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);white-space:nowrap}
+th{font-size:.8em;text-transform:uppercase;color:#aaa;background:rgba(0,0,0,.15)}
+td.name,th.name{text-align:left;white-space:normal}
+td.num{color:#888;width:40px}
+tr:hover td{background:rgba(255,255,255,.06)}
+.low{color:#ff7675;font-weight:bold}
+.badge{padding:3px 12px;border-radius:12px;font-size:.8em;font-weight:bold}
+.badge.ok{background:rgba(46,204,113,.2);color:#2ecc71}
+.badge.no{background:rgba(231,76,60,.2);color:#ff7675}
+.empty{padding:18px;text-align:center;color:#888}
+.note{font-size:.8em;color:#999;text-align:center;margin-top:10px}
+@media(max-width:600px){.header h1{font-size:1.6em}th,td{padding:8px 8px;font-size:.9em}}
+@media print{.bar,.panel{display:none}body{background:#fff;color:#000}.tabs,.filters,.search{display:none}.card{border:1px solid #999}.card h2{background:#ddd!important;color:#000}}
+
+.bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin-bottom:16px}
+.bar .estado{font-size:.85em;color:#9ad}
+.teacher{background:#f39c12!important;border-color:#f39c12!important;color:#fff!important}
+.danger{border-color:#e74c3c;color:#ff7675}
+.panel{background:rgba(243,156,18,.1);border:1px solid rgba(243,156,18,.4);border-radius:12px;padding:12px;margin-bottom:18px;display:none}
+.panel.on{display:block}
+.panel .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.panel b{display:block;text-align:center;margin-bottom:8px;color:#f39c12}
+input.c,select.c{padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.3);color:#fff;font:inherit}
+input.g{width:70px;text-align:center}
+td input.c{width:100%;min-width:150px}
+td input.g{min-width:0;width:64px}
+td button{padding:4px 10px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:10}
+.modal.on{display:flex}
+.modal div{background:#16213e;border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:24px;width:min(340px,90%);text-align:center}
+.modal h3{margin-bottom:12px;color:#fff}
+.modal .err{color:#ff7675;min-height:1.3em;margin:8px 0;font-size:.9em}
+.modal .row{display:flex;gap:8px;justify-content:center}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🎓 Eximidos del Examen Trimestral</h1>
+  <p>Informática | Docente: Arquimedes Mosquera | 3.er Trimestre 2026</p>
+</div>
+<div class="criterio"><b>Criterio:</b> el estudiante queda eximido únicamente si obtiene <b>4.5 o más en cada uno de los tres trimestres</b>.</div>
+<div class="wrap">
+  <div class="bar" id="bar"></div>
+  <div class="panel" id="panel">
+    <b>🛠 Herramientas del profesor</b>
+    <div class="row">
+      <input class="c" id="nNom" placeholder="Apellidos, Nombres" style="min-width:210px">
+      <select class="c" id="nGrp"></select>
+      <input class="c g" id="n1" placeholder="P1" inputmode="decimal"><input class="c g" id="n2" placeholder="P2" inputmode="decimal"><input class="c g" id="n3" placeholder="P3" inputmode="decimal">
+      <button id="bAdd">➕ Agregar estudiante</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="bExp">⬇ Exportar respaldo</button>
+      <button id="bImp">⬆ Importar respaldo</button>
+      <button id="bRes" class="danger">♻ Restaurar datos originales</button>
+      <input type="file" id="file" accept=".json,application/json" hidden>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="filters" id="filters"></div>
+  <div class="stats" id="stats"></div>
+  <input class="search" id="q" type="search" placeholder="🔍 Buscar estudiante...">
+  <div id="out"></div>
+  <p class="note">Los promedios en rojo son menores de 4.5. "Sin dato" = no hay promedio registrado (no puede quedar eximido).<br>Los cambios del profesor se guardan automáticamente en este navegador.</p>
+</div>
+<div class="modal" id="modal"><div>
+  <h3>🔒 Modo profesor</h3>
+  <input class="c" type="password" id="pw" placeholder="Contraseña" style="width:100%">
+  <p class="err" id="err"></p>
+  <div class="row"><button id="pwOk" class="active">Entrar</button><button id="pwNo">Cancelar</button></div>
+</div></div>
+<script>
+const MIN = 4.5, KEY = 'eximidos_t3_2026_v1', PW_HASH = 2308758924338799;
+const DEFAULT = {"10A":[["Aguilar Solis, María Fernanda",4.3,4.7,4.3],["Arosemena Fabrega, José Agustín",4.8,4.9,4.5],["Briceño Hernandez, Diego Enrique",4.8,4.9,4.9],["Champsaur Gamboa, Emilié",4.7,4.6,4.3],["De La Cruz Calderon, Sara Michelle",4.2,4.3,3.4],["Diaz Martinez, Alyssa Isabel",4.6,4.7,4.5],["Estrella Chu, Noah Agustin",4.7,4.9,4.9],["Fares Fares, Mohamed",4.5,4.6,4.6],["Franco Marcucci, Alejandra Marie",4.7,4.9,4.8],["Gomez Clement, Juan David",4.4,4.3,4.4],["González Arosemena, Natalia Sofía",4.7,4.7,4.4],["Grajales Muñoz, Melisabel Del Carmen",4.6,4.7,4.8],["Ng Dunkley, Jian Wi",5.0,4.8,4.9],["Preciado Chaves, David Alejandro",4.3,4.3,4.7],["Rios Castillo, Juan Antonio",4.5,4.7,4.6],["Rubio Calcagno, Valeria Isabel",4.4,4.6,4.7],["Saiz Zuleta, Jessica Sofía",4.9,4.4,4.9],["Simons Echeverry, Valeria",4.6,4.9,4.8],["Singh Paz, Laila Sophia",4.7,4.7,4.4],["Yoshimoto Nohara, Kazki Neil",4.8,4.6,4.8]],"10B":[["Achurra Gomez, Isabella",4.5,4.8,4.6],["Arauz Esturain, Ian Lucas",4.6,4.7,4.6],["Carrizo Valderrama, Juan Felipe",4.9,4.9,4.8],["Castillo Guardia, Sofía Victoria",4.6,4.7,4.8],["Castillo Rodriguez, Antonella Carla",4.9,4.8,4.9],["Chanis Puyol, Lucia Alexandra",4.9,4.8,4.9],["De Frias Carrillo, Emma Michelle",4.9,4.7,4.9],["Dunkley Rios, Isabella",4.5,4.6,4.4],["Escala Bravo, Isabella Marie",4.8,4.8,4.9],["Escalona Vallecillo, Andrés Manuel",4.5,4.3,4.7],["Fanilla Navarro, Fabiola Beatriz",4.6,4.1,4.5],["Godoy Prieto, Luna Valentina",4.7,4.5,4.9],["Jentz Bonilla, Miguel Andres",4.1,3.2,4.4],["Mejia Uno, Blanca Sofía",4.8,4.9,4.8],["Padilla Vergara, María Lourdes",4.5,4.0,4.4],["Paredes Brewer, Abigail Marianne",4.9,4.9,4.9],["Robinson Garcia, Amely Marie",4.9,4.7,4.8],["Roner Branca, Isabella Marie",4.5,4.1,4.3],["Vieto Martinez, Ian Andre",3.9,3.9,4.8],["Zarate Solis, Vanessa Isabel",4.6,4.7,4.9]],"11A":[["Androutsou ., Georgia",4.9,4.8,4.8],["Aued Quiros, Maria Fernanda",4.8,4.8,4.7],["Estrella Chu, Alexia Natalia",4.9,4.8,4.8],["Fagette Segundo, Anais Marie",4.8,4.9,4.8],["Gamboa Moreno, Giancarlo",4.8,4.7,4.9],["Gomez Kiamco, Patrick Fernando",4.6,4.6,4.9],["Gonzalez Gonzalez, Lia Rebeka",4.9,4.5,4.9],["Moscatelli Fritzsche, Isabella Anjali",4.9,4.8,4.8],["Osorio Vasquez, Lily Marie",4.8,4.9,4.9],["Palavicini Nativi, Fabiana Isabella",4.7,4.6,4.8],["Quintero Xatruch, Leo Alejandro",4.6,4.8,4.9],["Reyes Solis, Juan Pablo",4.8,4.8,4.6],["Rodriguez De Leon, Analia Yissel",4.7,4.6,4.8],["Santamaria Landires, Emma Sofia",4.9,4.7,4.8],["Segura Cornejo, Isabel Camila",4.9,4.9,4.8],["Simon Sabat, Gabriel Elias",4.5,4.8,4.9],["Sing Cheng, Emma Louise",4.8,4.8,4.9],["Sosa Ruiz, Sofia Isabel",5.0,4.6,5.0],["Sucre Testa, Juan Felipe",4.9,4.9,4.7],["Ulloa Chen, Isabella Victoria",4.9,5.0,5.0],["Vasquez Molina, Xavier Andres",4.6,4.8,4.9],["Arauz Alvarez, Vicente Antonio",4.6,3.5,4.5],["Cerrud Correa, Sebastian",4.4,3.9,4.3],["Pérez Hawkes, Ana Victoria",null,4.2,4.7],["Rios Comeron, Julián",3.4,4.4,4.7]],"11B":[["Barranco Calvo, Ian Carlo",3.7,4.2,4.2],["Boutet Gonzalez, Jean Philippe",4.7,4.6,4.6],["Lopez Dotta, Mar",4.8,5.0,4.8],["Parajó Villalaz, Manuel Ricardo",4.7,4.7,4.1],["Perez Lim, Ana Cristina",4.7,4.9,4.8],["Russo Caponi, Leone",4.4,4.5,4.8],["Sanchez Constantakis, Nicolás",4.4,3.4,4.0],["Sanchez Diaz, Alejandro Francisco",4.4,3.5,4.1],["Selles Sucre, Astrid Sofia",4.7,4.5,4.6],["Tejera Gonzalez, Maria Del Carmen",3.1,2.9,3.0],["Villarreal Famania, Luz Helena",4.5,4.8,4.6]],"12A":[["Adsett Paredes, Adriana Isabel",4.6,4.6,3.9],["Aguilar Ross, Adriana Maria",4.7,4.5,4.7],["Arauz Alvarez, Roberto Agustin",4.4,4.2,4.4],["Arosemena Simons, Lucia Victoria",4.6,4.9,4.4],["Cardenas Quiodettis, Christian David",3.9,4.4,4.4],["Cerrud Frogge, Bruno Antonio",4.3,4.3,3.6],["Costella Moreno, Alessandro",4.2,4.0,4.5],["De La Cruz Calderon, Alejandro Andre",4.1,4.7,3.7],["De Leon Bandiera, Marco Antonio",4.5,4.8,3.9],["Esteriano Benitez, Chelsea Alyssa",4.8,4.7,4.6],["Guillen Davila, Ana Sofia",4.2,4.6,4.5],["Huerta Andrade, Liz Marie",4.7,4.4,4.6],["Ibarra Cedeño, Gabriela Sofia",4.7,4.6,3.8],["Jimenez Zambrano, Andres Ramon",4.4,4.5,4.6],["Kosmas Kalormakis, Aristides Juan",4.7,5.0,4.5],["Latorraca Chea, Marco Emilio",4.2,4.6,4.8],["Lee Liao, Jose David",4.4,4.5,4.4],["Llaurado Barrera, Nicole Marie",4.4,4.5,4.4],["Montilla Singh, Xavier Francisco",4.5,5.0,4.6],["Muñoz Tapia, Carlos Alberto",4.7,4.5,4.3],["Oviedo Pravia, Ana Laura",4.6,4.3,3.8],["Pinilla Miro, Anna Gabriela",4.6,4.6,4.6],["Rodriguez Arosemena, Maria Sofia",4.5,4.6,4.1],["Roner Branca, Sarah Marie",4.6,4.5,4.5],["Saavedra Solis, Sebastian Adrian",4.6,4.9,3.7],["Victoria Cedeño, Nicolás",4.3,4.7,4.4],["Villarreal Hernandez, Marie Isabella",4.7,4.6,4.5],["Walters Llewelyn, Allan Edgardo",4.6,4.7,4.6]],"12B":[["Alvarado Lee, Felipe Eduardo",4.8,4.4,4.7],["Andrade Garcia, Valeria Isabelle",4.5,4.1,4.6],["Caskey Jaen, Gabriela Stephanie",4.8,4.9,3.6],["Cerabona Lasso De La Vega, Francesca",4.7,4.0,4.7],["Eleta Chong, Gabriela Lucia",4.9,4.8,4.7],["Kiamco Valencia, Adriana Victoria",4.9,4.6,4.5],["Remon Sandoval, Sofia Isabel",4.7,4.4,4.8],["Reyna Iovane, Raffaela Antonella",4.8,3.8,4.2],["Rodriguez De Leon, Jose Angel",4.8,4.5,4.7]]};
+const cyrb53=(s,seed=0)=>{let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=0,c;i<s.length;i++){c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 4294967296*(2097151&h2)+(h1>>>0);};
+const clone = o => JSON.parse(JSON.stringify(o));
+let DATA = clone(DEFAULT), profesor = false, grupo = 'Todos', filtro = 'eximidos', texto = '', ultimo = '';
+
+/* ---------- Persistencia ---------- */
+function cargar() {
+  try { const s = localStorage.getItem(KEY); if (s) { const d = JSON.parse(s); if (valido(d)) DATA = d; } } catch (e) {}
+}
+function valido(d) {
+  return d && typeof d === 'object' && Object.keys(d).length &&
+    Object.values(d).every(a => Array.isArray(a) && a.every(r => Array.isArray(r) && typeof r[0] === 'string' && r.length === 4));
+}
+function guardar() {
+  try { localStorage.setItem(KEY, JSON.stringify(DATA)); ultimo = '💾 Guardado ' + new Date().toLocaleTimeString('es-PA'); }
+  catch (e) { ultimo = '⚠️ No se pudo guardar en este navegador'; }
+  const el = document.getElementById('estado'); if (el) el.textContent = ultimo;
+}
+window.addEventListener('storage', e => { if (e.key === KEY) { cargar(); render(); } }); // sincroniza otras pestañas en vivo
+
+/* ---------- Utilidades ---------- */
+const esEximido = r => r.slice(1).every(n => n !== null && n >= MIN);
+const fmt = n => n === null ? '<span class="low">Sin dato</span>' : `<span class="${n < MIN ? 'low' : ''}">${n.toFixed(1)}</span>`;
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const nota = v => { v = String(v).trim().replace(',', '.'); if (v === '') return null; const n = parseFloat(v); return isNaN(n) ? undefined : Math.min(5, Math.max(1, Math.round(n * 10) / 10)); };
+const ordenar = g => DATA[g].sort((a, b) => a[0].localeCompare(b[0], 'es'));
+
+function botones(id, items, actual) {
+  document.getElementById(id).innerHTML = items.map(([v, l, c]) => `<button class="${v === actual ? 'active' : ''} ${c || ''}" data-v="${v}">${l}</button>`).join('');
+}
+
+/* ---------- Render ---------- */
+function render() {
+  const grupos = grupo === 'Todos' || !DATA[grupo] ? Object.keys(DATA) : [grupo];
+  if (!DATA[grupo]) grupo = 'Todos';
+  botones('tabs', [['Todos', 'Todos'], ...Object.keys(DATA).map(g => [g, g])], grupo);
+  botones('filters', [['eximidos', '✅ Eximidos', ''], ['no', '❌ No eximidos', 'no'], ['todos', '📋 Todos', 'all']], filtro);
+  document.getElementById('bar').innerHTML = profesor
+    ? `<button class="teacher" id="bOut">🔓 Profesor activo – Cerrar</button><span class="estado" id="estado">${ultimo}</span>`
+    : `<button id="bIn">🔒 Modo profesor</button>`;
+  document.getElementById('panel').classList.toggle('on', profesor);
+  document.getElementById('nGrp').innerHTML = Object.keys(DATA).map(g => `<option ${g === grupo ? 'selected' : ''}>${g}</option>`).join('');
+
+  let tot = 0, ex = 0;
+  grupos.forEach(g => DATA[g].forEach(r => { tot++; if (esEximido(r)) ex++; }));
+  document.getElementById('stats').innerHTML =
+    `<div class="stat"><div class="n">${tot}</div><small>Estudiantes</small></div>
+     <div class="stat ok"><div class="n">${ex}</div><small>Eximidos (${tot ? Math.round(ex / tot * 100) : 0}%)</small></div>
+     <div class="stat bad"><div class="n">${tot - ex}</div><small>No eximidos</small></div>`;
+
+  const q = norm(texto);
+  let html = '';
+  grupos.forEach(g => {
+    const todos = DATA[g];
+    const filas = todos.map((r, i) => [r, i]).filter(([r]) => {
+      const e = esEximido(r);
+      if (filtro === 'eximidos' && !e) return false;
+      if (filtro === 'no' && e) return false;
+      return !q || norm(r[0]).includes(q);
+    });
+    const nEx = todos.filter(esEximido).length;
+    html += `<div class="card g${g}"><h2><span style="background:none;padding:0;font-size:1em">Grado ${g}</span><span>${nEx} eximidos de ${todos.length}</span></h2>`;
+    if (!filas.length) html += '<div class="empty">Sin estudiantes para mostrar.</div>';
+    else html += `<div class="scroll"><table><thead><tr><th>#</th><th class="name">Estudiante</th><th>Prom. 1</th><th>Prom. 2</th><th>Prom. 3</th><th>Resultado</th>${profesor ? '<th></th>' : ''}</tr></thead><tbody>` +
+      filas.map(([r, i], k) => {
+        const celda = f => profesor
+          ? `<td><input class="c g" data-g="${g}" data-i="${i}" data-f="${f}" value="${r[f] === null ? '' : r[f].toFixed(1)}" inputmode="decimal" placeholder="—"></td>`
+          : `<td>${fmt(r[f])}</td>`;
+        const nombre = profesor ? `<td class="name"><input class="c" data-g="${g}" data-i="${i}" data-f="0" value="${esc(r[0])}"></td>` : `<td class="name">${esc(r[0])}</td>`;
+        return `<tr><td class="num">${k + 1}</td>${nombre}${celda(1)}${celda(2)}${celda(3)}<td>${esEximido(r) ? '<span class="badge ok">Eximido/a</span>' : '<span class="badge no">No eximido/a</span>'}</td>${profesor ? `<td><button class="danger" data-del data-g="${g}" data-i="${i}" title="Eliminar">🗑</button></td>` : ''}</tr>`;
+      }).join('') + '</tbody></table></div>';
+    html += '</div>';
+  });
+  document.getElementById('out').innerHTML = html;
+}
+
+/* ---------- Eventos ---------- */
+document.getElementById('tabs').onclick = e => { if (e.target.dataset.v) { grupo = e.target.dataset.v; render(); } };
+document.getElementById('filters').onclick = e => { if (e.target.dataset.v) { filtro = e.target.dataset.v; render(); } };
+document.getElementById('q').oninput = e => { texto = e.target.value; render(); };
+
+const modal = document.getElementById('modal'), pw = document.getElementById('pw'), err = document.getElementById('err');
+function abrir() { pw.value = ''; err.textContent = ''; modal.classList.add('on'); pw.focus(); }
+function intentar() {
+  if (cyrb53(pw.value) === PW_HASH) { profesor = true; modal.classList.remove('on'); render(); }
+  else { err.textContent = 'Contraseña incorrecta'; pw.select(); }
+}
+document.getElementById('bar').onclick = e => {
+  if (e.target.id === 'bIn') abrir();
+  if (e.target.id === 'bOut') { profesor = false; render(); }
+};
+document.getElementById('pwOk').onclick = intentar;
+document.getElementById('pwNo').onclick = () => modal.classList.remove('on');
+pw.onkeydown = e => { if (e.key === 'Enter') intentar(); if (e.key === 'Escape') modal.classList.remove('on'); };
+
+// Edición en vivo (solo profesor)
+document.getElementById('out').onchange = e => {
+  const t = e.target; if (!profesor || t.dataset.i === undefined) return;
+  const r = DATA[t.dataset.g][+t.dataset.i], f = +t.dataset.f;
+  if (f === 0) { const v = t.value.trim(); if (v) { r[0] = v; ordenar(t.dataset.g); } }
+  else { const n = nota(t.value); if (n !== undefined) r[f] = n; }
+  guardar(); render();
+};
+document.getElementById('out').onclick = e => {
+  const t = e.target.closest('[data-del]'); if (!t || !profesor) return;
+  const r = DATA[t.dataset.g][+t.dataset.i];
+  if (confirm('¿Eliminar a ' + r[0] + ' del grupo ' + t.dataset.g + '?')) { DATA[t.dataset.g].splice(+t.dataset.i, 1); guardar(); render(); }
+};
+document.getElementById('bAdd').onclick = () => {
+  const nom = document.getElementById('nNom').value.trim(), g = document.getElementById('nGrp').value;
+  if (!nom) return alert('Escribe el nombre del estudiante.');
+  const ns = ['n1', 'n2', 'n3'].map(id => nota(document.getElementById(id).value));
+  if (ns.includes(undefined)) return alert('Los promedios deben ser números entre 1 y 5.');
+  DATA[g].push([nom, ...ns]); ordenar(g);
+  ['nNom', 'n1', 'n2', 'n3'].forEach(id => document.getElementById(id).value = '');
+  guardar(); render();
+};
+document.getElementById('bExp').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(DATA, null, 1)], { type: 'application/json' }));
+  a.download = 'eximidos_respaldo_' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); URL.revokeObjectURL(a.href);
+};
+document.getElementById('bImp').onclick = () => document.getElementById('file').click();
+document.getElementById('file').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try { const d = JSON.parse(rd.result); if (!valido(d)) throw 0;
+      if (confirm('Esto reemplazará los datos actuales. ¿Continuar?')) { DATA = d; guardar(); render(); } }
+    catch (x) { alert('El archivo no es un respaldo válido.'); }
+    e.target.value = '';
+  };
+  rd.readAsText(f);
+};
+document.getElementById('bRes').onclick = () => {
+  if (confirm('¿Restaurar los datos originales? Se perderán los cambios guardados.')) { DATA = clone(DEFAULT); guardar(); render(); }
+};
+
+cargar(); render();
+</script>
+</body>
+</html>
